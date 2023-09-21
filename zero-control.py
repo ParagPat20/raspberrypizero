@@ -126,4 +126,4 @@ def Control(drone, control_params):
     drone.DroneState()
 
 # Start the client
-Client_Start('192.168.1.9', 12345)
+Client_Start('192.168.14.101', 12345)
