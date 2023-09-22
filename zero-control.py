@@ -8,7 +8,6 @@ from dronekit import connect, VehicleMode
 from pymavlink import mavutil
 import time
 import socket
-import threading
 
 class Drone:
     def __init__(self, connection_string):
@@ -28,7 +27,7 @@ class Drone:
         # send command to vehicle on 1 Hz cycle
         for x in range(0,duration):
             self.vehicle.send_mavlink(msg)
-            time.sleep(0.5)
+            time.sleep(1)
 
     def takeoff(self):
         print("Taking off!")
@@ -52,7 +51,7 @@ class Drone:
         while not self.vehicle.armed:
             print("Waiting for arming...")
             self.vehicle.armed = True
-            time.sleep(0.1)
+            time.sleep(1)
 
         print("Vehicle Armed")
 
@@ -93,7 +92,7 @@ def Client_Start(server_ip, server_port):
     print("Connected to the server")
 
     # Create a Drone instance
-    my_drone = Drone('tcp:127.0.0.1:5762')
+    my_drone = Drone('/dev/ttyAMA0')
 
     while True:
         # Send P dictionary values to the server
@@ -106,7 +105,7 @@ def Client_Start(server_ip, server_port):
         # Process the received data as needed
         Control(my_drone, C)
 
-        time.sleep(0.1)  # Adjust the sleep interval as needed
+        time.sleep(0.5)  # Adjust the sleep interval as needed
 
 
 def Control(drone, control_params):
