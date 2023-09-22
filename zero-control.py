@@ -10,8 +10,8 @@ import time
 import socket
 
 class Drone:
-    def __init__(self, connection_string):
-        self.vehicle = connect(connection_string)
+    def __init__(self, connection_string,baudrate=None):
+        self.vehicle = connect(connection_string,baud = baudrate)
 
     def send_ned_velocity(self, velocity_x, velocity_y, velocity_z, duration):
 
@@ -92,7 +92,7 @@ def Client_Start(server_ip, server_port):
     print("Connected to the server")
 
     # Create a Drone instance
-    my_drone = Drone('/dev/serial0')
+    my_drone = Drone('/dev/serial0',baudrate=921600)
 
     while True:
         # Send P dictionary values to the server
