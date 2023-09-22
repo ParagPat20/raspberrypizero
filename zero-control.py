@@ -92,7 +92,7 @@ def Client_Start(server_ip, server_port):
     print("Connected to the server")
 
     # Create a Drone instance
-    my_drone = Drone('/dev/ttyAMA0')
+    my_drone = Drone('/dev/serial1')
 
     while True:
         # Send P dictionary values to the server
