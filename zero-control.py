@@ -1,8 +1,15 @@
 ##########** CODE FOR PI ZERO **##########
 
 # Variables for drone
-P = {'Batt':0, 'Groundspeed':0, 'ARM':0, 'GPS':0, 'Altitude':0, 'MODE':None, 'VelocityX':0, 'VelocityY':0, 'VelocityZ':0}
-C = {'vx': 0, 'vy': 0, 'vz': 0, 'Arming': 0, 'Mode': 'GUIDED', 'Takeoff':0}
+P = {
+    0: {'Batt': 0, 'Groundspeed': 0, 'ARM': 0, 'GPS': 0, 'Altitude': 0, 'MODE': None, 'VelocityX': 0, 'VelocityY': 0, 'VelocityZ': 0},
+    1: {'Batt': 0, 'Groundspeed': 0, 'ARM': 0, 'GPS': 0, 'Altitude': 0, 'MODE': None, 'VelocityX': 0, 'VelocityY': 0, 'VelocityZ': 0}
+}
+
+C = {
+    0: {'vx': 0, 'vy': 0, 'vz': 0, 'Arming': 0, 'Mode': 'GUIDED', 'Takeoff': 0},
+    1: {'vx': 0, 'vy': 0, 'vz': 0, 'Arming': 0, 'Mode': 'GUIDED', 'Takeoff': 0}
+}
 
 from dronekit import connect, VehicleMode
 from pymavlink import mavutil
@@ -93,17 +100,23 @@ def Client_Start(server_ip, server_port):
 
     # Create a Drone instance
     my_drone = Drone('/dev/serial0',baudrate=921600)
+    my_drone2 = Drone('0.0.0.0:14550',baudrate=921600)
 
     while True:
-        # Send P dictionary values to the server
-        p_str = str(P)
-        client_socket.send(p_str.encode())
+        p_str1 = str(P[1])
+        client_socket.send(p_str1.encode())
 
-        # Receive C dictionary values from the server
-        c_str = client_socket.recv(1024).decode()
-        C = eval(c_str)  # Convert the received string back to a dictionary
-        # Process the received data as needed
-        Control(my_drone, C)
+    # Send P dictionary values for the second drone to the server
+        p_str2 = str(P[2])
+        client_socket.send(p_str2.encode())
+
+    # Receive C dictionary values from the server
+        c_str = client_socket.recv(2048).decode()
+        control_params = eval(c_str)  # Convert the received string back to a dictionary
+
+    # Process the received data as needed for both drones
+        Control(my_drone, control_params[1])  # Pass the control parameters for the first drone
+        Control(my_drone2, control_params[2])  # Pass the control parameters for the second drone
 
         time.sleep(0.5)  # Adjust the sleep interval as needed
 
