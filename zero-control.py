@@ -99,8 +99,8 @@ def Client_Start(server_ip, server_port):
     print("Connected to the server")
 
     # Create a Drone instance
-    my_drone = Drone('/dev/serial0',baudrate=921600)
-    my_drone2 = Drone('0.0.0.0:14550',baudrate=921600)
+    my_drone = Drone('/dev/serial0',baudrate=115200)
+    my_drone2 = Drone('0.0.0.0:14550',baudrate=115200)
 
     while True:
         p_str1 = str(P[1])
