@@ -121,18 +121,18 @@ def Client_Start(server_ip, server_port):
                 my_drone = Drone('/dev/serial0',baudrate=115200)
                 print("Main Drone initialized")
                 drone1_init = True
-            Control(my_drone, control_params[0])  # Pass the control parameters for the first drone
+            Control(my_drone, control_params['0'])  # Pass the control parameters for the first drone
         
         if droneid == 1:
             if drone2_init == False:
                 my_drone2 = Drone('0.0.0.0:14550')
                 print("Drone2 Initialized")
                 drone1_init = True
-            Control(my_drone2, control_params[1])  # Pass the control parameters for the second drone
+            Control(my_drone2, control_params['1'])  # Pass the control parameters for the second drone
 
         if droneid == -1:
-            Control(my_drone, control_params[0])  # Pass the control parameters for the first drone
-            Control(my_drone2, control_params[1])  # Pass the control parameters for the second drone
+            Control(my_drone, control_params['0'])  # Pass the control parameters for the first drone
+            Control(my_drone2, control_params['1'])  # Pass the control parameters for the second drone
 
         time.sleep(0.5)  # Adjust the sleep interval as needed
 
