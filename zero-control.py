@@ -103,11 +103,11 @@ def Client_Start(server_ip, server_port):
     drone1_init = False
     drone2_init = False
     while True:
-        p_str1 = str(P[1])
+        p_str1 = str(P[0])
         client_socket.send(p_str1.encode())
 
     # Send P dictionary values for the second drone to the server
-        p_str2 = str(P[2])
+        p_str2 = str(P[1])
         client_socket.send(p_str2.encode())
 
     # Receive C dictionary values from the server
