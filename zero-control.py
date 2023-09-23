@@ -8,7 +8,8 @@ P = {
 
 C = {
     0: {'vx': 0, 'vy': 0, 'vz': 0, 'Arming': 0, 'Mode': 'GUIDED', 'Takeoff': 0},
-    1: {'vx': 0, 'vy': 0, 'vz': 0, 'Arming': 0, 'Mode': 'GUIDED', 'Takeoff': 0}
+    1: {'vx': 0, 'vy': 0, 'vz': 0, 'Arming': 0, 'Mode': 'GUIDED', 'Takeoff': 0},
+    'drone': None
 }
 
 from dronekit import connect, VehicleMode
@@ -97,11 +98,10 @@ def Client_Start(server_ip, server_port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((server_ip, server_port))
     print("Connected to the server")
-
-    # Create a Drone instance
-    my_drone = Drone('/dev/serial0',baudrate=115200)
-    my_drone2 = Drone('0.0.0.0:14550',baudrate=115200)
-
+    my_drone = None
+    my_drone2 = None
+    drone1_init = False
+    drone2_init = False
     while True:
         p_str1 = str(P[1])
         client_socket.send(p_str1.encode())
@@ -114,9 +114,23 @@ def Client_Start(server_ip, server_port):
         c_str = client_socket.recv(2048).decode()
         control_params = eval(c_str)  # Convert the received string back to a dictionary
 
-    # Process the received data as needed for both drones
-        Control(my_drone, control_params[1])  # Pass the control parameters for the first drone
-        Control(my_drone2, control_params[2])  # Pass the control parameters for the second drone
+        if C['drone'] == 0:
+            if drone1_init == False:
+                my_drone = Drone('/dev/serial0',baudrate=115200)
+                print("Main Drone initialized")
+                drone1_init = True
+            Control(my_drone, control_params[1])  # Pass the control parameters for the first drone
+        
+        if C['drone'] == 1:
+            if drone2_init == False:
+                my_drone2 = Drone('0.0.0.0:14550')
+                print("Drone2 Initialized")
+                drone1_init = True
+            Control(my_drone2, control_params[2])  # Pass the control parameters for the second drone
+
+        if C['drone'] == -1:
+            Control(my_drone, control_params[1])  # Pass the control parameters for the first drone
+            Control(my_drone2, control_params[2])  # Pass the control parameters for the second drone
 
         time.sleep(0.5)  # Adjust the sleep interval as needed
 
