@@ -103,12 +103,8 @@ def Client_Start(server_ip, server_port):
     drone1_init = False
     drone2_init = False
     while True:
-        p_str1 = str(P[0])
-        client_socket.send(p_str1.encode())
-
-    # Send P dictionary values for the second drone to the server
-        p_str2 = str(P[1])
-        client_socket.send(p_str2.encode())
+        p_str = str(P)
+        client_socket.send(p_str.encode())
 
     # Receive C dictionary values from the server
         c_str = client_socket.recv(2048).decode()
@@ -126,7 +122,7 @@ def Client_Start(server_ip, server_port):
             if drone2_init == False:
                 my_drone2 = Drone('0.0.0.0:14550')
                 print("Drone2 Initialized")
-                drone1_init = True
+                drone2_init = True
             Control(my_drone2, control_params[1])  # Pass the control parameters for the second drone
 
         if control_params['drone'] == -1:
