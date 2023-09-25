@@ -146,8 +146,8 @@ def Control(drone, control_params):
         drone.takeoff()
         print("Here")
     
-    if P['MODE'] != 'VehicleMode:'+control_params['Mode']:
-        drone.vehicle.mode = VehicleMode(control_params['Mode'])
+    # if P['MODE'] != 'VehicleMode:'+control_params['Mode']:
+    #     drone.vehicle.mode = VehicleMode(control_params['Mode'])
 
     drone.send_ned_velocity(control_params['vx'], control_params['vy'], control_params['vz'], 1)
     drone.DroneState()
