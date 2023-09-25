@@ -113,10 +113,8 @@ def Client_Start(server_ip, server_port):
     # Receive C dictionary values from the server
         c_str = client_socket.recv(2048).decode()
         control_params = eval(c_str)  # Convert the received string back to a dictionary
-        c_drone = client_socket.recv(1024).decode()
-        droneid = eval(c_drone) # Convert the received string back
 
-        if droneid == 0:
+        if control_params['drone'] == 0:
             if drone1_init == False:
                 my_drone = Drone('/dev/serial0',baudrate=115200)
                 # my_drone = Drone('tcp:127.0.0.1:5762')
@@ -124,14 +122,14 @@ def Client_Start(server_ip, server_port):
                 drone1_init = True
             Control(my_drone, control_params[0])  # Pass the control parameters for the first drone
         
-        if droneid == 1:
+        if control_params['drone'] == 1:
             if drone2_init == False:
                 my_drone2 = Drone('0.0.0.0:14550')
                 print("Drone2 Initialized")
                 drone1_init = True
             Control(my_drone2, control_params[1])  # Pass the control parameters for the second drone
 
-        if droneid == -1:
+        if control_params['drone'] == -1:
             Control(my_drone, control_params[0])  # Pass the control parameters for the first drone
             Control(my_drone2, control_params[1])  # Pass the control parameters for the second drone
 
