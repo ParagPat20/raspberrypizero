@@ -139,7 +139,7 @@ def Client_Start(server_ip, server_port):
 def Control(drone, control_params):
 
     if control_params['Arming'] == 1:
-        drone.arm(mode='GUIDED')
+        drone.arm(mode='STABILIZE')
 
     if control_params['Takeoff'] == 1:
         drone.arm(mode='GUIDED')
