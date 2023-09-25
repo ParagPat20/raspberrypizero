@@ -118,14 +118,15 @@ def Client_Start(server_ip, server_port):
 
         if droneid == 0:
             if drone1_init == False:
-                my_drone = Drone('/dev/serial0',baudrate=115200)
+                # my_drone = Drone('/dev/serial0',baudrate=115200)
+                my_drone = Drone('tcp:127.0.0.1:5762')
                 print("Main Drone initialized")
                 drone1_init = True
             Control(my_drone, control_params['0'])  # Pass the control parameters for the first drone
         
         if droneid == 1:
             if drone2_init == False:
-                my_drone2 = Drone('0.0.0.0:14550')
+                my_drone2 = Drone('tcp:127.0.0.1:5772')
                 print("Drone2 Initialized")
                 drone1_init = True
             Control(my_drone2, control_params['1'])  # Pass the control parameters for the second drone
