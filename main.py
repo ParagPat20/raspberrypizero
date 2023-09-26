@@ -31,9 +31,10 @@ def Client_Start(server_ip, server_port):
     print("Connected to the server")
     drone1_init = False
     drone2_init = False
-    thread = threading.Thread(target=send,args=(client_socket,))
-    thread.start()
+    
     while True:
+        thread = threading.Thread(target=send,args=(client_socket,))
+        thread.start()
         if C['Drone'] == 1:
             if drone1_init == False:
                 print("D1 initializing")
