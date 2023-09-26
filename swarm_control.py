@@ -87,6 +87,8 @@ def Client_Start(server_ip, server_port):
     drone1_init = False
     drone2_init = False
 
+    data_buffer = ""  # Initialize a buffer to accumulate received data
+
     while True:
         data = client_socket.recv(1024).decode()
 
@@ -94,30 +96,43 @@ def Client_Start(server_ip, server_port):
             print("Connection closed by the server.")
             break
 
-        try:
-            control_params = json.loads(data)
-        except json.JSONDecodeError as e:
-            print(f"Error decoding JSON data: {e}")
-            continue
+        # Append the received data to the buffer
+        data_buffer += data
 
-        # Receive C dictionary values from the server
-        if control_params['Drone'] == 1:
-            if drone1_init == False:
-                my_drone = Drone('/dev/serial0', baudrate=115200)
-                print("Main Drone initialized")
-                drone1_init = True
-            Control(my_drone, control_params)  # Pass the control parameters for the first drone
+        # Check if there is a complete JSON object in the buffer
+        while '}' in data_buffer:
+            # Extract the first JSON object from the buffer
+            json_start = data_buffer.find('{')
+            json_end = data_buffer.find('}') + 1
+            json_data = data_buffer[json_start:json_end]
 
-        if control_params['Drone'] == 2:
-            if drone2_init == False:
-                my_drone2 = Drone('0.0.0.0:14550')
-                print("Drone2 Initialized")
-                drone2_init = True
-            Control(my_drone2, control_params)  # Pass the control parameters for the second drone
+            try:
+                control_params = json.loads(json_data)
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON data: {e}")
+                break  # Skip this JSON object and continue with the next
 
-        if control_params['Drone'] == -1:
-            Control(my_drone, control_params)  # Pass the control parameters for the first drone
-            Control(my_drone2, control_params)  # Pass the control parameters for the second drone
+            # Handle the JSON data
+            if control_params['Drone'] == 1:
+                if not drone1_init:
+                    my_drone = Drone('/dev/serial0', baudrate=115200)
+                    print("Main Drone initialized")
+                    drone1_init = True
+                Control(my_drone, control_params)  # Pass the control parameters for the first drone
+
+            if control_params['Drone'] == 2:
+                if not drone2_init:
+                    my_drone2 = Drone('0.0.0.0:14550')
+                    print("Drone2 Initialized")
+                    drone2_init = True
+                Control(my_drone2, control_params)  # Pass the control parameters for the second drone
+
+            if control_params['Drone'] == -1:
+                Control(my_drone, control_params)  # Pass the control parameters for the first drone
+                Control(my_drone2, control_params)  # Pass the control parameters for the second drone
+
+            # Remove the processed JSON object from the buffer
+            data_buffer = data_buffer[json_end:]
 
         time.sleep(1)  # Adjust the sleep interval as needed
 
