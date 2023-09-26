@@ -34,30 +34,31 @@ def Client_Start(server_ip, server_port):
     C = eval(c_str) 
     print(C) # Convert the received string back to a dictionary
     print("Connected to the server")
-    if C['Drone'] == 1:
+    
+    while True:
+        if C['Drone'] == 1:
             print("D1 initializing")
             # D1 = connect('tcp:127.0.0.1:5762')
             D1 = connect('/dev/serial0', baud= 115200)
             print("D1 Initialized")
 
-    if C['Drone'] == 2:
-        print("D2 initializing")
-        # D2 = connect('tcp:127.0.0.1:5772')
-        D2 = connect('0.0.0.0:14550')
-        print("D2 Initialized")
-    while True:
-        if C['mstart'] == 1:   
-            while True:
-                # Receive C dictionary values from the server
-                c_str = client_socket.recv(2048).decode()
-                C = eval(c_str)  # Convert the received string back to a dictionary
-                
-                if C['Drone'] == 1:
-                    control(D1)
+        if C['Drone'] == 2:
+            print("D2 initializing")
+            # D2 = connect('tcp:127.0.0.1:5772')
+            D2 = connect('0.0.0.0:14550')
+            print("D2 Initialized")
+            if C['mstart'] == 1:   
+                while True:
+                    # Receive C dictionary values from the server
+                    c_str = client_socket.recv(2048).decode()
+                    C = eval(c_str)  # Convert the received string back to a dictionary
+                    
+                    if C['Drone'] == 1:
+                        control(D1)
 
-                if C['Drone'] == 2:
-                    control(D2)
+                    if C['Drone'] == 2:
+                        control(D2)
 
-                time.sleep(0.5)  # Adjust the sleep interval as needed
+                    time.sleep(0.5)  # Adjust the sleep interval as needed
 
 Client_Start('192.168.14.101',12345)
