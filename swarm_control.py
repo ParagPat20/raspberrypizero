@@ -1,16 +1,6 @@
 ##########** CODE FOR PI ZERO **##########
 
-# Variables for drone
-P = {
-    0: {'Batt': 0, 'Groundspeed': 0, 'ARM': 0, 'GPS': 0, 'Altitude': 0, 'MODE': None, 'VelocityX': 0, 'VelocityY': 0, 'VelocityZ': 0},
-    1: {'Batt': 0, 'Groundspeed': 0, 'ARM': 0, 'GPS': 0, 'Altitude': 0, 'MODE': None, 'VelocityX': 0, 'VelocityY': 0, 'VelocityZ': 0}
-}
-
-C = {
-    0: {'vx': 0, 'vy': 0, 'vz': 0, 'Arming': 0, 'Mode': 'GUIDED', 'Takeoff': 0},
-    1: {'vx': 0, 'vy': 0, 'vz': 0, 'Arming': 0, 'Mode': 'GUIDED', 'Takeoff': 0},
-    'drone': None
-}
+C = {'Drone': 0,'vx': 0, 'vy': 0, 'vz': 0, 'Arming': 0, 'Mode': 'GUIDED', 'Takeoff': 0}
 
 from dronekit import connect, VehicleMode
 from pymavlink import mavutil
@@ -82,16 +72,6 @@ class Drone:
         self.vehicle.close()
         print("Completed")
 
-    def DroneState(self):
-        P['Batt'] = self.vehicle.battery.voltage  # Battery voltage
-        P['Groundspeed'] = self.vehicle.groundspeed  # Groundspeed
-        P['ARM'] = int(self.vehicle.armed)  # Armed status (1 for armed, 0 for disarmed)
-        P['GPS'] = int(self.vehicle.gps_0.fix_type)  # GPS fix type (e.g., 3 for 3D fix)
-        P['Altitude'] = self.vehicle.location.global_relative_frame.alt  # Altitude above home location
-        P['MODE'] = str(self.vehicle.mode)  # Flight mode
-        P['VelocityX'] = self.vehicle.velocity[0]  # Velocity in X direction (North)
-        P['VelocityY'] = self.vehicle.velocity[1]  # Velocity in Y direction (East)
-        P['VelocityZ'] = self.vehicle.velocity[2]  # Velocity in Z direction (Down)
 
 def Client_Start(server_ip, server_port):
     # Create a socket object and connect to the server
@@ -103,14 +83,12 @@ def Client_Start(server_ip, server_port):
     drone1_init = False
     drone2_init = False
     while True:
-        p_str = str(P)
-        client_socket.send(p_str.encode())
 
     # Receive C dictionary values from the server
         c_str = client_socket.recv(2048).decode()
         control_params = eval(c_str)  # Convert the received string back to a dictionary
 
-        if control_params['drone'] == 0:
+        if control_params['Drone'] == 0:
             if drone1_init == False:
                 my_drone = Drone('/dev/serial0',baudrate=115200)
                 # my_drone = Drone('tcp:127.0.0.1:5762')
@@ -118,14 +96,14 @@ def Client_Start(server_ip, server_port):
                 drone1_init = True
             Control(my_drone, control_params[0])  # Pass the control parameters for the first drone
         
-        if control_params['drone'] == 1:
+        if control_params['Drone'] == 1:
             if drone2_init == False:
                 my_drone2 = Drone('0.0.0.0:14550')
                 print("Drone2 Initialized")
                 drone2_init = True
             Control(my_drone2, control_params[1])  # Pass the control parameters for the second drone
 
-        if control_params['drone'] == -1:
+        if control_params['Drone'] == -1:
             Control(my_drone, control_params[0])  # Pass the control parameters for the first drone
             Control(my_drone2, control_params[1])  # Pass the control parameters for the second drone
 
@@ -146,7 +124,6 @@ def Control(drone, control_params):
     #     drone.vehicle.mode = VehicleMode(control_params['Mode'])
 
     drone.send_ned_velocity(control_params['vx'], control_params['vy'], control_params['vz'], 1)
-    drone.DroneState()
 
 # Start the client
 Client_Start('192.168.14.101', 12345)
