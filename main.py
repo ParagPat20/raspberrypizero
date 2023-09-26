@@ -53,6 +53,10 @@ def Client_Start(server_ip, server_port):
                 drone2_init = True
                 print("D2 Initialized")
             control(D2)
+
+        if C['Drone'] == 3:
+            control(D1)
+            control(D2)
         
         time.sleep(0.5)
             
