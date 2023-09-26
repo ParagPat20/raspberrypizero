@@ -14,7 +14,6 @@ class Drone:
         self.vehicle = connect(connection_string,baud = baudrate)
 
     def send_ned_velocity(self, velocity_x, velocity_y, velocity_z, duration):
-
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
             0,       # time_boot_ms (not used)
             0, 0,    # target system, target component
@@ -24,6 +23,7 @@ class Drone:
             velocity_x, velocity_y, velocity_z, # x, y, z velocity in m/s
             0, 0, 0, # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
             0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+        
         # send command to vehicle on 1 Hz cycle
         for x in range(0,duration):
             self.vehicle.send_mavlink(msg)
@@ -73,15 +73,32 @@ class Drone:
     def exit(self):
         self.vehicle.close()
         print("Completed")
+
 def send(client_socket):
     c_str = client_socket.recv(1024).decode()
     control_params = eval(c_str)  # Convert the received string back to a dictionary
 
-def Client_Start(server_ip, server_port):
-    # Create a socket object and connect to the server
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((server_ip, server_port))
-    print("Connected to the server")
+def receive_data(client_socket, data_buffer):
+    while True:
+        data = client_socket.recv(1024).decode()
+
+        if not data:
+            print("Connection closed by the server.")
+            break
+
+        # Append the received data to the buffer
+        data_buffer.append(data)
+
+def Control(drone, control_params):
+    if control_params['Arming'] == 1:
+        drone.arm(mode='STABILIZE')
+
+    if control_params['Takeoff'] == 1:
+        drone.arm(mode='GUIDED')
+        drone.takeoff()
+        print("Here")
+
+def Client_Start(client_socket):
     my_drone = None
     my_drone2 = None
     drone1_init = False
@@ -111,7 +128,7 @@ def Client_Start(server_ip, server_port):
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON data: {e}")
                 break  # Skip this JSON object and continue with the next
-            print(control_params)
+
             # Handle the JSON data
             if control_params['Drone'] == 1:
                 if not drone1_init:
@@ -133,25 +150,67 @@ def Client_Start(server_ip, server_port):
 
             # Remove the processed JSON object from the buffer
             data_buffer = data_buffer[json_end:]
+def process_data(data_buffer):
+    my_drone = None
+    my_drone2 = None
+    drone1_init = False
+    drone2_init = False
 
-        time.sleep(1)  # Adjust the sleep interval as needed
+    while True:
+        if not data_buffer:
+            time.sleep(1)
+            continue
 
+        # Get the oldest data from the buffer
+        data = data_buffer.pop(0)
 
-def Control(drone, control_params):
+        # Check if there is a complete JSON object in the data
+        while '}' in data:
+            json_start = data.find('{')
+            json_end = data.find('}') + 1
+            json_data = data[json_start:json_end]
 
-    if control_params['Arming'] == 1:
-        drone.arm(mode='STABILIZE')
+            try:
+                control_params = json.loads(json_data)
+            except json.JSONDecodeError as e:
+                print(f"Error decoding JSON data: {e}")
+                break  # Skip this JSON object and continue with the next
 
-    if control_params['Takeoff'] == 1:
-        drone.arm(mode='GUIDED')
-        drone.takeoff()
-        print("Here")
-    
-    # if P['MODE'] != 'VehicleMode:'+control_params['Mode']:
-    #     drone.vehicle.mode = VehicleMode(control_params['Mode'])
+            # Handle the JSON data
+            if control_params['Drone'] == 1:
+                if not drone1_init:
+                    my_drone = Drone('/dev/serial0', baudrate=115200)
+                    print("Main Drone initialized")
+                    drone1_init = True
+                Control(my_drone, control_params)  # Pass the control parameters for the first drone
 
-    drone.send_ned_velocity(control_params['vx'], control_params['vy'], control_params['vz'], 1)
+            if control_params['Drone'] == 2:
+                if not drone2_init:
+                    my_drone2 = Drone('0.0.0.0:14550')
+                    print("Drone2 Initialized")
+                    drone2_init = True
+                Control(my_drone2, control_params)  # Pass the control parameters for the second drone
+
+            if control_params['Drone'] == -1:
+                Control(my_drone, control_params)  # Pass the control parameters for the first drone
+                Control(my_drone2, control_params)  # Pass the control parameters for the second drone
+
+            # Remove the processed JSON object from the data
+            data = data[json_end:]
+
+# Create a socket object and connect to the server
+client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+client_socket.connect(('192.168.14.101', 12345))
+print("Connected to the server")
+
+# Create a thread for receiving data
+data_buffer = []
+receive_thread = threading.Thread(target=receive_data, args=(client_socket, data_buffer))
+receive_thread.start()
+
+# Process data in a separate thread
+process_thread = threading.Thread(target=process_data, args=(data_buffer,))
+process_thread.start()
 
 # Start the client
-Client_Start('192.168.14.101', 12345)
-# Running into pi
+Client_Start(client_socket)
