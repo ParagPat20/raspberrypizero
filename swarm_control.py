@@ -85,7 +85,7 @@ def Client_Start(server_ip, server_port):
     my_drone2 = None
     drone1_init = False
     drone2_init = False
-    control_params = None
+    control_params = {}
     while True:
 
     # Receive C dictionary values from the server
