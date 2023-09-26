@@ -11,12 +11,14 @@ P = {
 
 if C['Drone'] == 1:
     print("D1 initializing")
-    D1 = connect('tcp:127.0.0.1:5762')
+    # D1 = connect('tcp:127.0.0.1:5762')
+    D1 = connect('/dev/serial0', baud= 115200)
     print("D1 Initialized")
 
 if C['Drone'] == 2:
     print("D2 initializing")
-    D2 = connect('tcp:127.0.0.1:5772')
+    # D2 = connect('tcp:127.0.0.1:5772')
+    D2 = connect('0.0.0.0:14550')
     print("D2 Initialized")
 
 def control(controling_drone):
