@@ -86,21 +86,28 @@ def Client_Start(server_ip, server_port):
     my_drone2 = None
     drone1_init = False
     drone2_init = False
-    control_params = {}
-    data = client_socket.recv(1024).decode()
-    control_params = json.loads(data)
+
     while True:
         data = client_socket.recv(1024).decode()
-        control_params = json.loads(data)
-    # Receive C dictionary values from the server
+
+        if not data:
+            print("Connection closed by the server.")
+            break
+
+        try:
+            control_params = json.loads(data)
+        except json.JSONDecodeError as e:
+            print(f"Error decoding JSON data: {e}")
+            continue
+
+        # Receive C dictionary values from the server
         if control_params['Drone'] == 1:
             if drone1_init == False:
-                my_drone = Drone('/dev/serial0',baudrate=115200)
-                # my_drone = Drone('tcp:127.0.0.1:5762')
+                my_drone = Drone('/dev/serial0', baudrate=115200)
                 print("Main Drone initialized")
                 drone1_init = True
             Control(my_drone, control_params)  # Pass the control parameters for the first drone
-        
+
         if control_params['Drone'] == 2:
             if drone2_init == False:
                 my_drone2 = Drone('0.0.0.0:14550')
