@@ -53,4 +53,4 @@ def Client_Start(server_ip, server_port):
 
             time.sleep(0.5)  # Adjust the sleep interval as needed
 
-Client_Start('192.168.4.1',12345)
+Client_Start('192.168.14.101',12345)
