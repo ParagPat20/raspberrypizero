@@ -1,21 +1,25 @@
 from dronekit import connect, VehicleMode
 from pymavlink import mavutil
 import time
+import threading
 import socket
 
 C = {}
-P = {
-    1:{'Batt': 0, 'Groundspeed': 0, 'ARM': 0, 'GPS': 0, 'Altitude': 0, 'MODE': None, 'VelocityX': 0, 'VelocityY': 0, 'VelocityZ': 0},
-    2:{'Batt': 0, 'Groundspeed': 0, 'ARM': 0, 'GPS': 0, 'Altitude': 0, 'MODE': None, 'VelocityX': 0, 'VelocityY': 0, 'VelocityZ': 0}
-}
 
 
 def control(controling_drone):
     if C['Arming'] == 1:
         controling_drone.arm()
 
+def send(client_socket):
+    # Receive C dictionary values from the server
+    global C
+    c_str = client_socket.recv(1024).decode()
+    C = eval(c_str)  # Convert the received string back to a dictionary
+    print(C)
+
 def Client_Start(server_ip, server_port):
-    global C,P
+    global C
     
     # Create a socket object and connect to the server
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -28,10 +32,8 @@ def Client_Start(server_ip, server_port):
     drone1_init = False
     drone2_init = False
     while True:
-        # Receive C dictionary values from the server
-        c_str = client_socket.recv(1024).decode()
-        C = eval(c_str)  # Convert the received string back to a dictionary
-        print(C)
+        thread = threading.Thread(target=send,args=(client_socket,))
+        thread.start()
         if C['Drone'] == 1:
             if drone1_init == False:
                 print("D1 initializing")
