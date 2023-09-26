@@ -6,6 +6,7 @@ from dronekit import connect, VehicleMode
 from pymavlink import mavutil
 import time
 import socket
+import threading
 
 class Drone:
     def __init__(self, connection_string,baudrate=None):
@@ -90,7 +91,9 @@ def Client_Start(server_ip, server_port):
     # Receive C dictionary values from the server
         p_str1 = str(P)
         client_socket.send(p_str1.encode())
-        send(client_socket)
+        send_thread = threading.Thread(target=send, args=(client_socket,))
+        send_thread.setDaemon(True)
+        send_thread.start()
 
         if control_params['Drone'] == 1:
             if drone1_init == False:
