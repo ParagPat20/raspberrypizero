@@ -87,21 +87,11 @@ def Client_Start(server_ip, server_port):
     drone1_init = False
     drone2_init = False
     control_params = {}
-    recdata = b""
+    data = client_socket.recv(1024).decode()
+    control_params = json.loads(data)
     while True:
         data = client_socket.recv(1024).decode()
-        if not data:
-            break
-        recdata+=data
-    control_params = json.loads(recdata)
-    while True:
-        recdata = b""
-        while True:
-            data = client_socket.recv(1024).decode()
-            if not data:
-                break
-            recdata+=data
-        control_params = json.loads(recdata)
+        control_params = json.loads(data)
     # Receive C dictionary values from the server
         if control_params['Drone'] == 1:
             if drone1_init == False:
