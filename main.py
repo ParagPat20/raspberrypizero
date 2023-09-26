@@ -25,11 +25,13 @@ def control(controling_drone):
 
 def Client_Start(server_ip, server_port):
     global C,P
-    c_str = client_socket.recv(2048).decode()
-    C = eval(c_str)  # Convert the received string back to a dictionary
+    
     # Create a socket object and connect to the server
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((server_ip, server_port))
+
+    c_str = client_socket.recv(2048).decode()
+    C = eval(c_str)  # Convert the received string back to a dictionary
     print("Connected to the server")
     if C['Drone'] == 1:
             print("D1 initializing")
