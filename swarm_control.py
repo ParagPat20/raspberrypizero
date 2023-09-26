@@ -6,7 +6,6 @@ from dronekit import connect, VehicleMode
 from pymavlink import mavutil
 import time
 import socket
-import json
 
 class Drone:
     def __init__(self, connection_string,baudrate=None):
@@ -72,7 +71,9 @@ class Drone:
     def exit(self):
         self.vehicle.close()
         print("Completed")
-
+def send(client_socket):
+    c_str = client_socket.recv(1024).decode()
+    control_params = eval(c_str)  # Convert the received string back to a dictionary
 
 def Client_Start(server_ip, server_port):
     # Create a socket object and connect to the server
@@ -83,13 +84,13 @@ def Client_Start(server_ip, server_port):
     my_drone2 = None
     drone1_init = False
     drone2_init = False
+    control_params = None
     while True:
 
     # Receive C dictionary values from the server
         p_str1 = str(P)
         client_socket.send(p_str1.encode())
-        c_str = client_socket.recv(1024).decode()
-        control_params = json.loads(c_str)  # Convert the received string back to a dictionary
+        send(client_socket)
 
         if control_params['Drone'] == 1:
             if drone1_init == False:
