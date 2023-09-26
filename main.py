@@ -55,7 +55,6 @@ def Client_Start(server_ip, server_port):
             print("D2 Initialized")
         else:
             print('Not initializeed')
-        print(C)
         if C['mstart'] == 1:   
             while True:
                 # Receive C dictionary values from the server
