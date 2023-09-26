@@ -7,6 +7,7 @@ from pymavlink import mavutil
 import time
 import socket
 import threading
+import json
 
 class Drone:
     def __init__(self, connection_string,baudrate=None):
@@ -86,16 +87,22 @@ def Client_Start(server_ip, server_port):
     drone1_init = False
     drone2_init = False
     control_params = {}
-    c_str = client_socket.recv(1024).decode()
-    control_params = eval(c_str)
+    recdata = b""
     while True:
+        data = client_socket.recv(1024).decode()
+        if not data:
+            break
+        recdata+=data
+    control_params = json.loads(recdata)
+    while True:
+        recdata = b""
+        while True:
+            data = client_socket.recv(1024).decode()
+            if not data:
+                break
+            recdata+=data
+        control_params = json.loads(recdata)
     # Receive C dictionary values from the server
-        p_str1 = str(P)
-        client_socket.send(p_str1.encode())
-        send_thread = threading.Thread(target=send, args=(client_socket,))
-        send_thread.setDaemon(True)
-        send_thread.start()
-
         if control_params['Drone'] == 1:
             if drone1_init == False:
                 my_drone = Drone('/dev/serial0',baudrate=115200)
