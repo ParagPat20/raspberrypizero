@@ -14,15 +14,6 @@ def control(controling_drone):
     if C['Arming'] == 1:
         controling_drone.arm()
 
-    if C['Takeoff'] == 1:
-        controling_drone.arm()
-        controling_drone.takeoff()
-    
-    if P[controling_drone]['MODE'] != 'VehicleMode:' + C['Mode']:
-        controling_drone.vehicle.mode = VehicleMode(C['Mode'])
-
-    controling_drone.send_ned_velocity(C['vx'], C['vy'], C['vz'], 1)
-
 def Client_Start(server_ip, server_port):
     global C,P
     
