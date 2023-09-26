@@ -1,7 +1,7 @@
 ##########** CODE FOR PI ZERO **##########
 
 C = {'Drone': 0,'vx': 0, 'vy': 0, 'vz': 0, 'Arming': 0, 'Mode': 'GUIDED', 'Takeoff': 0}
-
+P = 'Hello'
 from dronekit import connect, VehicleMode
 from pymavlink import mavutil
 import time
@@ -85,7 +85,9 @@ def Client_Start(server_ip, server_port):
     while True:
 
     # Receive C dictionary values from the server
-        c_str = client_socket.recv(2048).decode()
+        p_str1 = str(P)
+        client_socket.send(p_str1.encode())
+        c_str = client_socket.recv(1024).decode()
         control_params = eval(c_str)  # Convert the received string back to a dictionary
 
         if control_params['Drone'] == 0:
@@ -107,7 +109,7 @@ def Client_Start(server_ip, server_port):
             Control(my_drone, control_params)  # Pass the control parameters for the first drone
             Control(my_drone2, control_params)  # Pass the control parameters for the second drone
 
-        time.sleep(0.5)  # Adjust the sleep interval as needed
+        time.sleep(1)  # Adjust the sleep interval as needed
 
 
 def Control(drone, control_params):
