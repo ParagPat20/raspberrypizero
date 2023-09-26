@@ -57,6 +57,7 @@ def Client_Start(server_ip, server_port):
             print('Not initializeed')
         if C['mstart'] == 1:   
             while True:
+                time.sleep(0.5)  # Adjust the sleep interval as needed
                 # Receive C dictionary values from the server
                 c_str = client_socket.recv(2048).decode()
                 C = eval(c_str)  # Convert the received string back to a dictionary
@@ -68,6 +69,5 @@ def Client_Start(server_ip, server_port):
                     control(D2)
                 print(C)
 
-                time.sleep(0.5)  # Adjust the sleep interval as needed
 
 Client_Start('192.168.14.101',12345)
