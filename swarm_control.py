@@ -111,7 +111,7 @@ def Client_Start(server_ip, server_port):
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON data: {e}")
                 break  # Skip this JSON object and continue with the next
-
+            print(control_params)
             # Handle the JSON data
             if control_params['Drone'] == 1:
                 if not drone1_init:
