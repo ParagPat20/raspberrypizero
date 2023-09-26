@@ -39,9 +39,6 @@ def Client_Start(server_ip, server_port):
             D1 = connect('/dev/serial0', baud= 115200)
             print("D1 Initialized")
 
-    c_str = client_socket.recv(2048).decode()
-    C = eval(c_str)  # Convert the received string back to a dictionary
-
     if C['Drone'] == 2:
         print("D2 initializing")
         # D2 = connect('tcp:127.0.0.1:5772')
