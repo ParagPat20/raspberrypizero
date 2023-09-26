@@ -21,7 +21,7 @@ def Client_Start(server_ip, server_port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((server_ip, server_port))
 
-    c_str = client_socket.recv(2048).decode()
+    c_str = client_socket.recv(1024).decode()
     C = eval(c_str) 
     print(C) # Convert the received string back to a dictionary
     print("Connected to the server")
@@ -29,7 +29,7 @@ def Client_Start(server_ip, server_port):
     drone2_init = False
     while True:
         # Receive C dictionary values from the server
-        c_str = client_socket.recv(2048).decode()
+        c_str = client_socket.recv(1024).decode()
         C = eval(c_str)  # Convert the received string back to a dictionary
         print(C)
         if C['Drone'] == 1:
@@ -55,7 +55,7 @@ def Client_Start(server_ip, server_port):
             while True:
                 time.sleep(0.5)  # Adjust the sleep interval as needed
                 # Receive C dictionary values from the server
-                c_str = client_socket.recv(2048).decode()
+                c_str = client_socket.recv(1024).decode()
                 C = eval(c_str)  # Convert the received string back to a dictionary
                 
                 if C['Drone'] == 1:
