@@ -91,6 +91,8 @@ def Client_Start(server_ip, server_port):
     # Receive C dictionary values from the server
         p_str1 = str(P)
         client_socket.send(p_str1.encode())
+        c_str = client_socket.recv(1024).decode()
+        control_params = eval(c_str)
         send_thread = threading.Thread(target=send, args=(client_socket,))
         send_thread.setDaemon(True)
         send_thread.start()
