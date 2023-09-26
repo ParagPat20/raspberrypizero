@@ -34,27 +34,32 @@ def Client_Start(server_ip, server_port):
     C = eval(c_str) 
     print(C) # Convert the received string back to a dictionary
     print("Connected to the server")
-    
+    drone1_init = False
+    drone2_init = False
     while True:
         # Receive C dictionary values from the server
         c_str = client_socket.recv(2048).decode()
         C = eval(c_str)  # Convert the received string back to a dictionary
         print(C)
         if C['Drone'] == 1:
-            print("D1 initializing")
-            # D1 = connect('tcp:127.0.0.1:5762')
-            D1 = connect('/dev/serial0', baud= 115200)
-            print("D1 Initialized")
-        else:
-            print("Not Initialized")
+            if drone1_init == False:
+                print("D1 initializing")
+                # D1 = connect('tcp:127.0.0.1:5762')
+                D1 = connect('/dev/serial0', baud= 115200)
+                drone1_init = True
+                print("D1 Initialized")
+            else:
+                print("Not Initialized")
 
         if C['Drone'] == 2:
-            print("D2 initializing")
-            # D2 = connect('tcp:127.0.0.1:5772')
-            D2 = connect('0.0.0.0:14550')
-            print("D2 Initialized")
-        else:
-            print('Not initializeed')
+            if drone2_init == False:
+                print("D2 initializing")
+                # D2 = connect('tcp:127.0.0.1:5772')
+                D2 = connect('0.0.0.0:14550')
+                drone2_init = True
+                print("D2 Initialized")
+            else:
+                print('Not initializeed')
         if C['mstart'] == 1:   
             while True:
                 time.sleep(0.5)  # Adjust the sleep interval as needed
