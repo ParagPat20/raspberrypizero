@@ -31,7 +31,8 @@ def Client_Start(server_ip, server_port):
     client_socket.connect((server_ip, server_port))
 
     c_str = client_socket.recv(2048).decode()
-    C = eval(c_str)  # Convert the received string back to a dictionary
+    C = eval(c_str) 
+    print(C) # Convert the received string back to a dictionary
     print("Connected to the server")
     if C['Drone'] == 1:
             print("D1 initializing")
