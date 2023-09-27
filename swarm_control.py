@@ -184,10 +184,10 @@ def Control1(drone):
     while True:
         if C['Drone'] == 1 or C['Drone'] == -1:
             if C['Arming'] == 1:
-                drone.arm()
+                drone.arm(C['Mode'])
 
             if C['Takeoff'] == 1:
-                drone.arm()
+                drone.arm(C['Mode'])
                 drone.takeoff()
                 print("Here")
 
