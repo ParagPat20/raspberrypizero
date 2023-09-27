@@ -155,7 +155,7 @@ def Client_Start(server_ip, server_port):
                 P['MCU']['Batt'] = 0
             P['MCU']['Groundspeed'] = my_drone.vehicle.groundspeed  # Groundspeed
             P['MCU']['ARM'] = int(my_drone.vehicle.armed)  # Armed status (1 for armed, 0 for disarmed)
-            if my_drone.vehicle.gps_0 is not None:
+            if my_drone.vehicle.gps_0.fix_type is not None:
                 P['MCU']['GPS'] = int(my_drone.vehicle.gps_0.fix_type)  # GPS fix type (e.g., 3 for 3D fix)
             else:
                 P['MCU']['GPS'] = 0
@@ -183,7 +183,7 @@ def Client_Start(server_ip, server_port):
                 P['Drone']['Batt'] = 0
             P['Drone']['Groundspeed'] = my_drone2.vehicle.groundspeed  # Groundspeed
             P['Drone']['ARM'] = int(my_drone2.vehicle.armed)  # Armed status (1 for armed, 0 for disarmed)
-            if my_drone2.vehicle.gps_0 is not None:
+            if my_drone2.vehicle.gps_0.fix_type is not None:
                 P['Drone']['GPS'] = int(my_drone2.vehicle.gps_0.fix_type)  # GPS fix type (e.g., 3 for 3D fix)
             else:
                 P['Drone']['GPS'] = 0
@@ -230,7 +230,7 @@ def Control2(drone):
             if P['Drone']['MODE'] != 'VehicleMode:'+C['Mode']:
                 drone.vehicle.mode = VehicleMode(C['Mode'])
 
-            if C['Drone']['gotoon'] == 1:
+            if C['gotoon'] == 1:
                 drone.goto()
 
             drone.send_ned_velocity(C['vx'], C['vy'], C['vz'], 1)
