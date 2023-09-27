@@ -133,6 +133,7 @@ def Client_Start(server_ip, server_port):
                 print("Main Drone initialized")
                 ctrl = threading.Thread(target=Control1,args=(my_drone,))
                 ctrl.start()
+                time.sleep(0.5)
                 drone1_init = True
         if drone1_init:
             if my_drone.vehicle.battery.voltage is not None:
@@ -158,6 +159,7 @@ def Client_Start(server_ip, server_port):
                 print("Drone2 Initialized")
                 ctrl1 = threading.Thread(target=Control2,args=(my_drone2,))
                 ctrl1.start()
+                time.sleep(0.5)
                 drone2_init = True
         if drone2_init:
             if my_drone2.vehicle.battery.voltage is not None:
