@@ -163,13 +163,13 @@ def Client_Start(server_ip, server_port):
                 drone2_init = True
         if drone2_init:
             if my_drone2.vehicle.battery.voltage is not None:
-                P['Drone']['Batt'] = my_drone.vehicle.battery.voltage  # Battery voltage
+                P['Drone']['Batt'] = my_drone2.vehicle.battery.voltage  # Battery voltage
             else:
                 P['Drone']['Batt'] = 0
             P['Drone']['Groundspeed'] = my_drone2.vehicle.groundspeed  # Groundspeed
             P['Drone']['ARM'] = int(my_drone2.vehicle.armed)  # Armed status (1 for armed, 0 for disarmed)
             if my_drone.vehicle.gps_0 is not None:
-                P['Drone']['GPS'] = int(my_drone.vehicle.gps_0.fix_type)  # GPS fix type (e.g., 3 for 3D fix)
+                P['Drone']['GPS'] = int(my_drone2.vehicle.gps_0.fix_type)  # GPS fix type (e.g., 3 for 3D fix)
             else:
                 P['Drone']['GPS'] = 0
             P['Drone']['Altitude'] = my_drone2.vehicle.location.global_relative_frame.alt  # Altitude above home location
