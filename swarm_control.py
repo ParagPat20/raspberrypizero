@@ -128,8 +128,8 @@ def Client_Start(server_ip, server_port):
 
         if C['Drone'] == 1 or C['Drone'] == -1:
             if not drone1_init:
-                # my_drone = Drone('/dev/serial0', baudrate=115200)
-                my_drone = Drone('tcp:127.0.0.1:5762')
+                my_drone = Drone('/dev/serial0', baudrate=115200)
+                # my_drone = Drone('tcp:127.0.0.1:5762')
                 print("Main Drone initialized")
                 ctrl = threading.Thread(target=Control1,args=(my_drone,))
                 ctrl.start()
@@ -153,8 +153,8 @@ def Client_Start(server_ip, server_port):
         
         if C['Drone'] == 2 or C['Drone'] == -1:
             if not drone2_init:
-                # my_drone2 = Drone('0.0.0.0:14550')
-                my_drone2 = Drone('tcp:127.0.0.1:5772')
+                my_drone2 = Drone('0.0.0.0:14550')
+                # my_drone2 = Drone('tcp:127.0.0.1:5772')
                 print("Drone2 Initialized")
                 ctrl1 = threading.Thread(target=Control2,args=(my_drone2,))
                 ctrl1.start()
