@@ -7,7 +7,8 @@ C = {
     'vz': 0, 
     'Arming': 0, 
     'Mode': 'GUIDED',
-    'Takeoff': 0
+    'Takeoff': 0,
+    'gotoon' : 0
     }
 
 P = {
@@ -20,7 +21,9 @@ P = {
         'MODE': None,
         'VelocityX': 0,
         'VelocityY': 0,
-        'VelocityZ': 0
+        'VelocityZ': 0,
+        'lat' : 0,
+        'lon' : 0
         },
     'Drone':{
         'Batt' : 0,
@@ -31,11 +34,13 @@ P = {
         'MODE': None,
         'VelocityX': 0,
         'VelocityY': 0,
-        'VelocityZ': 0
+        'VelocityZ': 0,
+        'lat' : 0,
+        'lon' : 0
     }
     }
 
-from dronekit import connect, VehicleMode
+from dronekit import connect, VehicleMode, LocationGlobalRelative
 from pymavlink import mavutil
 import time
 import socket
@@ -76,6 +81,14 @@ class Drone:
             else:
                 print("Waiting for altitude information...")
             time.sleep(1)
+
+    def goto(self):
+        print("Going to Near")
+        P['Drone']['lat'] = self.vehicle.location.global_relative_frame.lat
+        P['Drone']['lon'] = self.vehicle.location.global_relative_frame.lon
+        P['Drone']['Altitude'] = self.vehicle.location.global_relative_frame.alt
+        point2 = LocationGlobalRelative(P['Drone']['lon'], P['Drone']['lat'], P['Drone']['Altitude'] + 1)
+        self.vehicle.simple_goto(point2, groundspeed= 1)
 
     def arm(self,mode):
         print("Arming motors")
@@ -128,8 +141,8 @@ def Client_Start(server_ip, server_port):
 
         if C['Drone'] == 1 or C['Drone'] == -1:
             if not drone1_init:
-                my_drone = Drone('/dev/serial0', baudrate=115200)
-                # my_drone = Drone('tcp:127.0.0.1:5762')
+                # my_drone = Drone('/dev/serial0', baudrate=115200)
+                my_drone = Drone('tcp:127.0.0.1:5762')
                 print("Main Drone initialized")
                 ctrl = threading.Thread(target=Control1,args=(my_drone,))
                 ctrl.start()
@@ -151,11 +164,13 @@ def Client_Start(server_ip, server_port):
             P['MCU']['VelocityX'] = my_drone.vehicle.velocity[0]  # Velocity in X direction (North)
             P['MCU']['VelocityY'] = my_drone.vehicle.velocity[1]  # Velocity in Y direction (East)
             P['MCU']['VelocityZ'] = my_drone.vehicle.velocity[2]  # Velocity in Z direction (Down)
+            P['MCU']['lat'] = my_drone.vehicle.location.global_relative_frame.lat
+            P['MCU']['lon'] = my_drone.vehicle.location.global_relative_frame.lon
         
         if C['Drone'] == 2 or C['Drone'] == -1:
             if not drone2_init:
-                my_drone2 = Drone('0.0.0.0:14550')
-                # my_drone2 = Drone('tcp:127.0.0.1:5772')
+                # my_drone2 = Drone('0.0.0.0:14550')
+                my_drone2 = Drone('tcp:127.0.0.1:5772')
                 print("Drone2 Initialized")
                 ctrl1 = threading.Thread(target=Control2,args=(my_drone2,))
                 ctrl1.start()
@@ -177,6 +192,8 @@ def Client_Start(server_ip, server_port):
             P['Drone']['VelocityX'] = my_drone2.vehicle.velocity[0]  # Velocity in X direction (North)
             P['Drone']['VelocityY'] = my_drone2.vehicle.velocity[1]  # Velocity in Y direction (East)
             P['Drone']['VelocityZ'] = my_drone2.vehicle.velocity[2]  # Velocity in Z direction (Down)
+            P['Drone']['lat'] = my_drone.vehicle.location.global_relative_frame.lat
+            P['Drone']['lon'] = my_drone.vehicle.location.global_relative_frame.lon
         p_pickle = pickle.dumps(P)
         client_socket.send(p_pickle)
 
@@ -212,6 +229,9 @@ def Control2(drone):
 
             if P['Drone']['MODE'] != 'VehicleMode:'+C['Mode']:
                 drone.vehicle.mode = VehicleMode(C['Mode'])
+
+            if C['Drone']['gotoon'] == 1:
+                drone.goto()
 
             drone.send_ned_velocity(C['vx'], C['vy'], C['vz'], 1)
 
