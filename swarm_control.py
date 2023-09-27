@@ -168,7 +168,7 @@ def Client_Start(server_ip, server_port):
                 P['Drone']['Batt'] = 0
             P['Drone']['Groundspeed'] = my_drone2.vehicle.groundspeed  # Groundspeed
             P['Drone']['ARM'] = int(my_drone2.vehicle.armed)  # Armed status (1 for armed, 0 for disarmed)
-            if my_drone.vehicle.gps_0 is not None:
+            if my_drone2.vehicle.gps_0 is not None:
                 P['Drone']['GPS'] = int(my_drone2.vehicle.gps_0.fix_type)  # GPS fix type (e.g., 3 for 3D fix)
             else:
                 P['Drone']['GPS'] = 0
