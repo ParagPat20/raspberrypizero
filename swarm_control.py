@@ -77,7 +77,7 @@ class Drone:
                 print("Waiting for altitude information...")
             time.sleep(1)
 
-    def arm(self,mode='GUIDED'):
+    def arm(self,mode):
         print("Arming motors")
         self.vehicle.mode = VehicleMode(mode)
         self.vehicle.armed = True
@@ -184,10 +184,10 @@ def Control1(drone):
     while True:
         if C['Drone'] == 1 or C['Drone'] == -1:
             if C['Arming'] == 1:
-                drone.arm(mode='GUIDED')
+                drone.arm()
 
             if C['Takeoff'] == 1:
-                drone.arm(mode='GUIDED')
+                drone.arm()
                 drone.takeoff()
                 print("Here")
 
