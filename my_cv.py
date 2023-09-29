@@ -1,13 +1,17 @@
+import io
+import time
+import picamera
 import cv2
+import numpy as np
 
-def read():
-    cap = cv2.VideoCapture(0)
+# Create the in-memory stream
+stream = io.BytesIO()
+
+with picamera.PiCamera() as camera:
     while True:
-        ret, frame = cap.read()
-        cv2.imshow('Stream', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-    cap.release()
-    cv2.destroyAllWindows()
-
-read()
+        camera.capture(stream, format='jpeg')
+        # Construct a numpy array from the stream
+        data = np.fromstring(stream.getvalue(), dtype=np.uint8)
+        # "Decode" the image from the array, preserving color
+        image = cv2.imdecode(data, 1)
+        cv2.imshow('frame', image)
