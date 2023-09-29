@@ -1,35 +1,38 @@
 import io
-import time
 import picamera
-import cv2
-import numpy as np
+import socket
+import struct
+import time
 
-# Create the in-memory stream
-stream = io.BytesIO()
+# Create a socket server
+server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server_socket.bind(('0.0.0.0', 8000))
+server_socket.listen(0)
 
-with picamera.PiCamera() as camera:
-    camera.resolution = (640, 480)  # Set the resolution of the video frames
-    camera.framerate = 24  # Set the frame rate of the video stream
-    camera.start_preview()  # Start the camera preview
+# Accept a single connection from the client
+connection = server_socket.accept()[0].makefile('wb')
 
-    # Wait for the camera to warm up
-    time.sleep(2)
+try:
+    with picamera.PiCamera() as camera:
+        camera.resolution = (640, 480)  # Adjust resolution as needed
+        camera.framerate = 30  # Adjust frame rate as needed
 
-    while True:
-        camera.capture(stream, format='jpeg')
-        # Construct a numpy array from the stream
-        data = np.frombuffer(stream.getvalue(), dtype=np.uint8)
-        # "Decode" the image from the array, preserving color
-        image = cv2.imdecode(data, 1)
-        if image is True:
-            print('yay')
-        # Check for the 'q' key to exit the live stream
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+        # Start capturing and sending the video feed
+        time.sleep(2)  # Give the camera some time to warm up
+        stream = io.BytesIO()
+        for _ in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
+            stream.seek(0)
+            image_data = stream.read()
 
-        # Clear the stream in preparation for the next frame
-        stream.seek(0)
-        stream.truncate()
+            # Send the image size to the client
+            connection.write(struct.pack('<L', len(image_data)))
+            connection.flush()
 
-    # Clean up
-    cv2.destroyAllWindows()
+            # Send the image data to the client
+            connection.write(image_data)
+            stream.seek(0)
+            stream.truncate()
+
+finally:
+    connection.close()
+    server_socket.close()
