@@ -166,7 +166,6 @@ def Client_Start(server_ip, server_port):
             P['MCU']['VelocityZ'] = my_drone.vehicle.velocity[2]  # Velocity in Z direction (Down)
             P['MCU']['lat'] = my_drone.vehicle.location.global_relative_frame.lat
             P['MCU']['lon'] = my_drone.vehicle.location.global_relative_frame.lon
-        
         if C['Drone'] == 2 or C['Drone'] == -1:
             if not drone2_init:
                 my_drone2 = Drone('0.0.0.0:14550')
