@@ -261,13 +261,13 @@ def drone_ctrl(drone,x,y,z):
     threading.Thread(target=drone.position_target_local_ned, args=(x, y, z,)).start()
 
 def drone_vel_ctrl(drone,x,y,z,t):
-    threading.Thread(target=drone.send_ned_velocity, args=(x, y, z, t)).start()
+    threading.Thread(target=drone.send_ned_velocity, args=(x, y, z, t,)).start()
 
 def drone_takeoff(drone):
     threading.Thread(target=drone.takeoff).start()
 
 def drone_arm(drone):
-    threading.Thread(target=drone.arm, args=('STABILIZE')).start()
+    threading.Thread(target=drone.arm, args=('STABILIZE',)).start()
 
 def drone_land(drone):
     threading.Thread(target=drone.land).start()
@@ -276,7 +276,7 @@ def set_mode(drone,mode):
     drone.vehicle.mode = VehicleMode(mode)
 
 def drone_mode(drone,mode):
-    threading.Thread(target=set_mode, args= (drone,mode)).start
+    threading.Thread(target=set_mode, args= (drone,mode,)).start
 
 def start_server_service(local_host):
     threading.Thread(target=ServerRecvCmd, args=(local_host,)).start()
