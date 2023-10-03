@@ -4,8 +4,8 @@ import time
 import socket
 import threading
 
-local_host = '0.0.0.0'
-remote_host = '192.168.22.101'
+local_host = '192.168.22.122'
+remote_host = '192.168.22.122'
 mode_port = 60001
 ctrl_port = 60003
 status_port = [60002,60004,60006,60008]
