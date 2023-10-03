@@ -98,10 +98,10 @@ class Drone:
         print("Completed")
 
 
-MCU = Drone('tcp:127.0.0.1:5762')
-CD1 = Drone('tcp:127.0.0.1:5772')
-CD2 = Drone('tcp:127.0.0.1:5782')
-CD3 = Drone('tcp:127.0.0.1:5792')
+MCU = Drone('/dev/serial0',baudrate=921600)
+CD1 = Drone('0.0.0.0:14550')
+CD2 = Drone('0.0.0.0:14552')
+CD3 = Drone('0.0.0.0:14553')
 Drone_ID = MCU
 
 def ServerSendStatus(drone, local_host, status_port):
