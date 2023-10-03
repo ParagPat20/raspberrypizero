@@ -163,10 +163,10 @@ def ServerRecvCmd(local_host):
         if immediate_command_str == 'CD3':
             Drone_ID = CD3
         if immediate_command_str == 'ARM':
-            drone_arm(MCU,'GUIDED')
-            drone_arm(CD1,'GUIDED')
-            drone_arm(CD2,'GUIDED')
-            drone_arm(CD3,'GUIDED')
+            drone_arm(MCU)
+            drone_arm(CD1)
+            drone_arm(CD2)
+            drone_arm(CD3)
         if immediate_command_str == 'LAND':
             Drone_ID.land()
         if immediate_command_str == 'land_all':
@@ -256,7 +256,7 @@ def drone_takeoff(drone):
     threading.Thread(target=drone.takeoff).start()
 
 def drone_arm(drone):
-    threading.Thread(target=drone.arm, args=('GUIDED')).start()
+    threading.Thread(target=drone.arm, args=('STABILIZE')).start()
 
 def drone_land(drone):
     threading.Thread(target=drone.land).start()
