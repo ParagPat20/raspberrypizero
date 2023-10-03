@@ -98,7 +98,7 @@ class Drone:
         print("Completed")
 
 
-MCU = Drone('/dev/serial0',baudrate=921600)
+MCU = Drone('/dev/serial0',baudrate=115200)
 CD1 = Drone('0.0.0.0:14550')
 CD2 = Drone('0.0.0.0:14552')
 CD3 = Drone('0.0.0.0:14553')
