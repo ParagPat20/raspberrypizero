@@ -267,7 +267,7 @@ def drone_takeoff(drone):
     threading.Thread(target=drone.takeoff).start()
 
 def drone_arm(drone):
-    threading.Thread(target=drone.arm, args=('STABILIZE',)).start()
+    threading.Thread(target=drone.arm, args=('GUIDED',)).start()
 
 def drone_land(drone):
     threading.Thread(target=drone.land).start()
