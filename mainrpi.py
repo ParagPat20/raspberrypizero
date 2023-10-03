@@ -3,10 +3,9 @@ from pymavlink import mavutil
 import time
 import socket
 import threading
-import os
 
 local_host = '0.0.0.0'
-remote_host = '192.168.14.101'
+remote_host = '192.168.22.101'
 mode_port = 60001
 ctrl_port = 60003
 status_port = [60002,60004,60006,60008]
@@ -98,13 +97,21 @@ class Drone:
         print("Completed")
 
 
-MCU = Drone('/dev/serial0',baudrate=115200)
+# MCU = Drone('/dev/serial0',baudrate=115200)
+# print("MCU connected")
+# CD1 = Drone('0.0.0.0:14550')
+# print("CD1 Connected")
+# CD2 = Drone('0.0.0.0:14552')
+# print("CD2 Connected")
+# CD3 = Drone('0.0.0.0:14553')
+# print("CD3 Connected")
+MCU = Drone('tcp:127.0.0.1:5762')
 print("MCU connected")
-CD1 = Drone('0.0.0.0:14550')
+CD1 = Drone('tcp:127.0.0.1:5772')
 print("CD1 Connected")
-CD2 = Drone('0.0.0.0:14552')
+CD2 = Drone('tcp:127.0.0.1:5782')
 print("CD2 Connected")
-CD3 = Drone('0.0.0.0:14553')
+CD3 = Drone('tcp:127.0.0.1:5792')
 print("CD3 Connected")
 Drone_ID = MCU
 
