@@ -99,9 +99,13 @@ class Drone:
 
 
 MCU = Drone('/dev/serial0',baudrate=115200)
+print("MCU connected")
 CD1 = Drone('0.0.0.0:14550')
+print("CD1 Connected")
 CD2 = Drone('0.0.0.0:14552')
+print("CD2 Connected")
 CD3 = Drone('0.0.0.0:14553')
+print("CD3 Connected")
 Drone_ID = MCU
 
 def ServerSendStatus(drone, local_host, status_port):
