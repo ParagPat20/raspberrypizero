@@ -16,7 +16,7 @@ class Drone:
     def __init__(self, connection_string, baudrate=None):
         self.vehicle = connect(connection_string, baud=baudrate)
 
-    def send_ned_velocity(self, velocity_x, velocity_y, velocity_z):
+    def send_ned_velocity(self, velocity_x, velocity_y, velocity_z,duration):
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
             0,  # time_boot_ms (not used)
             0, 0,  # target system, target component
@@ -27,7 +27,27 @@ class Drone:
             0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
             0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
 
+        for x in range(0,duration):
+            self.vehicle.send_mavlink(msg)
+            time.sleep(1) 
+    
+    def position_target_local_ned(self, north, east, down):
+        """
+        Send SET_POSITION_TARGET_LOCAL_NED command to request the vehicle fly to a specified
+        location in the North, East, Down frame.
+        """
+        msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
+            0,       # time_boot_ms (not used)
+            0, 0,    # target system, target component
+            mavutil.mavlink.MAV_FRAME_LOCAL_NED, # frame
+            0b0000111111111000, # type_mask (only positions enabled)
+            north, east, down,
+            0, 0, 0, # x, y, z velocity in m/s  (not used)
+            0, 0, 0, # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
+            0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+        # send command to vehicle
         self.vehicle.send_mavlink(msg)
+        time.sleep(5)
 
     def takeoff(self):
         global stop
@@ -77,11 +97,6 @@ class Drone:
         self.vehicle.close()
         print("Completed")
 
-    def stop(self):
-        global stop
-        stop = 1
-        time.sleep(3)
-        stop = 0
 
 MCU = Drone('tcp:127.0.0.1:5762')
 CD1 = Drone('tcp:127.0.0.1:5772')
@@ -148,11 +163,58 @@ def ServerRecvCmd(local_host):
         if immediate_command_str == 'CD3':
             Drone_ID = CD3
         if immediate_command_str == 'ARM':
-            Drone_ID.arm('GUIDED')
+            drone_arm(MCU,'GUIDED')
+            drone_arm(CD1,'GUIDED')
+            drone_arm(CD2,'GUIDED')
+            drone_arm(CD3,'GUIDED')
         if immediate_command_str == 'LAND':
             Drone_ID.land()
+        if immediate_command_str == 'land_all':
+            drone_land(MCU)
+            drone_land(CD1)
+            drone_land(CD2)
+            drone_land(CD3)
         if immediate_command_str == 'TakeOff':
             Drone_ID.takeoff()
+        if immediate_command_str == 'takeoff_all':
+            drone_takeoff(MCU)
+            drone_takeoff(CD1)
+            drone_takeoff(CD2)
+            drone_takeoff(CD3)
+        if immediate_command_str == 'square':
+            drone_ctrl(MCU,1,0,0)
+            drone_ctrl(CD2,1,0,0)
+            print("Square1")
+            time.sleep(8)
+            drone_ctrl(MCU,0,0,0)
+            drone_ctrl(CD2,0,0,0)
+            print("Square2")
+            time.sleep(8)
+            drone_ctrl(MCU,-1,0,0)
+            drone_ctrl(CD2,-1,0,0)
+            print("Square3")
+            time.sleep(8)
+            drone_ctrl(MCU,0,0,0)
+            drone_ctrl(CD2,0,0,0)
+            print("Square4")
+            time.sleep(8)
+        if immediate_command_str == 'POSHOLD':
+            drone_mode(MCU,'POSHOLD')
+            drone_mode(CD1,'POSHOLD')
+            drone_mode(CD2,'POSHOLD')
+            drone_mode(CD3,'POSHOLD')
+        if immediate_command_str == 'squarevel':
+            drone_vel_ctrl(MCU,-0.8,0,0,5)
+            drone_vel_ctrl(CD2,-0.8,0,0,5)
+            print("Square1")
+            time.sleep(8)
+            drone_vel_ctrl(MCU,0.8,0,0,5)
+            drone_vel_ctrl(CD2,0.8,0,0,5)
+            print("Square2")
+            time.sleep(8)
+
+            
+
 
         client_connection.close()
 
@@ -175,11 +237,35 @@ def ServerRecvControl(local_host):
         
         try:
             x, y, z = map(float, control_command_str.split(','))  # Split and convert to floats
-            Drone_ID.send_ned_velocity(x, y, z)  # Send NED velocity commands to the drone
+            drone_vel_ctrl(MCU,x,y,z,1)
+            drone_vel_ctrl(CD1,x,y,z,1)
+            drone_vel_ctrl(CD2,x,y,z,1)
+            drone_vel_ctrl(CD3,x,y,z,1)
         except ValueError:
             print("Invalid control command format. Expected 'x,y,z'")
 
         client_connection.close()
+
+def drone_ctrl(drone,x,y,z):
+    threading.Thread(target=drone.position_target_local_ned, args=(x, y, z,)).start()
+
+def drone_vel_ctrl(drone,x,y,z,t):
+    threading.Thread(target=drone.send_ned_velocity, args=(x, y, z, t)).start()
+
+def drone_takeoff(drone):
+    threading.Thread(target=drone.takeoff).start()
+
+def drone_arm(drone):
+    threading.Thread(target=drone.arm, args=('GUIDED')).start()
+
+def drone_land(drone):
+    threading.Thread(target=drone.land).start()
+
+def set_mode(drone,mode):
+    drone.vehicle.mode = VehicleMode(mode)
+
+def drone_mode(drone,mode):
+    threading.Thread(target=set_mode, args= (drone,mode)).start
 
 def start_server_service(local_host):
     threading.Thread(target=ServerRecvCmd, args=(local_host,)).start()
