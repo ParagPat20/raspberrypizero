@@ -96,22 +96,22 @@ class Drone:
         print("Completed")
 
 
-MCU = Drone('/dev/serial0',baudrate=115200)
-print("MCU connected")
-CD1 = Drone('0.0.0.0:14550')
-print("CD1 Connected")
-CD2 = Drone('0.0.0.0:14552')
-print("CD2 Connected")
-CD3 = Drone('0.0.0.0:14553')
-print("CD3 Connected")
-# MCU = Drone('tcp:127.0.0.1:5762')
+# MCU = Drone('/dev/serial0',baudrate=115200)
 # print("MCU connected")
-# CD1 = Drone('tcp:127.0.0.1:5772')
+# CD1 = Drone('0.0.0.0:14550')
 # print("CD1 Connected")
-# CD2 = Drone('tcp:127.0.0.1:5782')
+# CD2 = Drone('0.0.0.0:14552')
 # print("CD2 Connected")
-# CD3 = Drone('tcp:127.0.0.1:5792')
+# CD3 = Drone('0.0.0.0:14553')
 # print("CD3 Connected")
+MCU = Drone('tcp:127.0.0.1:5762')
+print("MCU connected")
+CD1 = Drone('tcp:127.0.0.1:5772')
+print("CD1 Connected")
+CD2 = Drone('tcp:127.0.0.1:5782')
+print("CD2 Connected")
+CD3 = Drone('tcp:127.0.0.1:5792')
+print("CD3 Connected")
 Drone_ID = MCU
 
 def ServerSendStatus(drone, local_host, status_port):
@@ -128,7 +128,6 @@ def ServerSendStatus(drone, local_host, status_port):
             status_data = status(drone)  # Call your status function here
             client_connection.send(status_data.encode())  # Send the string
 
-            client_connection.close()
         except KeyboardInterrupt:
             # Handle KeyboardInterrupt to gracefully exit the loop
             break
@@ -137,27 +136,35 @@ def ServerSendStatus(drone, local_host, status_port):
             print(f"Error: {e}")
             time.sleep(1)
         finally:
+            if client_connection:
+                client_connection.close()
             time.sleep(1)
 
     status_socket.close()
 
 
 def status(drone):
-    b = str(drone.vehicle.battery.voltage) if drone.vehicle.battery.voltage is not None else '0'
-    gs = str(drone.vehicle.groundspeed)
-    md = str(drone.vehicle.mode)
-    vx = str(drone.vehicle.velocity[0])
-    vy = str(drone.vehicle.velocity[1])
-    vz = str(drone.vehicle.velocity[2])
-    gps = str(drone.vehicle.gps_0.fix_type) if drone.vehicle.gps_0.fix_type is not None else '0'
-    lat = '{:.7f}'.format(drone.vehicle.location.global_relative_frame.lat)
-    lon = '{:.7f}'.format(drone.vehicle.location.global_relative_frame.lon)
-    alt = str(drone.vehicle.location.global_relative_frame.alt)
-    armed = str(drone.vehicle.armed)
+    vehicle = drone.vehicle
 
-    status_str = ','.join([b, gs, md, vx,vy,vz, gps, lat, lon, alt, armed])
+    if vehicle is None:
+        return "Not connected"
+
+    b = str(vehicle.battery.voltage) if vehicle.battery is not None else '0'
+    gs = str(vehicle.groundspeed) if hasattr(vehicle, 'groundspeed') else '0'
+    md = str(vehicle.mode) if hasattr(vehicle, 'mode') else 'UNKNOWN'
+    vx = str(vehicle.velocity[0]) if hasattr(vehicle, 'velocity') and len(vehicle.velocity) > 0 else '0'
+    vy = str(vehicle.velocity[1]) if hasattr(vehicle, 'velocity') and len(vehicle.velocity) > 1 else '0'
+    vz = str(vehicle.velocity[2]) if hasattr(vehicle, 'velocity') and len(vehicle.velocity) > 2 else '0'
+    gps = str(vehicle.gps_0.fix_type) if hasattr(vehicle, 'gps_0') and hasattr(vehicle.gps_0, 'fix_type') else '0'
+    lat = '{:.7f}'.format(vehicle.location.global_relative_frame.lat) if hasattr(vehicle, 'location') else '0'
+    lon = '{:.7f}'.format(vehicle.location.global_relative_frame.lon) if hasattr(vehicle, 'location') else '0'
+    alt = str(vehicle.location.global_relative_frame.alt) if hasattr(vehicle, 'location') else '0'
+    armed = str(vehicle.armed) if hasattr(vehicle, 'armed') else 'False'
+
+    status_str = ','.join([b, gs, md, vx, vy, vz, gps, lat, lon, alt, armed])
 
     return status_str
+
 
 def ServerRecvCmd(local_host):
     global mode_port
@@ -169,55 +176,66 @@ def ServerRecvCmd(local_host):
     print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
 
     while True:
-        client_connection, client_address = cmd_socket.accept()
-        print('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
+        try:
+            client_connection, client_address = cmd_socket.accept()
+            print('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
 
-        immediate_command_str = client_connection.recv(1024).decode()  # Receive and decode the command
+            immediate_command_str = client_connection.recv(1024).decode()  # Receive and decode the command
 
-        print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
-        if immediate_command_str == 'MCU':
-            Drone_ID = MCU
-        if immediate_command_str == 'CD1':
-            Drone_ID = CD1
-        if immediate_command_str == 'CD2':
-            Drone_ID = CD2
-        if immediate_command_str == 'CD3':
-            Drone_ID = CD3
-        if immediate_command_str == 'ARM':
-            drone_arm(MCU)
-            drone_arm(CD1)
-            drone_arm(CD2)
-            drone_arm(CD3)
-        if immediate_command_str == 'LAND':
-            Drone_ID.land()
-        if immediate_command_str == 'land_all':
-            drone_land(MCU)
-            drone_land(CD1)
-            drone_land(CD2)
-            drone_land(CD3)
-        if immediate_command_str == 'TakeOff':
-            Drone_ID.takeoff()
-        if immediate_command_str == 'takeoff':
-            drone_takeoff(MCU)
-            drone_takeoff(CD1)
-            drone_takeoff(CD2)
-            drone_takeoff(CD3)
-        if immediate_command_str == 'POSHOLD':
-            drone_mode(MCU,'POSHOLD')
-            drone_mode(CD1,'POSHOLD')
-            drone_mode(CD2,'POSHOLD')
-            drone_mode(CD3,'POSHOLD')
-        if immediate_command_str == 'square':
-            print("Square")
-            square()
-        if immediate_command_str == 'line':
-            print("Line")
-            line()
-        if immediate_command_str == 'tri':
-            print("Triangle")
-            tri()
-
-        client_connection.close()
+            print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
+            
+            if immediate_command_str == 'MCU':
+                Drone_ID = MCU
+            if immediate_command_str == 'CD1':
+                Drone_ID = CD1
+            if immediate_command_str == 'CD2':
+                Drone_ID = CD2
+            if immediate_command_str == 'CD3':
+                Drone_ID = CD3
+            if immediate_command_str == 'ARM':
+                drone_arm(MCU)
+                drone_arm(CD1)
+                drone_arm(CD2)
+                drone_arm(CD3)
+            if immediate_command_str == 'LAND':
+                Drone_ID.land()
+            if immediate_command_str == 'land_all':
+                drone_land(MCU)
+                drone_land(CD1)
+                drone_land(CD2)
+                drone_land(CD3)
+            if immediate_command_str == 'TakeOff':
+                Drone_ID.takeoff()
+            if immediate_command_str == 'takeoff':
+                drone_takeoff(MCU)
+                drone_takeoff(CD1)
+                drone_takeoff(CD2)
+                drone_takeoff(CD3)
+            if immediate_command_str == 'POSHOLD':
+                drone_mode(MCU, 'POSHOLD')
+                drone_mode(CD1, 'POSHOLD')
+                drone_mode(CD2, 'POSHOLD')
+                drone_mode(CD3, 'POSHOLD')
+            if immediate_command_str == 'square':
+                print("Square")
+                square()
+            if immediate_command_str == 'line':
+                print("Line")
+                line()
+            if immediate_command_str == 'tri':
+                print("Triangle")
+                tri()
+            
+        except KeyboardInterrupt:
+            # Handle KeyboardInterrupt to gracefully exit the loop
+            break
+        except Exception as e:
+            # Handle other exceptions, e.g., if the client disconnects unexpectedly
+            print(f"Error: {e}")
+            time.sleep(1)
+        finally:
+            if client_connection:
+                client_connection.close()
 
 def ServerRecvControl(local_host):
     global ctrl_port
@@ -229,23 +247,32 @@ def ServerRecvControl(local_host):
     print('{} - SERVER_receive_control_commands() is started!'.format(time.ctime()))
 
     while True:
-        client_connection, client_address = control_socket.accept()
-        print('\n{} - Received control command from {}.'.format(time.ctime(), client_address))
-
-        control_command_str = client_connection.recv(1024).decode()  # Receive and decode the command
-
-        print('{} - Control command is: {}'.format(time.ctime(), control_command_str))
-        
         try:
-            x, y, z = map(float, control_command_str.split(','))  # Split and convert to floats
-            drone_vel_ctrl(MCU,x,y,z,1)
-            drone_vel_ctrl(CD1,x,y,z,1)
-            drone_vel_ctrl(CD2,x,y,z,1)
-            drone_vel_ctrl(CD3,x,y,z,1)
-        except ValueError:
-            print("Invalid control command format. Expected 'x,y,z'")
+            client_connection, client_address = control_socket.accept()
+            print('\n{} - Received control command from {}.'.format(time.ctime(), client_address))
 
-        client_connection.close()
+            control_command_str = client_connection.recv(1024).decode()  # Receive and decode the command
+
+            print('{} - Control command is: {}'.format(time.ctime(), control_command_str))
+            
+            try:
+                x, y, z = map(float, control_command_str.split(','))  # Split and convert to floats
+                drone_vel_ctrl(MCU, x, y, z, 1)
+                drone_vel_ctrl(CD1, x, y, z, 1)
+                drone_vel_ctrl(CD2, x, y, z, 1)
+                drone_vel_ctrl(CD3, x, y, z, 1)
+            except ValueError:
+                print("Invalid control command format. Expected 'x,y,z'")
+        except KeyboardInterrupt:
+            # Handle KeyboardInterrupt to gracefully exit the loop
+            break
+        except Exception as e:
+            # Handle other exceptions, e.g., if the client disconnects unexpectedly
+            print(f"Error: {e}")
+            time.sleep(1)
+        finally:
+            if client_connection:
+                client_connection.close()
 
 def drone_ctrl(drone,x,y,z):
     threading.Thread(target=drone.position_target_local_ned, args=(x, y, z,)).start()
@@ -267,7 +294,7 @@ def set_mode(drone,mode):
     drone.vehicle.mode = VehicleMode(mode)
 
 def drone_mode(drone,mode):
-    threading.Thread(target=set_mode, args= (drone,mode,)).start
+    threading.Thread(target=set_mode, args= (drone,mode,)).start()
 
 def start_server_service(local_host):
     threading.Thread(target=ServerRecvCmd, args=(local_host,)).start()
@@ -319,7 +346,6 @@ def set_yaw(drone, yaw_inDegree):
         estimatedTime = degreeToTurn/30.0 + 1 # Upon testing, the turning speed is 30 degree/second. Add one more second.
         print('{} - Absolute degree to turn is {} degree. Estimated time is {} seconds.'.format(time.ctime(), degreeToTurn, estimatedTime))
     else:
-        is_relative = 0
         print('{} - The target degree is absolute degree[0~360](0=North, 90=East).'.format(time.ctime()))
         currentHeading = drone.vehicle.heading
         print('{} - Current heading is {} degree.'.format(time.ctime(), currentHeading))
@@ -338,7 +364,7 @@ def set_yaw(drone, yaw_inDegree):
         yaw_inDegree,  # param 1, yaw in degrees
         0,          # param 2, yaw speed deg/s
         1,          # param 3, direction -1 ccw, 1 cw
-        is_relative, # param 4, if set to 0, yaw is an absolute direction[0-360](0=north, 90=east); if set to 1, yaw is a relative degree to the current yaw direction.
+        0, # param 4, if set to 0, yaw is an absolute direction[0-360](0=north, 90=east); if set to 1, yaw is a relative degree to the current yaw direction.
         0, 0, 0)    # param 5 ~ 7 not used
     
     # Send MAVLink message.
@@ -420,5 +446,5 @@ def main():
     threading.Thread(target=ServerSendStatus, args=(CD3, local_host, status_port[3],)).start()
     print("SendStatus Active")
 
-if __name__ == "__main__":
-    main()
+time.sleep(5)
+main()
