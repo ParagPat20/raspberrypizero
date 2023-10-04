@@ -238,7 +238,10 @@ def ServerRecvControl(local_host):
         
         try:
             x, y, z = map(float, control_command_str.split(','))  # Split and convert to floats
-            Drone_ID.send_ned_velocity(x, y, z, 1)
+            drone_vel_ctrl(MCU,x,y,z,1)
+            drone_vel_ctrl(CD1,x,y,z,1)
+            drone_vel_ctrl(CD2,x,y,z,1)
+            drone_vel_ctrl(CD3,x,y,z,1)
         except ValueError:
             print("Invalid control command format. Expected 'x,y,z'")
 
