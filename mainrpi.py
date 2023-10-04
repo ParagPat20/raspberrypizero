@@ -6,6 +6,7 @@ import threading
 import geopy
 import geopy.distance
 from geopy.distance import great_circle
+import math
 
 local_host = '0.0.0.0'
 remote_host = '192.168.155.101'
@@ -224,7 +225,8 @@ def ServerRecvCmd(local_host):
                 line()
             if immediate_command_str == 'tri':
                 print("Triangle")
-                tri()
+                # tri()
+                circle()
             
         except KeyboardInterrupt:
             # Handle KeyboardInterrupt to gracefully exit the loop
@@ -273,6 +275,7 @@ def ServerRecvControl(local_host):
         finally:
             if client_connection:
                 client_connection.close()
+
 
 def drone_ctrl(drone,x,y,z):
     threading.Thread(target=drone.position_target_local_ned, args=(x, y, z,)).start()
@@ -341,7 +344,7 @@ def set_yaw(drone, yaw_inDegree):
     # Do not pass True of False into msg, just in case the conversion is unpredictable.
 
     degreeToTurn = yaw_inDegree
-    if degreeToTurn < 180:
+    if degreeToTurn > 180:
         degreeToTurn = 360 - degreeToTurn
         estimatedTime = degreeToTurn/30.0 + 1 # Upon testing, the turning speed is 30 degree/second. Add one more second.
         print('{} - Absolute degree to turn is {} degree. Estimated time is {} seconds.'.format(time.ctime(), degreeToTurn, estimatedTime))
@@ -351,7 +354,7 @@ def set_yaw(drone, yaw_inDegree):
         print('{} - Current heading is {} degree.'.format(time.ctime(), currentHeading))
         print('{} - Target heading is {} degree.'.format(time.ctime(), yaw_inDegree))
         degreeToTurn = abs(yaw_inDegree - drone.vehicle.heading)
-        if degreeToTurn < 180:
+        if degreeToTurn > 180:
             degreeToTurn = 360 - degreeToTurn
         estimatedTime = degreeToTurn/30.0 + 1 # Upon testing, the turning speed is 30 degree/second. Add one more second.
         print('{} - Absolute degree to turn is {} degree. Estimated time is {} seconds.'.format(time.ctime(), degreeToTurn, estimatedTime))
@@ -434,6 +437,44 @@ def tri(side=6,alt=3):
     set_yaw(CD2,0)
     set_yaw(CD3,0)
 
+def circle(radius = 5, alt =3):
+    pointA = cu_lo(MCU)
+    A = (pointA.lat, pointA.lon)
+    angle1 = 0
+    angle2 = 120
+    angle3 = 240
+    cd1lo = new_coords(A, radius, angle1)
+    cd2lo = new_coords(A, radius, angle2)
+    cd3lo = new_coords(A, radius, angle3)
+    goto(CD1,cd1lo[0],cd1lo[1],alt,0.5)
+    goto(CD2,cd2lo[0],cd2lo[1],alt,0.5)
+    goto(CD3,cd3lo[0],cd3lo[1],alt,0.5)
+    set_yaw(MCU,0)
+    set_yaw(CD1,180)
+    set_yaw(CD2,240)
+    set_yaw(CD3,120)
+    tab = 0
+    while tab < 10:
+        tab +=1
+        angle1 += 20
+        angle2 += 20
+        angle3 += 20
+        if angle1 > 360:
+            angle1 = 0
+        if angle2 > 360:
+            angle2 = 0
+        if angle3 > 360:
+            angle3 = 0
+        cd1lo = new_coords(A, radius, angle1)
+        cd2lo = new_coords(A, radius, angle2)
+        cd3lo = new_coords(A, radius, angle3)
+        threading.Thread(target=goto,args=(CD1,cd1lo[0],cd1lo[1],alt,0.7,)).start()
+        threading.Thread(target=goto,args=(CD2,cd2lo[0],cd2lo[1],alt,0.7,)).start()
+        threading.Thread(target=goto,args=(CD3,cd3lo[0],cd3lo[1],alt,0.7,)).start()
+        set_yaw(MCU,angle1)
+        time.sleep(5)
+    
+
 def main():
 
     start_server_service(local_host)
@@ -445,6 +486,7 @@ def main():
     print("SendStatus Active")
     threading.Thread(target=ServerSendStatus, args=(CD3, local_host, status_port[3],)).start()
     print("SendStatus Active")
+    
 
-time.sleep(5)
+time.sleep(2)
 main()
