@@ -73,10 +73,6 @@ class Drone:
         self.vehicle.mode = VehicleMode(mode)
         self.vehicle.armed = True
 
-        while not self.vehicle.armed:
-            print("Waiting for arming...")
-            self.vehicle.armed = True
-            time.sleep(1)
 
         print("Vehicle Armed")
 
