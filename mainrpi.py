@@ -157,8 +157,9 @@ def status(drone):
     lat = '{:.7f}'.format(drone.vehicle.location.global_relative_frame.lat)
     lon = '{:.7f}'.format(drone.vehicle.location.global_relative_frame.lon)
     alt = str(drone.vehicle.location.global_relative_frame.alt)
+    armed = str(drone.vehicle.armed)
 
-    status_str = ','.join([b, gs, md, vx,vy,vz, gps, lat, lon, alt])
+    status_str = ','.join([b, gs, md, vx,vy,vz, gps, lat, lon, alt, armed])
 
     return status_str
 
