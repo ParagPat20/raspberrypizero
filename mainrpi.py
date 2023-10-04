@@ -314,7 +314,7 @@ def set_yaw(drone, yaw_inDegree):
     # Do not pass True of False into msg, just in case the conversion is unpredictable.
 
     degreeToTurn = yaw_inDegree
-    if degreeToTurn > 180:
+    if degreeToTurn < 180:
         degreeToTurn = 360 - degreeToTurn
         estimatedTime = degreeToTurn/30.0 + 1 # Upon testing, the turning speed is 30 degree/second. Add one more second.
         print('{} - Absolute degree to turn is {} degree. Estimated time is {} seconds.'.format(time.ctime(), degreeToTurn, estimatedTime))
@@ -325,7 +325,7 @@ def set_yaw(drone, yaw_inDegree):
         print('{} - Current heading is {} degree.'.format(time.ctime(), currentHeading))
         print('{} - Target heading is {} degree.'.format(time.ctime(), yaw_inDegree))
         degreeToTurn = abs(yaw_inDegree - drone.vehicle.heading)
-        if degreeToTurn > 180:
+        if degreeToTurn < 180:
             degreeToTurn = 360 - degreeToTurn
         estimatedTime = degreeToTurn/30.0 + 1 # Upon testing, the turning speed is 30 degree/second. Add one more second.
         print('{} - Absolute degree to turn is {} degree. Estimated time is {} seconds.'.format(time.ctime(), degreeToTurn, estimatedTime))
