@@ -168,7 +168,7 @@ def status(drone):
     return status_str
 
 def reconnectdrone(drone,connection,baud=None):
-    drone.close()
+    drone.exit()
     time.sleep(1)
     drone = Drone(connection_string=connection,baudrate=baud)
     print("Drone Reconnected Successfully!")
