@@ -28,9 +28,7 @@ class Drone:
             0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
             0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
 
-        for x in range(0,duration):
-            self.vehicle.send_mavlink(msg)
-            time.sleep(1) 
+        self.vehicle.send_mavlink(msg)
     
     def position_target_local_ned(self, north, east, down):
         """
@@ -274,10 +272,10 @@ def ServerRecvControl(local_host):
             
             try:
                 x, y, z = map(float, control_command_str.split(','))  # Split and convert to floats
-                drone_vel_ctrl(MCU, x, y, z, 1)
-                drone_vel_ctrl(CD1, x, y, z, 1)
-                drone_vel_ctrl(CD2, x, y, z, 1)
-                drone_vel_ctrl(CD3, x, y, z, 1)
+                drone_vel_ctrl(MCU, x, y, z)
+                drone_vel_ctrl(CD1, x, y, z)
+                drone_vel_ctrl(CD2, x, y, z)
+                drone_vel_ctrl(CD3, x, y, z)
             except ValueError:
                 print("Invalid control command format. Expected 'x,y,z'")
         except KeyboardInterrupt:
@@ -295,8 +293,8 @@ def ServerRecvControl(local_host):
 def drone_ctrl(drone,x,y,z):
     threading.Thread(target=drone.position_target_local_ned, args=(x, y, z,)).start()
 
-def drone_vel_ctrl(drone,x,y,z,t):
-    threading.Thread(target=drone.send_ned_velocity, args=(x, y, z, t,)).start()
+def drone_vel_ctrl(drone,x,y,z):
+    threading.Thread(target=drone.send_ned_velocity, args=(x, y, z,)).start()
 
 def drone_takeoff(drone):
     threading.Thread(target=drone.takeoff).start()
@@ -336,6 +334,8 @@ def goto(drone, lat, lon, alt, groundspeed = 1):
         current_alt = drone.vehicle.location.global_relative_frame.alt
         print('{} - Horizontal distance to destination: {} m.'.format(time.ctime(), distance_between_two_gps_coord((current_lat,current_lon), (lat,lon))))
         print('{} - Perpendicular distance to destination: {} m.'.format(time.ctime(), current_alt-alt))
+        if drone.vehicle.mode == VehicleMode('LAND'):
+            break
     print('{} - After calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
 
 def new_coords(original_gps_coord, displacement, rotation_degree):
@@ -392,7 +392,7 @@ def cu_lo(drone):
     point = drone.vehicle.location.global_relative_frame
     return point
 
-def line(dis = 4, alt = 2):
+def line(dis = 2, alt = 2):
     pointA = cu_lo(MCU)
     cdis = 0
     A = (pointA.lat, pointA.lon)
@@ -402,19 +402,15 @@ def line(dis = 4, alt = 2):
     C = new_coords(A,cdis,0)
     cdis = cdis + dis
     D = new_coords(A,cdis,0)
-    set_yaw(MCU,0)
     goto(CD1,B[0],B[1],alt)
-    set_yaw(CD1,0)
     goto(CD2,C[0],C[1],alt)
-    set_yaw(CD2,0)
     goto(CD3,D[0],D[1],alt)
-    set_yaw(CD3,0)
     time.sleep(1)
     print("Line Completed")
     
     
 
-def square(side = 8, alt = 3):
+def square(side = 4, alt = 3):
     pointA = cu_lo(MCU)
     mcuculo = (pointA.lat,pointA.lon)
     pointB = cu_lo(CD1)
@@ -436,11 +432,6 @@ def square(side = 8, alt = 3):
     cd3golo = new_coords(cd2culo, side, 90)
     goto(CD3,cd3golo[0],cd3golo[1],alt)
 
-    set_yaw(MCU,0)
-    set_yaw(CD1,0)
-    set_yaw(CD2,0)
-    set_yaw(CD3,0)
-
     time.sleep(2)
     print("Square Completed")
 
@@ -449,10 +440,7 @@ def tri(side = 6,alt = 3):
     A = (pointA.lat, pointA.lon)
     B = new_coords(A, side, 90)
     goto(CD3, B[0], B[1], alt)
-    set_yaw(MCU,0)
-    set_yaw(CD1,0)
-    set_yaw(CD2,0)
-    set_yaw(CD3,0)
+
 
 def circle(radius = 5, alt =3):
     pointA = cu_lo(MCU)
