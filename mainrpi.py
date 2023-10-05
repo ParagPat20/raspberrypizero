@@ -6,14 +6,12 @@ import threading
 import geopy
 import geopy.distance
 from geopy.distance import great_circle
-import math
 
 local_host = '0.0.0.0'
-remote_host = '192.168.155.101'
+remote_host = '192.168.155.122'
 mode_port = 60001
 ctrl_port = 60003
 status_port = [60002,60004,60006,60008]
-stop = 0
 
 class Drone:
     def __init__(self, connection_string, baudrate=None):
@@ -56,6 +54,8 @@ class Drone:
         global stop
         print("Taking off!")
         self.vehicle.simple_takeoff(1)
+        start_time = time.time()
+        TIMEOUT_SECONDS = 10
         while True:
             current_altitude = self.vehicle.location.global_relative_frame.alt
             if current_altitude is not None:
@@ -65,7 +65,7 @@ class Drone:
                     break
             else:
                 print("Waiting for altitude information...")
-            if stop == 1:
+            if time.time() - start_time > TIMEOUT_SECONDS:
                 break
             time.sleep(1)
 
@@ -97,22 +97,23 @@ class Drone:
         print("Completed")
 
 
-# MCU = Drone('/dev/serial0',baudrate=115200)
-# print("MCU connected")
-# CD1 = Drone('0.0.0.0:14550')
-# print("CD1 Connected")
-# CD2 = Drone('0.0.0.0:14552')
-# print("CD2 Connected")
-# CD3 = Drone('0.0.0.0:14553')
-# print("CD3 Connected")
-MCU = Drone('tcp:127.0.0.1:5762')
+MCU = Drone('/dev/serial0',baudrate=115200)
 print("MCU connected")
-CD1 = Drone('tcp:127.0.0.1:5772')
+CD1 = Drone('0.0.0.0:14550')
 print("CD1 Connected")
-CD2 = Drone('tcp:127.0.0.1:5782')
+CD2 = Drone('0.0.0.0:14552')
 print("CD2 Connected")
-CD3 = Drone('tcp:127.0.0.1:5792')
+CD3 = Drone('0.0.0.0:14553')
 print("CD3 Connected")
+
+# MCU = Drone('tcp:127.0.0.1:5762')
+# print("MCU connected")
+# CD1 = Drone('tcp:127.0.0.1:5772')
+# print("CD1 Connected")
+# CD2 = Drone('tcp:127.0.0.1:5782')
+# print("CD2 Connected")
+# CD3 = Drone('tcp:127.0.0.1:5792')
+# print("CD3 Connected")
 Drone_ID = MCU
 
 def ServerSendStatus(drone, local_host, status_port):
@@ -166,6 +167,12 @@ def status(drone):
 
     return status_str
 
+def reconnectdrone(drone,connection,baud=None):
+    drone.close()
+    time.sleep(1)
+    drone = Drone(connection_string=connection,baudrate=baud)
+    print("Drone Reconnected Successfully!")
+
 
 def ServerRecvCmd(local_host):
     global mode_port
@@ -187,19 +194,25 @@ def ServerRecvCmd(local_host):
             
             if immediate_command_str == 'MCU':
                 Drone_ID = MCU
+                MCU.land()
+                threading.Thread(target=reconnectdrone, args=(MCU,'/dev/serial0',115200,)).start()
             if immediate_command_str == 'CD1':
                 Drone_ID = CD1
+                CD1.land()
+                threading.Thread(target=reconnectdrone, args=(CD1,'0.0.0.0:14550',)).start()
             if immediate_command_str == 'CD2':
                 Drone_ID = CD2
+                CD2.land()
+                threading.Thread(target=reconnectdrone, args=(CD2,'0.0.0.0:14552',)).start()
             if immediate_command_str == 'CD3':
                 Drone_ID = CD3
+                CD3.land()
+                threading.Thread(target=reconnectdrone, args=(CD3,'0.0.0.0:14553',)).start()
             if immediate_command_str == 'ARM':
                 drone_arm(MCU)
                 drone_arm(CD1)
                 drone_arm(CD2)
                 drone_arm(CD3)
-            if immediate_command_str == 'LAND':
-                Drone_ID.land()
             if immediate_command_str == 'land_all':
                 drone_land(MCU)
                 drone_land(CD1)
@@ -219,14 +232,16 @@ def ServerRecvCmd(local_host):
                 drone_mode(CD3, 'POSHOLD')
             if immediate_command_str == 'square':
                 print("Square")
-                square()
+                threading.Thread(target=square).start()
             if immediate_command_str == 'line':
                 print("Line")
-                line()
+                threading.Thread(target=line).start()
             if immediate_command_str == 'tri':
                 print("Triangle")
-                # tri()
-                circle()
+                threading.Thread(target=tri).start()
+            if immediate_command_str == 'circle':
+                print("Circle")
+                threading.Thread(target=circle).start()
             
         except KeyboardInterrupt:
             # Handle KeyboardInterrupt to gracefully exit the loop
@@ -395,6 +410,7 @@ def line(dis = 4, alt = 2):
     goto(CD3,D[0],D[1],alt)
     set_yaw(CD3,0)
     time.sleep(1)
+    print("Line Completed")
     
     
 
@@ -426,8 +442,9 @@ def square(side = 8, alt = 3):
     set_yaw(CD3,0)
 
     time.sleep(2)
+    print("Square Completed")
 
-def tri(side=6,alt=3):
+def tri(side = 6,alt = 3):
     pointA = cu_lo(CD1)
     A = (pointA.lat, pointA.lon)
     B = new_coords(A, side, 90)
@@ -473,6 +490,7 @@ def circle(radius = 5, alt =3):
         threading.Thread(target=goto,args=(CD3,cd3lo[0],cd3lo[1],alt,0.7,)).start()
         set_yaw(MCU,angle1)
         time.sleep(5)
+        print("Circle Completed")
     
 
 def main():
