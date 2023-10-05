@@ -17,7 +17,7 @@ class Drone:
     def __init__(self, connection_string, baudrate=None):
         self.vehicle = connect(connection_string, baud=baudrate)
 
-    def send_ned_velocity(self, velocity_x, velocity_y, velocity_z,duration):
+    def send_ned_velocity(self, velocity_x, velocity_y, velocity_z):
         msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
             0,  # time_boot_ms (not used)
             0, 0,  # target system, target component
