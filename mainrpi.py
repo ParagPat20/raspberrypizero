@@ -15,6 +15,8 @@ status_port = [60002,60004]
 gps_port = [60015,60016]
 gps_server_port = [60010,60011]
 
+############################################################################################
+
 class Drone:
     def __init__(self, connection_string, baudrate=None):
         self.vehicle = connect(connection_string, baud=baudrate)
@@ -31,8 +33,6 @@ class Drone:
             0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
 
         self.vehicle.send_mavlink(msg)
-
-    
 
     def takeoff(self):
         global stop
@@ -350,7 +350,6 @@ def goto(drone, lat, lon, alt, groundspeed = 1):
         print('{} - Perpendicular distance to destination: {} m.'.format(time.ctime(), current_alt-alt))
         if drone.vehicle.mode == VehicleMode('LAND'):
             break
-    print('{} - After calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
 
 def new_coords(original_gps_coord, displacement, rotation_degree):
     vincentyDistance = geopy.distance.distance(meters = displacement)
@@ -378,9 +377,14 @@ def line(dis = 2, alt = 1):
     cdis = 0
     A = (pointA.lat, pointA.lon)
     cdis = cdis + dis
+    goto(MCU,A[0],A[1],alt,0.7)
+    MCU.vehicle.mode = VehicleMode('POSHOLD')
+    print("MCU Reached and Fixed on its Position")
     B = new_coords(A,cdis,0)
     cdis = cdis + dis
     goto(CD1,B[0],B[1],alt,0.7)
+    CD1.vehicle.mode = VehicleMode('POSHOLD')
+    print("CD Reached and Fixed on its Position")
     time.sleep(1)
     print("Line Completed")
 

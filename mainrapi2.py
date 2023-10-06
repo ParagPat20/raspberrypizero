@@ -313,9 +313,7 @@ def new_coords(original_gps_coord, displacement, rotation_degree):
     new_gps_coord = vincentyDistance.destination(point=original_point, bearing=rotation_degree)
     new_gps_lat = new_gps_coord.latitude
     new_gps_lon = new_gps_coord.longitude
-    # If convert float to decimal, round will be accurate, but will take 50% more time. Not necessary.
-    #new_gps_lat = decimal.Decimal(new_gps_lat)
-    #new_gps_lon = decimal.Decimal(new_gps_lon)
+
     return (round(new_gps_lat, 7), round(new_gps_lon, 7))
 
 def distance_between_two_gps_coord(point1, point2):
@@ -333,6 +331,7 @@ def line(dis = 2, alt = 2):
     lat, lon ,alt = pointA
     if lat < 0:
         print("False Lat")
+        print("Line Failed")
     else:
         print("Recieved data....")
         print(pointA,' has been recieved')
