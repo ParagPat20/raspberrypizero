@@ -9,11 +9,11 @@ from geopy.distance import great_circle
 
 local_host = '0.0.0.0'
 remote_host = '192.168.155.101'
-mode_port = 12345
+mode_port = 12346
 ctrl_port = 60003
-status_port = [60002,60004]
-gps_port = [60015,60016]
-gps_server_port = [60010,60011]
+status_port = [60006,60008]
+gps_port = [60010,60011]
+gps_server_port = [60015,60016]
 
 class Drone:
     def __init__(self, connection_string, baudrate=None):
@@ -84,17 +84,17 @@ class Drone:
         print("Completed")
 
 
-# MCU = Drone('/dev/serial0',baudrate=115200)
-# print("MCU connected")
-# CD1 = Drone('0.0.0.0:14552')
-# print("CD1 Connected")
+# CD2 = Drone('/dev/serial0',baudrate=115200)
+# print("CD2 connected")
+# CD3 = Drone('0.0.0.0:14553')
+# print("CD Connected")
 
-MCU = Drone('tcp:127.0.0.1:5762')
+CD2 = Drone('tcp:127.0.0.1:5782')
 print("MCU connected")
-CD1 = Drone('tcp:127.0.0.1:5772')
+CD3 = Drone('tcp:127.0.0.1:5792')
 print("CD1 Connected")
 
-Drone_ID = MCU
+Drone_ID = CD2
 
 def ServerSendStatus(drone, local_host, status_port):
     status_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -123,6 +123,7 @@ def ServerSendStatus(drone, local_host, status_port):
             time.sleep(1)
 
     status_socket.close()
+
 
 def status(drone):
     vehicle = drone.vehicle
@@ -171,34 +172,29 @@ def ServerRecvCmd(local_host):
 
             print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
             
-            if immediate_command_str == 'MCU':
-                Drone_ID = MCU
-                MCU.land()
-                print("Reconnecting MCU Drone................................................................")
-                time.sleep(1)
-                threading.Thread(target=reconnectdrone, args=(MCU,'/dev/serial0',115200,)).start()
-            if immediate_command_str == 'CD1':
-                Drone_ID = CD1
-                CD1.land()
-                print("Reconnecting MCU Drone................................................................")
-                time.sleep(1)
-                threading.Thread(target=reconnectdrone, args=(CD1,'0.0.0.0:14552',)).start()
+            if immediate_command_str == 'CD2':
+                Drone_ID = CD2
+                CD2.land()
+                print("Reconnecting CD2 Drone................................................................")
+                threading.Thread(target=reconnectdrone, args=(CD2,'/dev/serial0',115200,)).start()
+            if immediate_command_str == 'CD3':
+                Drone_ID = CD3
+                CD3.land()
+                threading.Thread(target=reconnectdrone, args=(CD3,'0.0.0.0:14553',)).start()
             if immediate_command_str == 'ARM':
-                drone_arm(MCU)
-                drone_arm(CD1)
+                drone_arm(CD2)
+                drone_arm(CD3)
             if immediate_command_str == 'land_all':
-                drone_land(MCU)
-                drone_land(CD1)
+                drone_land(CD2)
+                drone_land(CD3)
             if immediate_command_str == 'TakeOff':
                 Drone_ID.takeoff()
             if immediate_command_str == 'takeoff':
-                drone_takeoff(MCU)
-                drone_takeoff(CD1)
+                drone_takeoff(CD2)
+                drone_takeoff(CD3)
             if immediate_command_str == 'POSHOLD':
-                drone_mode(MCU, 'POSHOLD')
-                drone_mode(CD1, 'POSHOLD')
-            if immediate_command_str == 'line':
-                threading.Thread(target=line, args=(2,3)).start()
+                drone_mode(CD2, 'POSHOLD')
+                drone_mode(CD3, 'POSHOLD')
             
         except KeyboardInterrupt:
             # Handle KeyboardInterrupt to gracefully exit the loop
@@ -231,8 +227,8 @@ def ServerRecvControl(local_host):
             
             try:
                 x, y, z = map(float, control_command_str.split(','))  # Split and convert to floats
-                drone_vel_ctrl(MCU, x, y, z)
-                drone_vel_ctrl(CD1, x, y, z)
+                drone_vel_ctrl(CD2, x, y, z)
+                drone_vel_ctrl(CD3, x, y, z)
             except ValueError:
                 print("Invalid control command format. Expected 'x,y,z'")
         except KeyboardInterrupt:
@@ -246,42 +242,22 @@ def ServerRecvControl(local_host):
             if client_connection:
                 client_connection.close()
 
-def ServerSendGPS(drone,local_host,port):
-    gps_socket = socket.socket()
-    gps_socket.bind((local_host, port))
-    gps_socket.listen(2)
+def ClientRequestGPS(remote_host,port):
+    # Create a socket object
+    client_socket = socket.socket()
+    client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        client_socket.connect((remote_host,port))
+    except socket.error as error_msg:
+        print('{} - Caught exception : {}'.format(time.ctime(), error_msg))
+        print('{} - CLIENT_request_gps({}) is not executed!'.format(time.ctime(), remote_host))
+        return None, None, None
+    gps_msg_str = client_socket.recv(1024).decode()
+    print('Recieved GPS Params :', gps_msg_str)
+    # Return lat, lon, and alt
+    lat, lon, alt = gps_msg_str.split(',')
+    return float(lat), float(lon), float(alt)
 
-    print('{} - SERVER_Send_GPS() is started!'.format(time.ctime()))
-
-    while True:
-        try:
-            client_connection, client_address = gps_socket.accept()
-            print('\n{} - Received GPS Request from {}.'.format(time.ctime(),client_address))
-
-            gps_data = gps(drone)
-            client_connection.send(gps_data.encode())
-
-        except KeyboardInterrupt:
-            # Handle KeyboardInterrupt to gracefully exit the loop
-            break
-
-        except Exception as e:
-            print(f"Error: {e}")
-            time.sleep(1)
-        finally:
-            if client_connection:
-                client_connection.close()
-            time.sleep(1)
-    gps_socket.close()
-
-def gps(drone):
-    lat = '{:.7f}'.format(drone.vehicle.location.global_relative_frame.lat) if hasattr(drone.vehicle, 'location') else '0'
-    lon = '{:.7f}'.format(drone.vehicle.location.global_relative_frame.lon) if hasattr(drone.vehicle, 'location') else '0'
-    alt = str(drone.vehicle.location.global_relative_frame.alt) if hasattr(drone.vehicle, 'location') else '0'
-
-    gps_str = ','.join([lat, lon, alt])
-
-    return gps_str
 
 def drone_ctrl(drone,x,y,z):
     threading.Thread(target=drone.position_target_local_ned, args=(x, y, z,)).start()
@@ -319,7 +295,7 @@ def goto(drone, lat, lon, alt, groundspeed = 1):
 
     while ((distance_between_two_gps_coord((current_lat,current_lon), (lat,lon)) >0.6) or (abs(current_alt-alt)>0.3)):
         # Execute fly command.
-        drone.vehicle.simple_goto(destination,groundspeed=groundspeed)
+        drone.vehicle.simple_goto(destination)
         # wait for one second.
         time.sleep(0.5)
         current_lat = drone.vehicle.location.global_relative_frame.lat
@@ -352,29 +328,35 @@ def cu_lo(drone):
     return point
 
 def line(dis = 2, alt = 2):
-    pointA = cu_lo(MCU)
-    cdis = 0
-    A = (pointA.lat, pointA.lon)
-    cdis = cdis + dis
-    B = new_coords(A,cdis,0)
-    cdis = cdis + dis
-    goto(CD1,B[0],B[1],alt,0.7)
-    time.sleep(1)
-    print("Line Completed")
+    print("Receiving GPS Data.....")
+    pointA = ClientRequestGPS(remote_host,gps_port[0])
+    lat, lon ,alt = pointA
+    if lat < 0:
+        print("False Lat")
+    else:
+        print("Recieved data....")
+        print(pointA,' has been recieved')
+        B = new_coords(pointA,dis+dis,0)
+        goto(CD2,B[0],B[1],alt,0.5)
+        C = new_coords(pointA,dis+dis+dis,alt)
+        goto(CD3,C[0],C[1],alt,0.5)
+        time.sleep(1)
+        print("Line Comleted")
     
 
 def main():
 
     start_server_service(local_host)
-    threading.Thread(target=ServerSendStatus, args=(MCU, local_host, status_port[0],)).start()
-    print("MCU SendStatus Active")
-    threading.Thread(target=ServerSendStatus, args=(CD1, local_host, status_port[1],)).start()
-    print("CD1 SendStatus Active")
-    threading.Thread(target=ServerSendGPS,args=(MCU,local_host,gps_server_port[0])).start()
-    print("MCU GPS Server started")
-    threading.Thread(target=ServerSendGPS,args=(CD1,local_host,gps_server_port[1])).start()
-    print("CD1 GPS Server started")
-
+    threading.Thread(target=ServerSendStatus, args=(CD2, local_host, status_port[0],)).start()
+    print("SendStatus Active")
+    threading.Thread(target=ServerSendStatus, args=(CD3, local_host, status_port[1],)).start()
+    print("SendStatus Active")
+    
 time.sleep(2)
 main()
-
+CD2.arm()
+CD2.takeoff()
+CD3.arm()
+CD3.takeoff()
+time.sleep(3)
+line(2)
