@@ -198,7 +198,7 @@ def ServerRecvCmd(local_host):
                 drone_mode(MCU, 'POSHOLD')
                 drone_mode(CD1, 'POSHOLD')
             if immediate_command_str == 'line':
-                threading.Thread(target=line, args=(2,3)).start()
+                threading.Thread(target=line, args=(2,1)).start()
             
         except KeyboardInterrupt:
             # Handle KeyboardInterrupt to gracefully exit the loop
@@ -351,7 +351,7 @@ def cu_lo(drone):
     point = drone.vehicle.location.global_relative_frame
     return point
 
-def line(dis = 2, alt = 2):
+def line(dis = 2, alt = 1):
     pointA = cu_lo(MCU)
     cdis = 0
     A = (pointA.lat, pointA.lon)
