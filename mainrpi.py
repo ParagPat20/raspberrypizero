@@ -8,7 +8,7 @@ import geopy.distance
 from geopy.distance import great_circle
 
 local_host = '0.0.0.0'
-remote_host = '192.168.155.101'
+remote_host = '192.168.155.122'
 mode_port = 12345
 ctrl_port = 60003
 status_port = [60002,60004]
@@ -84,15 +84,15 @@ class Drone:
         print("Completed")
 
 
-# MCU = Drone('/dev/serial0',baudrate=115200)
-# print("MCU connected")
-# CD1 = Drone('0.0.0.0:14552')
-# print("CD1 Connected")
-
-MCU = Drone('tcp:127.0.0.1:5762')
+MCU = Drone('/dev/serial0',baudrate=115200)
 print("MCU connected")
-CD1 = Drone('tcp:127.0.0.1:5772')
+CD1 = Drone('0.0.0.0:14552')
 print("CD1 Connected")
+
+# MCU = Drone('tcp:127.0.0.1:5762')
+# print("MCU connected")
+# CD1 = Drone('tcp:127.0.0.1:5772')
+# print("CD1 Connected")
 
 Drone_ID = MCU
 
