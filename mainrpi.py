@@ -31,6 +31,7 @@ class Drone:
             0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
 
         self.vehicle.send_mavlink(msg)
+
     
 
     def takeoff(self):
@@ -83,6 +84,7 @@ class Drone:
         self.vehicle.close()
         print("Completed")
 
+############################################################################################
 
 MCU = Drone('/dev/serial0',baudrate=115200)
 print("MCU connected")
@@ -95,6 +97,8 @@ print("CD1 Connected")
 # print("CD1 Connected")
 
 Drone_ID = MCU
+
+############################################################################################
 
 def ServerSendStatus(drone, local_host, status_port):
     status_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -146,12 +150,15 @@ def status(drone):
 
     return status_str
 
+############################################################################################
+
 def reconnectdrone(drone,connection,baud=None):
     drone.exit()
     time.sleep(1)
     drone = Drone(connection_string=connection,baudrate=baud)
     print("Drone Reconnected Successfully!")
 
+############################################################################################
 
 def ServerRecvCmd(local_host):
     global mode_port
@@ -211,6 +218,8 @@ def ServerRecvCmd(local_host):
             if client_connection:
                 client_connection.close()
 
+############################################################################################
+
 def ServerRecvControl(local_host):
     global ctrl_port
     global Drone_ID
@@ -231,8 +240,8 @@ def ServerRecvControl(local_host):
             
             try:
                 x, y, z = map(float, control_command_str.split(','))  # Split and convert to floats
-                drone_vel_ctrl(MCU, x, y, z)
-                drone_vel_ctrl(CD1, x, y, z)
+                ctrl(MCU, x, y, z)
+                ctrl(CD1, x, y, z)
             except ValueError:
                 print("Invalid control command format. Expected 'x,y,z'")
         except KeyboardInterrupt:
@@ -245,6 +254,8 @@ def ServerRecvControl(local_host):
         finally:
             if client_connection:
                 client_connection.close()
+
+############################################################################################
 
 def ServerSendGPS(drone,local_host,port):
     gps_socket = socket.socket()
@@ -283,21 +294,23 @@ def gps(drone):
 
     return gps_str
 
-def drone_ctrl(drone,x,y,z):
-    threading.Thread(target=drone.position_target_local_ned, args=(x, y, z,)).start()
+############################################################################################
 
-def drone_vel_ctrl(drone,x,y,z):
-    threading.Thread(target=drone.send_ned_velocity, args=(x, y, z,)).start()
+
+def drone_arm(drone):
+    threading.Thread(target=drone.arm, args=('GUIDED',)).start()
 
 def drone_takeoff(drone):
     threading.Thread(target=drone.takeoff).start()
     print(drone, "takeoff")
 
-def drone_arm(drone):
-    threading.Thread(target=drone.arm, args=('GUIDED',)).start()
+def drone_vel_ctrl(drone,x,y,z):
+    drone.send_ned_velocity(x,y,z)
+    time.sleep(0.5)
+    drone.send_ned_velocity(0,0,0)
 
-def drone_land(drone):
-    threading.Thread(target=drone.land).start()
+def ctrl(drone,x,y,z):
+    threading.Thread(target=drone.send_ned_velocity, args=(x,y,z,)).start()
 
 def set_mode(drone,mode):
     drone.vehicle.mode = VehicleMode(mode)
@@ -305,10 +318,18 @@ def set_mode(drone,mode):
 def drone_mode(drone,mode):
     threading.Thread(target=set_mode, args= (drone,mode,)).start()
 
+def drone_land(drone):
+    threading.Thread(target=drone.land).start()
+
+
+############################################################################################
+
 def start_server_service(local_host):
     threading.Thread(target=ServerRecvCmd, args=(local_host,)).start()
     threading.Thread(target=ServerRecvControl, args=(local_host,)).start()
     print("Thread serverRecvMode and ServerRecvControl are started!")
+
+############################################################################################
 
 def goto(drone, lat, lon, alt, groundspeed = 1):
     print('{} - Calling goto_gps_location_relative(lat={}, lon={}, alt={}, groundspeed={}).'.format(time.ctime(), lat, lon, alt, groundspeed))
@@ -346,6 +367,7 @@ def distance_between_two_gps_coord(point1, point2):
     distance = great_circle(point1, point2).meters
     return distance
 
+############################################################################################
 
 def cu_lo(drone):
     point = drone.vehicle.location.global_relative_frame
@@ -361,7 +383,8 @@ def line(dis = 2, alt = 1):
     goto(CD1,B[0],B[1],alt,0.7)
     time.sleep(1)
     print("Line Completed")
-    
+
+############################################################################################
 
 def main():
 
@@ -375,6 +398,8 @@ def main():
     threading.Thread(target=ServerSendGPS,args=(CD1,local_host,gps_server_port[1])).start()
     print("CD1 GPS Server started")
 
-time.sleep(2)
+############################################################################################
+
+time.sleep(1)
 main()
 
