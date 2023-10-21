@@ -32,6 +32,8 @@ try:
             connection.write(image_data)
             stream.seek(0)
             stream.truncate()
+except Exception as e:
+    print("Error : ", e)
 
 finally:
     connection.close()

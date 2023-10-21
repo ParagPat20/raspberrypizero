@@ -6,6 +6,8 @@ import threading
 import geopy
 import geopy.distance
 from geopy.distance import great_circle
+import netifaces as ni
+
 
 global Drone_ID
 global drone1
@@ -402,7 +404,7 @@ def start_server(local_host):
         threading.Thread(target=SERVER_send_status, args=(local_host,)).start()
         threading.Thread(target=SERVER_CTRL, args=(local_host,)).start()
 
-local_host = '192.168.149.101'
+local_host = '0.0.0.0'
 cmd_port = 12345
 ctrl_port = 54321
 st_port = 60001
@@ -412,14 +414,14 @@ MCU_host = "192.168.149.101"
 CD2_host = "192.168.149.102"
 CD4_host = "192.168.149.103"
 
-MCU = Drone('tcp:127.0.0.1:5762')
-print("MCU connected")
-CD1 = Drone('tcp:127.0.0.1:5772')
-print("CD1 Connected")
+CD2 = Drone('tcp:127.0.0.1:5782')
+print("CD2 connected")
+CD3 = Drone('tcp:127.0.0.1:5792')
+print("CD3 Connected")
 
-drone1 = MCU
-drone2 = CD1
-Drone_ID = MCU
+drone1 = CD2
+drone2 = CD3
+Drone_ID = CD2
 
 
 def cu_lo(drone):
@@ -427,23 +429,25 @@ def cu_lo(drone):
     return point
 
 def LINE(dis = 2, alt = 1):
-    pointA = cu_lo(MCU)
+    pointA = ClientRequestGPS(MCU_host, 60002)
+    lat,lon,alt = pointA
     cdis = 0
-    A = (pointA.lat, pointA.lon)
+    A = (lat, lon)
 
-    
-    goto(MCU,A[0],A[1],alt,0.7)
-    print("MCU Reached and Fixed on its Position")
-    YAW(MCU,0)
+    cdis = dis*2
+    C = new_coords(A, cdis, 0)
+    goto(CD2,C[0],C[1],alt,0.7)
+    YAW(CD2,0)
+    print("CD2 Reached and Fixed on its Position")
 
-    cdis = dis
-    B = new_coords(A,cdis,0)
-    goto(CD1,B[0],B[1],alt,0.7)
-    print("CD1 Reached and Fixed on its Position")
-    YAW(CD1,0)
+    cdis = dis*3
+    D = new_coords(A, cdis, 0)
+    goto(CD3,D[0],D[1],alt,0.7)
+    YAW(CD3,0)
+    print("CD3 Reached and Fixed on its Position")
 
-    CLIENT_send_immediate_command(CD2_host, 'LINE('+str(dis)+','+str(alt)+')')
+    CLIENT_send_immediate_command(CD4_host, 'LINE('+str(dis)+','+str(alt)+')')
 
 start_server(local_host)
-start_drone_server_services(MCU, local_host,60002)
-start_drone_server_services(CD1, local_host,60003)
+start_drone_server_services(CD2, local_host,60004)
+start_drone_server_services(CD3, local_host,60005)
