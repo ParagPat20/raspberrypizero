@@ -156,54 +156,6 @@ def ClientRequestGPS(remote_host,port):
     lat, lon, alt = gps_msg_str.split(',')
     return float(lat), float(lon), float(alt)
 
-############################################################################################
-
-def ARM(drone):
-    threading.Thread(target=drone.arm, args=('GUIDED',)).start()
-
-def TAKEOFF(drone):
-    threading.Thread(target=drone.takeoff).start()
-    print(drone, "takeoff")
-
-def LAND(drone):
-    threading.Thread(target=drone.land).start()
-
-def MODE(drone,mode):
-    threading.Thread(target=set_mode, args= (drone,mode,)).start()
-
-def set_mode(drone,mode):
-    drone.vehicle.mode = VehicleMode(mode)
-
-def YAW(drone, heading):
-    threading.Thread(target=drone.yaw, args=(heading,)).start()
-
-def CTRL(drone,x,y,z):
-    drone.send_ned_velocity(x,y,z)
-    time.sleep(0.7)
-    drone.send_ned_velocity(0,0,0)
-
-def D(drone):
-    global Drone_ID
-    Drone_ID = drone
-
-def all_poshold():
-    global drone1, drone2
-    MODE(drone1,'POSHOLD')
-    MODE(drone2,'POSHOLD')
-
-def POSHOLD(drone):
-    MODE(drone,'POSHOLD')
-
-def land_all():
-    global drone1, drone2
-    LAND(drone1)
-    LAND(drone2)
-
-def status(cmd):
-    global status_waitForCommand
-    status_waitForCommand = cmd
-
-############################################################################################
 def SERVER_CTRL(local_host):
     global ctrl_port
     global Drone_ID, drone1, drone2
@@ -402,19 +354,86 @@ def start_server(local_host):
         threading.Thread(target=SERVER_send_status, args=(local_host,)).start()
         threading.Thread(target=SERVER_CTRL, args=(local_host,)).start()
 
-local_host = '192.168.149.101'
+############################################################################################
+
+def ARM(drone):
+    threading.Thread(target=drone.arm, args=('GUIDED',)).start()
+
+def TAKEOFF(drone):
+    threading.Thread(target=drone.takeoff).start()
+    print(drone, "takeoff")
+
+def LAND(drone):
+    threading.Thread(target=drone.land).start()
+
+def MODE(drone,mode):
+    threading.Thread(target=set_mode, args= (drone,mode,)).start()
+
+def set_mode(drone,mode):
+    drone.vehicle.mode = VehicleMode(mode)
+
+def YAW(drone, heading):
+    threading.Thread(target=drone.yaw, args=(heading,)).start()
+
+def CTRL(drone,x,y,z):
+    drone.send_ned_velocity(x,y,z)
+    time.sleep(0.7)
+    drone.send_ned_velocity(0,0,0)
+
+def D(drone):
+    global Drone_ID
+    Drone_ID = drone
+
+def all_poshold():
+    global drone1, drone2
+    MODE(drone1,'POSHOLD')
+    MODE(drone2,'POSHOLD')
+
+def POSHOLD(drone):
+    MODE(drone,'POSHOLD')
+
+def land_all():
+    global drone1, drone2
+    LAND(drone1)
+    LAND(drone2)
+
+def status(cmd):
+    global status_waitForCommand
+    status_waitForCommand = cmd
+
+def in_line_done():
+    print("Formation Completed Successfully! Recieved command from CD4 Host!")
+    global in_line
+    in_line = True
+
+def in_square_done():
+    print("SQUARE Completed Successfully! Recieved command from CD4 Host!")
+
+def in_tri_done():
+    print("TRIANGLES Completed Successfully! Recieved command from CD4 Host!")
+
+def in_zigzag_done():
+    print("ZIGZG Completed Successfully! Recieved command from CD4 Host!")
+
+def in_circle_done():
+    print("Circle Completed Successfully! Recieved command from CD4 Host!")
+
+############################################################################################
+
+local_host = '192.168.149.42' # change these
 cmd_port = 12345
 ctrl_port = 54321
 st_port = 60001
 status_waitForCommand = True
+in_line = False
 
-MCU_host = "192.168.149.101"
-CD2_host = "192.168.149.102"
-CD4_host = "192.168.149.103"
+MCU_host = "192.168.149.101" # change these
+CD2_host = "192.168.149.43" # change these
+CD4_host = "192.168.149.103" # change these
 
-MCU = Drone('tcp:127.0.0.1:5762')
+MCU = Drone('tcp:127.0.0.1:5762') # change these
 print("MCU connected")
-CD1 = Drone('tcp:127.0.0.1:5772')
+CD1 = Drone('tcp:127.0.0.1:5772') # change these
 print("CD1 Connected")
 
 drone1 = MCU
@@ -426,7 +445,7 @@ def cu_lo(drone):
     point = drone.vehicle.location.global_relative_frame
     return point
 
-def LINE(dis = 2, alt = 1):
+def LINE(dis = 2, alt = 2):
     pointA = cu_lo(MCU)
     cdis = 0
     A = (pointA.lat, pointA.lon)
@@ -443,6 +462,107 @@ def LINE(dis = 2, alt = 1):
     YAW(CD1,0)
 
     CLIENT_send_immediate_command(CD2_host, 'LINE('+str(dis)+','+str(alt)+')')
+
+def SQUARE(dis = 2, alt = 2):
+    if in_line == True:
+        pointA = cu_lo(MCU)
+        cdis = dis * 0
+        A = (pointA.lat, pointA.lon)
+
+        goto(MCU,A[0],A[1],alt,0.7)
+        print("MCU Reached and Fixed on its Position")
+        YAW(MCU,0)
+
+        cdis = dis * 1
+        
+        B = new_coords(A,cdis,90)
+        goto(CD1,B[0],B[1],alt,0.7)
+        print("CD1 Reached and Fixed on its Position")
+        YAW(CD1,0)
+
+        CLIENT_send_immediate_command(CD2_host, 'SQUARE('+str(dis)+','+str(alt)+')')
+        in_line = False
+    else:
+        print("Drones are not in Line")
+        time.sleep(1)
+        print("Run LINE()")
+
+def ZIGZAG(dis = 2, alt = 2):
+    if in_line == True:
+        pointA = cu_lo(CD1)
+        cdis = dis*0
+        A=(pointA.lat,pointA.lon)
+
+        cdis = dis*1
+        B = new_coords(A,dis,90)
+        goto(CD1,B[0],B[1],alt,0.7)
+        print("CD1 Reached and Fixed on its Position")
+        YAW(CD1,0)
+
+        CLIENT_send_immediate_command(CD4_host, 'ZIGZAG('+str(dis)+','+str(alt)+')')
+        in_line = False
+    else:
+        print("Drones are not in Line")
+        time.sleep(1)
+        print("Run LINE()")
+
+def TRI(dis = 2, alt = 2):
+    if in_line == True:
+        pointA = cu_lo(MCU)
+        cdis = dis*0
+        A=(pointA.lat,pointA.lon)
+
+        cdis = dis*1
+
+        B = new_coords(A,cdis,45)
+        goto(CD1,B[0],B[1],alt,0.7)
+        print("CD1 Reached and Fixed on its Position")
+        YAW(CD1,0)
+
+        CLIENT_send_immediate_command(CD2_host, 'TRI('+str(dis)+','+str(alt)+')')
+        in_line = False
+    else:
+        print("Drones are not in Line")
+        time.sleep(1)
+        print("Run LINE()")
+
+def CIRCLE(dis = 1, alt = 2):
+    if in_line == True:
+        pointA = ClientRequestGPS(CD2_host,60004)
+        lat, lon, alt = pointA
+        A = (lat,lon)
+
+        cdis = dis*2
+        B = new_coords(A,cdis,180)
+        goto(MCU,B[0],B[1],alt,0.7)
+        print("MCU Reached and Fixed on its Position")
+        YAW(MCU,0)
+
+        C = new_coords(A,cdis,108)
+        goto(CD1,C[0],C[1],alt,0.7)
+        print("CD1 Reached and Fixed on its Position")
+        YAW(CD1,0)
+
+        CLIENT_send_immediate_command(CD2_host, 'CIRCLE('+str(dis)+','+str(alt)+')')
+    else:
+        print("Drones are not in Line")
+        time.sleep(1)
+        print("Run LINE()")
+
+def FRAME():
+    if in_line == True:
+        A = cu_lo(MCU)
+        goto(MCU, A.lat, A.lon, 1, 0.3)
+        B = cu_lo(CD1)
+        goto(CD1, B.lat, B.lon, 2, 0.3)
+        YAW(MCU,0)
+        YAW(CD1,0)
+        CLIENT_send_immediate_command(CD2_host,'FRAME()')
+    else:
+        print("Drones are not in Line")
+        time.sleep(1)
+        print("Run LINE()")
+    
 
 start_server(local_host)
 start_drone_server_services(MCU, local_host,60002)

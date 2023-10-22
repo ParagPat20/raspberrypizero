@@ -405,24 +405,24 @@ def start_server(local_host):
         threading.Thread(target=SERVER_send_status, args=(local_host,)).start()
         threading.Thread(target=SERVER_CTRL, args=(local_host,)).start()
 
-local_host = '192.168.149.43'
+local_host = '192.168.149.43' # change this
 cmd_port = 12345
 ctrl_port = 54321
 st_port = 60001
 status_waitForCommand = True
 
-MCU_host = "192.168.149.101"
-CD2_host = "192.168.149.43"
-CD4_host = "192.168.149.103"
+MCU_host = "192.168.149.101" # change these
+CD2_host = "192.168.149.43" # change these
+CD4_host = "192.168.149.103" # change these
 
-CD2 = Drone('tcp:127.0.0.1:5782')
-print("CD2 connected")
-CD3 = Drone('tcp:127.0.0.1:5792')
-print("CD3 Connected")
+CD4 = Drone('tcp:127.0.0.1:5782') # change these
+print("CD4 connected")
+CD5 = Drone('tcp:127.0.0.1:5792') # change these
+print("CD5 Connected")
 
-drone1 = CD2
-drone2 = CD3
-Drone_ID = CD2
+drone1 = CD4
+drone2 = CD5
+Drone_ID = CD4
 
 
 def cu_lo(drone):
@@ -435,37 +435,50 @@ def LINE(dis = 2, alt = 1):
     cdis = 0
     A = (lat, lon)
 
-    cdis = dis*2
+    cdis = dis*4
     C = new_coords(A, cdis, 0)
-    goto(CD2,C[0],C[1],alt,0.7)
-    YAW(CD2,0)
-    print("CD2 Reached and Fixed on its Position")
+    goto(CD4,C[0],C[1],alt,0.7)
+    YAW(CD4,0)
+    print("CD4 Reached and Fixed on its Position")
 
-    cdis = dis*3
+    cdis = dis*5
     D = new_coords(A, cdis, 0)
-    goto(CD3,D[0],D[1],alt,0.7)
-    YAW(CD3,0)
-    print("CD3 Reached and Fixed on its Position")
+    goto(CD5,D[0],D[1],alt,0.7)
+    YAW(CD5,0)
+    print("CD5 Reached and Fixed on its Position")
 
-    CLIENT_send_immediate_command(CD4_host, 'LINE('+str(dis)+','+str(alt)+')')
+    CLIENT_send_immediate_command(MCU_host, 'in_line_done()')
 
 def SQUARE(dis = 2, alt = 2):
-    pointA = cu_lo(CD2)
+    pointA = cu_lo(CD4)
     cdis = dis * 0
     A = (pointA.lat, pointA.lon)
 
-    goto(CD2,A[0],A[1],alt,0.7)
+    goto(CD4,A[0],A[1],alt,0.7)
     print("CD2 Reached and Fixed on its Position")
-    YAW(CD2,0)
+    YAW(CD4,0)
 
     cdis = dis * 1
     
     B = new_coords(A,cdis,90)
-    goto(CD3,B[0],B[1],alt,0.7)
+    goto(CD5,B[0],B[1],alt,0.7)
     print("CD3 Reached and Fixed on its Position")
-    YAW(CD3,0)
+    YAW(CD5,0)
 
-    CLIENT_send_immediate_command(CD4_host, 'SQUARE('+str(dis)+','+str(alt)+')')
+    CLIENT_send_immediate_command(MCU_host, 'in_square_done()')
+
+def ZIGZAG(dis = 2, alt = 2):
+    pointA = cu_lo(CD4)
+    cdis = dis*0
+    A=(pointA.lat,pointA.lon)
+
+    cdis = dis*1
+    B = new_coords(A,cdis,270)
+    goto(CD4,B[0],B[1],alt,0.7)
+    print("CD4 Reached and Fixed on its Position")
+    YAW(CD4,0)
+
+    CLIENT_send_immediate_command(MCU_host, 'in_zigzag_done()')
 
 def TRI(dis = 2, alt = 2):
     pointA = ClientRequestGPS(MCU_host, 60002)
@@ -474,43 +487,48 @@ def TRI(dis = 2, alt = 2):
     A = (lat, lon)
 
     cdis = dis * 2
-    B = new_coords(A,cdis,45)
-    goto(CD2,B[0],B[1],alt,0.7)
-    print("CD2 Reached and Fixed on its Position")
-    YAW(CD2,0)
-
-    cdis = dis * 1
-
-    C = new_coords(A,cdis,315)
-    goto(CD3,C[0],C[1],alt,0.7)
-    print("CD3 Reached and Fixed on its Position")
-    YAW(CD3,0)
-
-    CLIENT_send_immediate_command(CD4_host, 'TRI('+str(dis)+','+str(alt)+')')
-
-def CIRCLE(dis = 1, alt = 2):
-    pointA = cu_lo(CD2)
-    A = (pointA.lat,pointA.lon)
+    B = new_coords(A,cdis,315)
+    goto(CD4,B[0],B[1],alt,0.7)
+    print("CD4 Reached and Fixed on its Position")
+    YAW(CD4,0)
 
     cdis = dis * 2
-    B = new_coords(A,cdis,36)
-    goto(CD3,B[0],B[1],alt,0.7)
-    print("CD3 Reached and Fixed on its Position")
-    YAW(CD3,0)
 
-    CLIENT_send_immediate_command(CD4_host, 'CIRCLE('+str(dis)+','+str(alt)+')')
+    C = new_coords(A,cdis,0)
+    goto(CD5,C[0],C[1],alt,0.7)
+    print("CD5 Reached and Fixed on its Position")
+    YAW(CD5,0)
+
+    CLIENT_send_immediate_command(MCU_host, 'in_tri_done()')
+
+def CIRCLE(dis = 1, alt = 2):
+    pointA = ClientRequestGPS(CD2_host,60004)
+    lat, lon, alt = pointA
+    A = (lat,lon)
+
+    cdis = dis*2
+    B = new_coords(A,cdis,252)
+    goto(CD4,B[0],B[1],alt,0.7)
+    print("CD4 Reached and Fixed on its Position")
+    YAW(CD4,0)
+
+    C = new_coords(A,cdis,324)
+    goto(CD5,C[0],C[1],alt,0.7)
+    print("CD5 Reached and Fixed on its Position")
+    YAW(CD5,0)
+
+    CLIENT_send_immediate_command(MCU_host, 'in_circle_done()')
 
 def FRAME():
-    A = cu_lo(CD2)
-    goto(CD2, A.lat, A.lon, 3, 0.3)
-    B = cu_lo(CD3)
-    goto(CD3, B.lat, B.lon, 3, 0.3)
-    YAW(CD2,0)
-    YAW(CD3,0)
-    CLIENT_send_immediate_command(CD4_host,'FRAME()')
+    A = cu_lo(CD4)
+    goto(CD4, A.lat, A.lon, 2, 0.3)
+    B = cu_lo(CD5)
+    goto(CD5, B.lat, B.lon, 1, 0.3)
+    YAW(CD4,0)
+    YAW(CD5,0)
 
 
 
 start_server(local_host)
-start_drone_server_services(CD2, local_host,60004)
-start_drone_server_services(CD3, local_host,60005)
+start_drone_server_services(CD4, local_host, 60006)
+start_drone_server_services(CD5, local_host, 60007)
