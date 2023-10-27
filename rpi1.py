@@ -418,6 +418,12 @@ def in_zigzag_done():
 def in_circle_done():
     print("Circle Completed Successfully! Recieved command from CD4 Host!")
 
+def ARMALL():
+    print("Arming All Drones")
+def LANDALL():
+    print("LANDING All Drones")
+def TAKEOFFALL():
+    print("Taking off All Drones")
 ############################################################################################
 
 local_host = '192.168.149.42' # change these
