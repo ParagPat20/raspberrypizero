@@ -176,8 +176,21 @@ def SERVER_CTRL(local_host):
                 print('{} - Control command is: {}'.format(time.ctime(), control_command_str))
                 
                 try:
-                    x, y, z = map(float, control_command_str.split(','))  # Split and convert to floats
-                    CTRL(Drone_ID,x,y,z)
+                    
+                    d, x, y, z = map(float, control_command_str.split(','))  # Split and convert to floats
+                    if d == 'MCU':
+                        CTRL(MCU,x,y,z)
+                    if d == 'CD1':
+                        CTRL(CD1,x,y,z)
+                    if d == 'CD2':
+                        C(CD2_host,drone1,x,y,z)
+                    if d == 'CD3':
+                        C(CD2_host,drone2,x,y,z)
+                    if d == 'CD4':
+                        C(CD4_host,drone1,x,y,z)
+                    if d == 'CD5':
+                        C(CD4_host,drone2,x,y,z)
+
                 except ValueError:
                     print("Invalid control command format. Expected 'x,y,z'")
             except KeyboardInterrupt:
@@ -377,7 +390,7 @@ def YAW(drone, heading):
 
 def CTRL(drone,x,y,z):
     drone.send_ned_velocity(x,y,z)
-    time.sleep(0.7)
+    time.sleep(0.3)
     drone.send_ned_velocity(0,0,0)
 
 def D(drone):
@@ -420,10 +433,32 @@ def in_circle_done():
 
 def ARMALL():
     print("Arming All Drones")
+    ARM(drone1)
+    ARM(drone2)
+    CLIENT_send_immediate_command(CD2_host,'ARM(drone1)')
+    CLIENT_send_immediate_command(CD2_host,'ARM(drone2)')
+    CLIENT_send_immediate_command(CD4_host,'ARM(drone1)')
+    CLIENT_send_immediate_command(CD4_host,'ARM(drone2)')
 def LANDALL():
     print("LANDING All Drones")
+    LAND(drone1)
+    LAND(drone2)
+    CLIENT_send_immediate_command(CD2_host,'LAND(drone1)')
+    CLIENT_send_immediate_command(CD2_host,'LAND(drone2)')
+    CLIENT_send_immediate_command(CD4_host,'LAND(drone1)')
+    CLIENT_send_immediate_command(CD4_host,'LAND(drone2)')
 def TAKEOFFALL():
     print("Taking off All Drones")
+    TAKEOFF(drone1)
+    TAKEOFF(drone2)
+    CLIENT_send_immediate_command(CD2_host,'TAKEOFF(drone1)')
+    CLIENT_send_immediate_command(CD2_host,'TAKEOFF(drone2)')
+    CLIENT_send_immediate_command(CD4_host,'TAKEOFF(drone1)')
+    CLIENT_send_immediate_command(CD4_host,'TAKEOFF(drone2)')
+
+def C(host,drone,x,y,z):
+    CLIENT_send_immediate_command(host,'CTRL('+str(drone)+','+str(x)+',',+str(y)+',',+str(z)+')')
+
 ############################################################################################
 
 local_host = '192.168.149.42' # change these

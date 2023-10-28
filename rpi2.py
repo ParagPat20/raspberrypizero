@@ -179,7 +179,7 @@ def YAW(drone, heading):
 
 def CTRL(drone,x,y,z):
     drone.send_ned_velocity(x,y,z)
-    time.sleep(0.7)
+    time.sleep(0.3)
     drone.send_ned_velocity(0,0,0)
 
 def D(drone):
