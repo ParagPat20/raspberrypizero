@@ -9,14 +9,25 @@ from geopy.distance import great_circle
 import io
 import picamera
 import struct
-from gpiozero import Servo
-import pigpio
-
-
+import RPi.GPIO as GPIO
 
 global Drone_ID
 global drone1
 global drone2
+
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(13, GPIO.OUT)
+pwm=GPIO.PWM(13, 50)
+pwm.start(0)
+
+def SetAngle(angle):
+	duty = angle / 18 + 2
+	GPIO.output(13, True)
+	pwm.ChangeDutyCycle(duty)
+	time.sleep(1)
+	GPIO.output(13, False)
+	pwm.ChangeDutyCycle(0)
+
 ############################################################################################
 
 class Drone:
@@ -107,31 +118,14 @@ class Drone:
         self.vehicle.send_mavlink(msg)
 ############################################################################################
 
-class MyServo:
-    def __init__(self, pin, pin_factory=None):
-        self._servo = pigpio.pi() if pin_factory is None else pin_factory
-        self._servo.set_mode(pin, pigpio.OUTPUT)
-        self._servo.set_servo_pulsewidth(pin, 0)
-        self._angle = 0
-
-    def close(self):
-        self._servo.set_servo_pulsewidth(self.pin, 0)
-        self._servo.stop()
-
-    def move(self, value):
-        if -1 <= value <= 1:
-            pulsewidth = int(1500 + (value * 500))
-            self._servo.set_servo_pulsewidth(self.pin, pulsewidth)
-            self._angle = value
-        else:
-            print("Invalid angle. Angle should be between -1 and 1.")
-
-# Example usage
-pi = pigpio.pi()
-servo = MyServo(13, pin_factory=pi)
-servo.move(0.5)  # Move the servo to a position
-servo.close()  # Clean up when done
-
+def control_servo(servo, angle):
+    if -1 <= angle <= 1:
+        servo.value = angle
+        return True
+    else:
+        print("Invalid angle. Angle should be between -1 and 1.")
+        return False
+    
 ############################################################################################
 
 def camera_stream_server(host, port):
