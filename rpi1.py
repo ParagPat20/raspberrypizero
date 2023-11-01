@@ -9,7 +9,8 @@ from geopy.distance import great_circle
 import io
 import picamera
 import struct
-
+from gpiozero import Servo
+servo = Servo(13)
 
 global Drone_ID
 global drone1
@@ -103,6 +104,17 @@ class Drone:
         # send command to vehicle
         self.vehicle.send_mavlink(msg)
 ############################################################################################
+
+def control_servo(angle):
+    if -1 <= angle <= 1:
+        servo.value = angle
+        return True
+    else:
+        print("Invalid angle. Angle should be between -1 and 1.")
+        return False
+    
+############################################################################################
+
 def camera_stream_server(host, port):
     def handle_client(client_socket):
         connection = client_socket.makefile('wb')
