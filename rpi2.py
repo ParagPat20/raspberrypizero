@@ -177,16 +177,19 @@ def set_mode(drone,mode):
 def YAW(drone, heading):
     threading.Thread(target=drone.yaw, args=(heading,)).start()
 
-def CTRL(drone,x,y,z):
+def ctrl(drone,x,y,z):
     drone.send_ned_velocity(x,y,z)
     time.sleep(0.3)
     drone.send_ned_velocity(0,0,0)
+
+def CTRL(drone,x,y,z):
+    threading.Thread(target=ctrl,args=(drone,x,y,z,)).start()
 
 def D(drone):
     global Drone_ID
     Drone_ID = drone
 
-def all_poshold():
+def POSHOLDALL():
     global drone1, drone2
     MODE(drone1,'POSHOLD')
     MODE(drone2,'POSHOLD')
@@ -264,7 +267,7 @@ def SERVER_receive_and_execute_immediate_command(local_host):
             print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
             
             if status_waitForCommand == True:
-                exec(immediate_command_str)
+                threading.Thread(target=exec, args=(immediate_command_str,)).start()
                 status_waitForCommand = True
                 print('{} - Immediate command \'{}\' is finished!'.format(time.ctime(), immediate_command_str))
             elif immediate_command_str == 'status(True)':
@@ -434,38 +437,57 @@ def LINE(dis = 2, alt = 1):
     lat,lon,alt = pointA
     cdis = 0
     A = (lat, lon)
-
+    CD2.arm()
     cdis = dis*2
     C = new_coords(A, cdis, 0)
     goto(CD2,C[0],C[1],alt,0.7)
     YAW(CD2,0)
     print("CD2 Reached and Fixed on its Position")
+    POSHOLD(CD2)
 
+    CD3.arm()
     cdis = dis*3
     D = new_coords(A, cdis, 0)
     goto(CD3,D[0],D[1],alt,0.7)
     YAW(CD3,0)
     print("CD3 Reached and Fixed on its Position")
+    POSHOLD(CD3)
+    # CLIENT_send_immediate_command(CD4_host, 'LINE('+str(dis)+','+str(alt)+')')
+    CLIENT_send_immediate_command(MCU_host, 'in_line_done()')
 
-    CLIENT_send_immediate_command(CD4_host, 'LINE('+str(dis)+','+str(alt)+')')
+def ZIGZAG(dis = 2, alt = 2):
+    pointA = cu_lo(CD3)
+    cdis = dis*0
+    A=(pointA.lat,pointA.lon)
+    POSHOLD(CD2)
+    CD3.arm()
+    cdis = dis*1
+    B = new_coords(A,cdis,270)
+    goto(CD3,B[0],B[1],alt,0.7)
+    print("CD4 Reached and Fixed on its Position")
+    YAW(CD3,0)
+    POSHOLD(CD3)
+
+    CLIENT_send_immediate_command(MCU_host, 'in_zigzag_done()')
 
 def SQUARE(dis = 2, alt = 2):
     pointA = cu_lo(CD2)
     cdis = dis * 0
     A = (pointA.lat, pointA.lon)
-
+    CD2.arm()
     goto(CD2,A[0],A[1],alt,0.7)
     print("CD2 Reached and Fixed on its Position")
     YAW(CD2,0)
-
+    POSHOLD(CD2)
     cdis = dis * 1
-    
+    CD3.arm()
     B = new_coords(A,cdis,90)
     goto(CD3,B[0],B[1],alt,0.7)
     print("CD3 Reached and Fixed on its Position")
     YAW(CD3,0)
-
-    CLIENT_send_immediate_command(CD4_host, 'SQUARE('+str(dis)+','+str(alt)+')')
+    POSHOLD(CD3)
+    # CLIENT_send_immediate_command(CD4_host, 'SQUARE('+str(dis)+','+str(alt)+')')
+    CLIENT_send_immediate_command(MCU_host, 'in_square_done()')
 
 def TRI(dis = 2, alt = 2):
     pointA = ClientRequestGPS(MCU_host, 60002)
@@ -473,20 +495,24 @@ def TRI(dis = 2, alt = 2):
     cdis = 0
     A = (lat, lon)
 
-    cdis = dis * 2
-    B = new_coords(A,cdis,45)
-    goto(CD2,B[0],B[1],alt,0.7)
+    cdis = dis * 1
+    CD2.arm()
+    C = new_coords(A,cdis,315)
+    goto(CD2,C[0],C[1],alt,0.7)
     print("CD2 Reached and Fixed on its Position")
     YAW(CD2,0)
+    POSHOLD(CD2)
 
-    cdis = dis * 1
-
-    C = new_coords(A,cdis,315)
-    goto(CD3,C[0],C[1],alt,0.7)
+    cdis = dis * 2
+    CD3.arm()
+    B = new_coords(A,cdis,45)
+    goto(CD3,B[0],B[1],alt,0.7)
     print("CD3 Reached and Fixed on its Position")
     YAW(CD3,0)
+    POSHOLD(CD3)
 
-    CLIENT_send_immediate_command(CD4_host, 'TRI('+str(dis)+','+str(alt)+')')
+    # CLIENT_send_immediate_command(CD4_host, 'TRI('+str(dis)+','+str(alt)+')')
+    CLIENT_send_immediate_command(MCU_host, 'in_tri_done()')
 
 def CIRCLE(dis = 1, alt = 2):
     pointA = cu_lo(CD2)
@@ -501,13 +527,17 @@ def CIRCLE(dis = 1, alt = 2):
     CLIENT_send_immediate_command(CD4_host, 'CIRCLE('+str(dis)+','+str(alt)+')')
 
 def FRAME():
+    CD2.arm()
+    CD3.arm()
     A = cu_lo(CD2)
-    goto(CD2, A.lat, A.lon, 3, 0.3)
+    goto(CD2, A.lat, A.lon, 2, 0.3)
     B = cu_lo(CD3)
-    goto(CD3, B.lat, B.lon, 3, 0.3)
+    goto(CD3, B.lat, B.lon, 1, 0.3)
     YAW(CD2,0)
     YAW(CD3,0)
-    CLIENT_send_immediate_command(CD4_host,'FRAME()')
+    POSHOLD(CD2)
+    POSHOLD(CD3)
+    # CLIENT_send_immediate_command(CD4_host,'FRAME()')
 
 
 

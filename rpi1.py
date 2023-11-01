@@ -171,12 +171,11 @@ def SERVER_CTRL(local_host):
                 client_connection, client_address = control_socket.accept()
                 print('\n{} - Received control command from {}.'.format(time.ctime(), client_address))
 
-                control_command_str = client_connection.recv(1024).decode()  # Receive and decode the command
+                control_command_str = client_connection.recv(1024)  # Receive and decode the command
 
                 print('{} - Control command is: {}'.format(time.ctime(), control_command_str))
                 
                 try:
-                    
                     d, x, y, z = map(float, control_command_str.split(','))  # Split and convert to floats
                     if d == 'MCU':
                         CTRL(MCU,x,y,z)
@@ -186,10 +185,10 @@ def SERVER_CTRL(local_host):
                         C(CD2_host,drone1,x,y,z)
                     if d == 'CD3':
                         C(CD2_host,drone2,x,y,z)
-                    if d == 'CD4':
-                        C(CD4_host,drone1,x,y,z)
-                    if d == 'CD5':
-                        C(CD4_host,drone2,x,y,z)
+                    # if d == 'CD4':
+                    #     C(CD4_host,drone1,x,y,z)
+                    # if d == 'CD5':
+                    #     C(CD4_host,drone2,x,y,z)
 
                 except ValueError:
                     print("Invalid control command format. Expected 'x,y,z'")
@@ -226,7 +225,7 @@ def SERVER_receive_and_execute_immediate_command(local_host):
             print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
             
             if status_waitForCommand == True:
-                exec(immediate_command_str)
+                threading.Thread(target=exec, args=(immediate_command_str,)).start()
                 status_waitForCommand = True
                 print('{} - Immediate command \'{}\' is finished!'.format(time.ctime(), immediate_command_str))
             elif immediate_command_str == 'status(True)':
@@ -397,7 +396,7 @@ def D(drone):
     global Drone_ID
     Drone_ID = drone
 
-def all_poshold():
+def POSHOLDALL():
     global drone1, drone2
     MODE(drone1,'POSHOLD')
     MODE(drone2,'POSHOLD')
@@ -437,24 +436,24 @@ def ARMALL():
     ARM(drone2)
     CLIENT_send_immediate_command(CD2_host,'ARM(drone1)')
     CLIENT_send_immediate_command(CD2_host,'ARM(drone2)')
-    CLIENT_send_immediate_command(CD4_host,'ARM(drone1)')
-    CLIENT_send_immediate_command(CD4_host,'ARM(drone2)')
+    # CLIENT_send_immediate_command(CD4_host,'ARM(drone1)')
+    # CLIENT_send_immediate_command(CD4_host,'ARM(drone2)')
 def LANDALL():
     print("LANDING All Drones")
     LAND(drone1)
     LAND(drone2)
     CLIENT_send_immediate_command(CD2_host,'LAND(drone1)')
     CLIENT_send_immediate_command(CD2_host,'LAND(drone2)')
-    CLIENT_send_immediate_command(CD4_host,'LAND(drone1)')
-    CLIENT_send_immediate_command(CD4_host,'LAND(drone2)')
+    # CLIENT_send_immediate_command(CD4_host,'LAND(drone1)')
+    # CLIENT_send_immediate_command(CD4_host,'LAND(drone2)')
 def TAKEOFFALL():
     print("Taking off All Drones")
     TAKEOFF(drone1)
     TAKEOFF(drone2)
     CLIENT_send_immediate_command(CD2_host,'TAKEOFF(drone1)')
     CLIENT_send_immediate_command(CD2_host,'TAKEOFF(drone2)')
-    CLIENT_send_immediate_command(CD4_host,'TAKEOFF(drone1)')
-    CLIENT_send_immediate_command(CD4_host,'TAKEOFF(drone2)')
+    # CLIENT_send_immediate_command(CD4_host,'TAKEOFF(drone1)')
+    # CLIENT_send_immediate_command(CD4_host,'TAKEOFF(drone2)')
 
 def C(host,drone,x,y,z):
     CLIENT_send_immediate_command(host,'CTRL('+str(drone)+','+str(x)+',',+str(y)+',',+str(z)+')')
@@ -491,16 +490,19 @@ def LINE(dis = 2, alt = 2):
     cdis = 0
     A = (pointA.lat, pointA.lon)
 
-    
+    MCU.arm()
     goto(MCU,A[0],A[1],alt,0.7)
     print("MCU Reached and Fixed on its Position")
     YAW(MCU,0)
+    POSHOLD(MCU)
 
     cdis = dis
+    CD1.arm()
     B = new_coords(A,cdis,0)
     goto(CD1,B[0],B[1],alt,0.7)
     print("CD1 Reached and Fixed on its Position")
     YAW(CD1,0)
+    POSHOLD(CD1)
 
     CLIENT_send_immediate_command(CD2_host, 'LINE('+str(dis)+','+str(alt)+')')
 
@@ -509,18 +511,19 @@ def SQUARE(dis = 2, alt = 2):
         pointA = cu_lo(MCU)
         cdis = dis * 0
         A = (pointA.lat, pointA.lon)
-
+        MCU.arm()
         goto(MCU,A[0],A[1],alt,0.7)
         print("MCU Reached and Fixed on its Position")
         YAW(MCU,0)
+        POSHOLD(MCU)
 
         cdis = dis * 1
-        
+        CD1.arm()
         B = new_coords(A,cdis,90)
         goto(CD1,B[0],B[1],alt,0.7)
         print("CD1 Reached and Fixed on its Position")
         YAW(CD1,0)
-
+        POSHOLD(CD1)
         CLIENT_send_immediate_command(CD2_host, 'SQUARE('+str(dis)+','+str(alt)+')')
         in_line = False
     else:
@@ -533,14 +536,16 @@ def ZIGZAG(dis = 2, alt = 2):
         pointA = cu_lo(CD1)
         cdis = dis*0
         A=(pointA.lat,pointA.lon)
-
+        POSHOLD(MCU)
+        CD1.arm()
         cdis = dis*1
-        B = new_coords(A,dis,90)
+        B = new_coords(A,cdis,90)
         goto(CD1,B[0],B[1],alt,0.7)
         print("CD1 Reached and Fixed on its Position")
         YAW(CD1,0)
+        POSHOLD(CD1)
 
-        CLIENT_send_immediate_command(CD4_host, 'ZIGZAG('+str(dis)+','+str(alt)+')')
+        CLIENT_send_immediate_command(CD2_host, 'ZIGZAG('+str(dis)+','+str(alt)+')')
         in_line = False
     else:
         print("Drones are not in Line")
@@ -552,13 +557,15 @@ def TRI(dis = 2, alt = 2):
         pointA = cu_lo(MCU)
         cdis = dis*0
         A=(pointA.lat,pointA.lon)
+        POSHOLD(MCU)
 
         cdis = dis*1
-
+        CD1.arm()
         B = new_coords(A,cdis,45)
         goto(CD1,B[0],B[1],alt,0.7)
         print("CD1 Reached and Fixed on its Position")
         YAW(CD1,0)
+        POSHOLD(CD1)
 
         CLIENT_send_immediate_command(CD2_host, 'TRI('+str(dis)+','+str(alt)+')')
         in_line = False

@@ -5,11 +5,12 @@ import keyboard
 import threading
 
 cmd_port = 12345
-ctrl_port = 54321  # Set your control port
-
+ctrl_port = 54321
 MCU_host = "192.168.149.101"
+CD2_host = "192.168.149.43"
+CD4_host = "192.168.149.103"
 
-d='MCU'
+d = 'MCU'
 
 def CLIENT_send_immediate_command(remote_host, immediate_command_str):
     global cmd_port
@@ -18,15 +19,20 @@ def CLIENT_send_immediate_command(remote_host, immediate_command_str):
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     try:
-        print("Sending Command",immediate_command_str)
+        print("Sending Command", immediate_command_str)
         client_socket.connect((remote_host, cmd_port))
-        client_socket.send(immediate_command_str.encode())  # Encode the command as bytes before sending
+        client_socket.send(immediate_command_str.encode())
         
     except socket.error as error_msg:
-        print('{} - Caught exception : {}'.format(time.ctime(), error_msg))
+        print('{} - Caught exception: {}'.format(time.ctime(), error_msg))
         print('{} - CLIENT_send_immediate_command({}) is not executed!'.format(time.ctime(), immediate_command_str))
         return
     
+    except Exception as e:
+        print(f"Error: {e}")
+        time.sleep(1)
+    
+
 def send_command(command):
     if command == 'm':
         threading.Thread(target=send, args=('ARMALL()',)).start()
@@ -42,99 +48,128 @@ def send_custom_command():
     custom_command = custom_command_entry.get()
     CLIENT_send_immediate_command(MCU_host, custom_command)
 
+def send_custom_command2():
+    custom_command2 = custom_command_entry2.get()
+    CLIENT_send_immediate_command(CD2_host, custom_command2)
+
+def send_custom_command3():
+    custom_command3 = custom_command_entry3.get()
+    CLIENT_send_immediate_command(CD4_host, custom_command3)
+
 def ch_dr(dr):
     global d
     d = dr
 
-def CLIENT_CTRL(remote_host):
+def CLIENT_CTRL(remote_host, cmd):
     global ctrl_port
     global d
-    # Create a socket object
+
     client_socket = socket.socket()
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
     try:
-        print("Send Control of drone to",ctrl())
+        print("Send Control of drone to", cmd)
         client_socket.connect((remote_host, ctrl_port))
-        
-        client_socket.send(ctrl().encode())  # Encode the string as bytes before sending
+        client_socket.send(cmd)
         
     except socket.error as error_msg:
-        print('{} - Caught exception : {}'.format(time.ctime(), error_msg))
-        print('{} - ClientSendCtrl({}, {}) is not executed!'.format(time.ctime(), remote_host))
+        print('{} - Caught exception: {}'.format(time.ctime(), error_msg))
         return
-    
-def ctrl():
+    except Exception as e:
+        print(f"Error: {e}")
+        time.sleep(1)
+
+def send_ctrl(cmd):
     Velocity = 0.5
     global d
-    if keyboard.is_pressed('w'):
+
+    x = '0'
+    y = '0'
+    z = '0'
+
+    if cmd == 'w':
         x = str(Velocity)
-    elif keyboard.is_pressed('s'):
+    elif cmd == 's':
         x = str(-Velocity)
-    else:
-        x = '0'
 
-    if keyboard.is_pressed('a'):
+    if cmd == 'a':
         y = str(Velocity)
-    elif keyboard.is_pressed('d'):
+    elif cmd == 'd':
         y = str(-Velocity)
-    else:
-        y = '0'
 
-    if keyboard.is_pressed('u'):
+    if cmd == 'u':
         z = str(-Velocity)
-    elif keyboard.is_pressed('j'):
+    elif cmd == 'j':
         z = str(Velocity)
-    else:
-        z = '0'
 
-    ctrl_str = d + ',' + x + ',' + y + ',' + z
+    cmd = d + ',' + x + ',' + y + ',' + z
+    CLIENT_CTRL(MCU_host, cmd)
 
-    return ctrl_str
-
-def send_ctrl():
-    while True:
-        if keyboard.is_pressed('w') or keyboard.is_pressed('s') or keyboard.is_pressed('a') or keyboard.is_pressed('d') or keyboard.is_pressed('u') or keyboard.is_pressed('j'):
-            CLIENT_CTRL(MCU_host)
-
-threading.Thread(target=send_ctrl).start()
 
 # Create the main GUI window
 root = tk.Tk()
-root.title("Command Sender")
+root.title("Drone Control")
 
 # Create labels and buttons
-label = tk.Label(root, text="Press 'M' for ARM,\n 'L' for LAND,\n 'T' for TAKEOFF")
-label.pack()
+label = tk.Label(root, text="Control the Drone")
+label.grid(row=0, column=1, pady=10)
 
-custom_command_label = tk.Label(root, text="Custom Command:")
-custom_command_label.pack()
+custom_command_label = tk.Label(root, text="Custom Command for MCU:")
+custom_command_label.grid(row=1, column=0, padx=10, pady=5)
 
 custom_command_entry = tk.Entry(root)
-custom_command_entry.pack()
+custom_command_entry.grid(row=1, column=1, padx=10, pady=5)
 
-send_button = tk.Button(root, text="Send Custom Command", command=send_custom_command)
-send_button.pack()
+send_button = tk.Button(root, text="Send Custom Command to MCU", command=send_custom_command)
+send_button.grid(row=1, column=2, padx=10, pady=5)
 
-# Buttons to send commands as MCU, CD1, CD2, CD3, CD4, CD5
+custom_command_label2 = tk.Label(root, text="Custom Command for CD2:")
+custom_command_label2.grid(row=2, column=0, padx=10, pady=5)
+
+custom_command_entry2 = tk.Entry(root)
+custom_command_entry2.grid(row=2, column=1, padx=10, pady=5)
+
+send_button2 = tk.Button(root, text="Send Custom Command to CD2", command=send_custom_command2)
+send_button2.grid(row=2, column=2, padx=10, pady=5)
+
+custom_command_label3 = tk.Label(root, text="Custom Command for CD4:")
+custom_command_label3.grid(row=3, column=0, padx=10, pady=5)
+
+custom_command_entry3 = tk.Entry(root)
+custom_command_entry3.grid(row=3, column=1, padx=10, pady=5)
+
+send_button3 = tk.Button(root, text="Send Custom Command to CD4", command=send_custom_command3)
+send_button3.grid(row=3, column=2, padx=10, pady=5)
+
+control_label = tk.Label(root, text="Control the Drone:")
+control_label.grid(row=4, column=1, pady=10)
+
 mcu_button = tk.Button(root, text="MCU", command=lambda: ch_dr('MCU'))
+mcu_button.grid(row=5, column=0, padx=10, pady=5)
+
 cd1_button = tk.Button(root, text="CD1", command=lambda: ch_dr('CD1'))
+cd1_button.grid(row=6, column=0, padx=10, pady=5)
+
 cd2_button = tk.Button(root, text="CD2", command=lambda: ch_dr('CD2'))
+cd2_button.grid(row=5, column=1, padx=10, pady=5)
+
 cd3_button = tk.Button(root, text="CD3", command=lambda: ch_dr('CD3'))
+cd3_button.grid(row=6, column=1, padx=10, pady=5)
+
 cd4_button = tk.Button(root, text="CD4", command=lambda: ch_dr('CD4'))
+cd4_button.grid(row=5, column=2, padx=10, pady=5)
+
 cd5_button = tk.Button(root, text="CD5", command=lambda: ch_dr('CD5'))
+cd5_button.grid(row=6, column=2, padx=10, pady=5)
 
-mcu_button.pack()
-cd1_button.pack()
-cd2_button.pack()
-cd3_button.pack()
-cd4_button.pack()
-cd5_button.pack()
-
-# Bind key events to functions
 root.bind('m', lambda event: send_command('m'))
 root.bind('l', lambda event: send_command('l'))
 root.bind('t', lambda event: send_command('t'))
+root.bind('w', lambda event: send_ctrl('w'))
+root.bind('a', lambda event: send_ctrl('a'))
+root.bind('d', lambda event: send_ctrl('d'))
+root.bind('u', lambda event: send_ctrl('u'))
+root.bind('j', lambda event: send_ctrl('j'))
+root.bind('s', lambda event: send_ctrl('s'))
 
-
-# Start the GUI main loop
 root.mainloop()

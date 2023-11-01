@@ -177,16 +177,20 @@ def set_mode(drone,mode):
 def YAW(drone, heading):
     threading.Thread(target=drone.yaw, args=(heading,)).start()
 
-def CTRL(drone,x,y,z):
+
+def ctrl(drone,x,y,z):
     drone.send_ned_velocity(x,y,z)
     time.sleep(0.3)
     drone.send_ned_velocity(0,0,0)
+
+def CTRL(drone,x,y,z):
+    threading.Thread(target=ctrl,args=(drone,x,y,z,)).start()
 
 def D(drone):
     global Drone_ID
     Drone_ID = drone
 
-def all_poshold():
+def POSHOLDALL():
     global drone1, drone2
     MODE(drone1,'POSHOLD')
     MODE(drone2,'POSHOLD')
@@ -264,7 +268,7 @@ def SERVER_receive_and_execute_immediate_command(local_host):
             print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
             
             if status_waitForCommand == True:
-                exec(immediate_command_str)
+                threading.Thread(target=exec, args=(immediate_command_str,)).start()
                 status_waitForCommand = True
                 print('{} - Immediate command \'{}\' is finished!'.format(time.ctime(), immediate_command_str))
             elif immediate_command_str == 'status(True)':
