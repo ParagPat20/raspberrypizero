@@ -1,8 +1,10 @@
 import socket
 import time
 import tkinter as tk
-import keyboard
 import threading
+import struct
+from PIL import Image
+import io
 
 cmd_port = 12345
 ctrl_port = 54321
@@ -171,5 +173,43 @@ root.bind('d', lambda event: send_ctrl('d'))
 root.bind('u', lambda event: send_ctrl('u'))
 root.bind('j', lambda event: send_ctrl('j'))
 root.bind('s', lambda event: send_ctrl('s'))
+
+camera_feed_label = tk.Label(root)
+camera_feed_label.grid(row=7, column=0, columnspan=3)  # Adjust the row and column values as needed
+
+def camera_init():
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect(('oxitech.local', 8000))  # Replace with your Raspberry Pi's IP address
+
+    connection = client_socket.makefile('rb')
+
+    try:
+        while True:
+            # Read the image size from the server
+            image_len = struct.unpack('<L', connection.read(struct.calcsize('<L')))[0]
+
+            # Read the image data from the server
+            image_data = connection.read(image_len)
+
+            # Convert the image data to a Pillow image
+            image = Image.open(io.BytesIO(image_data))
+
+            # Convert the Pillow image to a PhotoImage
+            photo = ImageTk.PhotoImage(image)
+
+            # Update the label with the new image
+            camera_feed_label.config(image=photo)
+            camera_feed_label.image = photo
+
+    except KeyboardInterrupt:
+        pass
+
+    finally:
+        connection.close()
+        client_socket.close()
+
+camera_feed_thread = threading.Thread(target=camera_init)
+camera_feed_thread.daemon = True
+camera_feed_thread.start()
 
 root.mainloop()
