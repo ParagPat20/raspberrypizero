@@ -10,7 +10,10 @@ import io
 import picamera
 import struct
 from gpiozero import Servo
-servo = Servo(13)
+import pigpio
+
+pi = pigpio.pi()
+servo = Servo(13,pin_factory=pi)
 
 global Drone_ID
 global drone1
@@ -104,6 +107,7 @@ class Drone:
         # send command to vehicle
         self.vehicle.send_mavlink(msg)
 ############################################################################################
+
 
 def control_servo(angle):
     if -1 <= angle <= 1:
