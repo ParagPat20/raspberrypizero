@@ -128,7 +128,7 @@ def control_servo(servo, angle):
     
 ############################################################################################
 
-def camera_stream_server(host, port):
+def camera_stream_server(host):
     def handle_client(client_socket):
         connection = client_socket.makefile('wb')
 
