@@ -12,8 +12,7 @@ import struct
 from gpiozero import Servo
 import pigpio
 
-pi = pigpio.pi()
-servo = Servo(13,pin_factory=pi)
+
 
 global Drone_ID
 global drone1
@@ -108,14 +107,31 @@ class Drone:
         self.vehicle.send_mavlink(msg)
 ############################################################################################
 
+pi = pigpio.pi()  # Initialize pigpio
 
-def control_servo(angle):
-    if -1 <= angle <= 1:
-        servo.value = angle
-        return True
-    else:
-        print("Invalid angle. Angle should be between -1 and 1.")
-        return False
+class MyServo(my_pin):
+    def __init__(self, pin, pin_factory=None):
+        super(MyServo, self).__init__(pin, pin_factory=pin_factory)
+        self._servo = pigpio.pi() if pin_factory is None else pin_factory
+        self._servo.set_mode(pin, pigpio.OUTPUT)
+        self._servo.set_servo_pulsewidth(pin, 0)
+        self._angle = 0
+
+    def close(self):
+        self._servo.set_servo_pulsewidth(self.pin, 0)
+        self._servo.stop()
+        super(MyServo, self).close()
+
+    def move(self, value):
+        if -1 <= value <= 1:
+            pulsewidth = int(500 + (value * 1000))
+            self._servo.set_servo_pulsewidth(self.pin, pulsewidth)
+            self._angle = value
+        else:
+            print("Invalid angle. Angle should be between -1 and 1.")
+
+# Use the custom MyServo class
+servo = MyServo(13, pin_factory=pi)
     
 ############################################################################################
 
