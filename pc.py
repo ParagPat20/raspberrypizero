@@ -3,8 +3,8 @@ import time
 import tkinter as tk
 import threading
 import struct
-from PIL import Image
-import io
+import cv2
+import numpy as np
 
 cmd_port = 12345
 ctrl_port = 54321
@@ -179,32 +179,38 @@ camera_feed_label.grid(row=7, column=0, columnspan=3)  # Adjust the row and colu
 
 def camera_init():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect(('oxitech.local', 8000))  # Replace with your Raspberry Pi's IP address
+    client_socket.connect((MCU_host, 8000))  # Replace with your Raspberry Pi's IP address
 
     connection = client_socket.makefile('rb')
 
     try:
         while True:
             # Read the image size from the server
-            image_len = struct.unpack('<L', connection.read(struct.calcsize('<L')))[0]
+            image_len_data = connection.read(struct.calcsize('<L'))
+            if not image_len_data:
+                break  # Break the loop if no image data is received
+            image_len = struct.unpack('<L', image_len_data)[0]
 
             # Read the image data from the server
             image_data = connection.read(image_len)
 
-            # Convert the image data to a Pillow image
-            image = Image.open(io.BytesIO(image_data))
+            # Convert the image data to a NumPy array
+            image_array = np.frombuffer(image_data, dtype=np.uint8)
 
-            image.show()
+            # Decode the image as a color image (you may need to adjust the format)
+            if image_array.size > 0:
+                image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+                cv2.imshow('Video Stream', image)
+
+            # Press 'q' to quit the video stream
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
     except KeyboardInterrupt:
         pass
 
     except Exception as e:
-        print("Error:", e)
-
-    finally:
-        connection.close()
-        client_socket.close()
+        print(e)
 
 camera_feed_thread = threading.Thread(target=camera_init)
 camera_feed_thread.daemon = True

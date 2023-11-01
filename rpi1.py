@@ -103,14 +103,9 @@ class Drone:
         # send command to vehicle
         self.vehicle.send_mavlink(msg)
 ############################################################################################
-def camera_init():
-    camera_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    camera_socket.bind((local_host, 8888))
-    camera_socket.listen(1)
-
-    while True:
-        client_connection, client_address = camera_socket.accept()
-        connection = client_connection.makefile('wb')
+def camera_stream_server(host, port):
+    def handle_client(client_socket):
+        connection = client_socket.makefile('wb')
 
         try:
             with picamera.PiCamera() as camera:
@@ -120,8 +115,7 @@ def camera_init():
                 # Start capturing and sending the video feed
                 time.sleep(2)  # Give the camera some time to warm up
                 stream = io.BytesIO()
-
-                while True:
+                for _ in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
                     stream.seek(0)
                     image_data = stream.read()
 
@@ -133,14 +127,25 @@ def camera_init():
                     connection.write(image_data)
                     stream.seek(0)
                     stream.truncate()
-
         except Exception as e:
-            print("Error : ", e)
+            print("Error: ", e)
 
         finally:
             connection.close()
-            client_connection.close()
-            camera_socket.close()
+            client_socket.close()
+
+    # Create a socket server
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind((host, 8888))
+    server_socket.listen(0)
+
+    print("Server is listening on {}:{}".format(host, 8888))
+
+    while True:
+        client_socket, _ = server_socket.accept()
+        client_thread = threading.Thread(target=handle_client, args=(client_socket,))
+        client_thread.start()
+
 
 ############################################################################################
 
@@ -410,7 +415,7 @@ def start_server(local_host):
         threading.Thread(target=SERVER_receive_and_execute_immediate_command, args=(local_host,)).start()
         threading.Thread(target=SERVER_send_status, args=(local_host,)).start()
         threading.Thread(target=SERVER_CTRL, args=(local_host,)).start()
-
+        threading.Thread(target=camera_stream_server, args=(local_host,))
 ############################################################################################
 
 def ARM(drone):
@@ -505,14 +510,14 @@ def C(host,drone,x,y,z):
 
 ############################################################################################
 
-local_host = '192.168.149.42' # change these
+local_host = '192.168.12.122' # change these
 cmd_port = 12345
 ctrl_port = 54321
 st_port = 60001
 status_waitForCommand = True
 in_line = False
 
-MCU_host = "192.168.149.101" # change these
+MCU_host = "192.168.12.122" # change these
 CD2_host = "192.168.149.43" # change these
 CD4_host = "192.168.149.103" # change these
 
