@@ -8,7 +8,7 @@ import io
 
 cmd_port = 12345
 ctrl_port = 54321
-MCU_host = "192.168.149.101"
+MCU_host = "192.168.12.122"
 CD2_host = "192.168.149.43"
 CD4_host = "192.168.149.103"
 
@@ -194,15 +194,13 @@ def camera_init():
             # Convert the image data to a Pillow image
             image = Image.open(io.BytesIO(image_data))
 
-            # Convert the Pillow image to a PhotoImage
-            photo = ImageTk.PhotoImage(image)
-
-            # Update the label with the new image
-            camera_feed_label.config(image=photo)
-            camera_feed_label.image = photo
+            image.show()
 
     except KeyboardInterrupt:
         pass
+
+    except Exception as e:
+        print("Error:", e)
 
     finally:
         connection.close()

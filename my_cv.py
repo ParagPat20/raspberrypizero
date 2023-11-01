@@ -6,7 +6,7 @@ import time
 
 # Create a socket server
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind(('0.0.0.0', 8000))
+server_socket.bind(('192.168.12.122', 8000))
 server_socket.listen(0)
 
 # Accept a single connection from the client
