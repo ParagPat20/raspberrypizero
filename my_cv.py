@@ -3,7 +3,7 @@ import picamera
 import socket
 import struct
 import time
-
+local_host = '192.168.12.122'
 
 def camera_init():
     camera_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
