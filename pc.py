@@ -179,7 +179,7 @@ camera_feed_label.grid(row=7, column=0, columnspan=3)  # Adjust the row and colu
 
 def camera_init():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((MCU_host, 8000))  # Replace with your Raspberry Pi's IP address
+    client_socket.connect((MCU_host, 8888))  # Replace with your Raspberry Pi's IP address
 
     connection = client_socket.makefile('rb')
 
