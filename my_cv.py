@@ -35,10 +35,6 @@ def camera_init():
                 connection_file.write(image_data)
                 connection_file.flush()
 
-                # Close the client connection
-                connection_file.close()
-                connection.close()
-
                 stream.seek(0)
                 stream.truncate()
 
