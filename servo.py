@@ -9,20 +9,13 @@ GPIO.setup(servo, GPIO.OUT)
 # Create a PWM object on the GPIO pin
 pwm = GPIO.PWM(servo, 50)
 pwm.start(0)
+angle = input("Enter Degrees: ")
 
 try:
     while True:
+        duty = (angle/18)+2.5
         # Rotate the servo motor to 0 degrees
-        pwm.ChangeDutyCycle(2)
-        time.sleep(1)
-
-        # Rotate the servo motor to 90 degrees
-        pwm.ChangeDutyCycle(7)
-        time.sleep(1)
-
-        # Rotate the servo motor to 180 degrees
-        pwm.ChangeDutyCycle(12)
-        time.sleep(1)
+        pwm.ChangeDutyCycle(duty)
 
 except KeyboardInterrupt:
     pass
