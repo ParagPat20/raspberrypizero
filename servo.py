@@ -13,17 +13,15 @@ angle = 0
 def set_angle():
     while True:
         global angle
-        degree = input("Enter Degree: ")
+        degree = int(input("Enter Degree: "))
         angle = degree
 
 def set_servo():
     try:
         while True:
             duty = (angle/18)+2.5
-            print(angle,' ',duty)
             # Rotate the servo motor to 0 degrees
             pwm.ChangeDutyCycle(duty)
-            time.sleep(0.1)
 
     except KeyboardInterrupt:
         pass
