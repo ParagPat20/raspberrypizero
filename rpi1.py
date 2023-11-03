@@ -537,6 +537,10 @@ def TAKEOFFALL():
 def C(host,drone,x,y,z):
     CLIENT_send_immediate_command(host,'CTRL('+str(drone)+','+str(x)+',',+str(y)+',',+str(z)+')')
 
+def set_servo(ang):
+    global angle
+    angle = ang
+
 ############################################################################################
 
 local_host = '192.168.12.122' # change these
@@ -694,3 +698,21 @@ def FRAME():
 start_server(local_host)
 start_drone_server_services(MCU, local_host,60002)
 start_drone_server_services(CD1, local_host,60003)
+
+angle = 90
+def servo():
+    try:
+        while True:
+            duty = (angle/18)+2.5
+            # Rotate the servo motor to 0 degrees
+            pwm.ChangeDutyCycle(duty)
+
+    except KeyboardInterrupt:
+        pass
+
+    finally:
+        # Stop the PWM object and clean up the GPIO
+        pwm.stop()
+        GPIO.cleanup()
+
+threading.Thread(target=servo).start()

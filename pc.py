@@ -58,6 +58,12 @@ def ch_dr(dr):
     global d
     d = dr
 
+def servo(bool):
+    if bool == True:
+        CLIENT_send_immediate_command(MCU_host,"set_servo(0)")
+    else:
+        CLIENT_send_immediate_command(MCU_host,"set_servo(80)")
+
 def CLIENT_CTRL(remote_host, cmd):
     global ctrl_port
     global d
@@ -152,6 +158,12 @@ cd4_button.grid(row=5, column=2, padx=10, pady=5)
 
 cd5_button = tk.Button(root, text="CD5", command=lambda: ch_dr('CD5'))
 cd5_button.grid(row=6, column=2, padx=10, pady=5)
+
+servo_on_button = tk.Button(root, text = "Servo ON", command=lambda: servo(True))
+servo_on_button.grid(row=5, column=3, padx=10, pady=5)
+
+servo_off_button = tk.Button(root, text = "Servo OFF", command=lambda: servo(False))
+servo_off_button.grid(row=6, column=3, padx=10, pady=5)
 
 root.bind('m', lambda event: send_command('m'))
 root.bind('l', lambda event: send_command('l'))
