@@ -66,7 +66,7 @@ def CLIENT_CTRL(remote_host, cmd):
     try:
         print("Send Control of drone to", cmd)
         client_socket.connect((remote_host, ctrl_port))
-        client_socket.send(cmd)
+        client_socket.send(cmd.encode())
         
     except socket.error as error_msg:
         print('{} - Caught exception: {}'.format(time.ctime(), error_msg))

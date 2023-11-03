@@ -15,18 +15,22 @@ global Drone_ID
 global drone1
 global drone2
 
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(13, GPIO.OUT)
-pwm=GPIO.PWM(13, 50)
+servo_pin = 13
+
+# Initialize GPIO and PWM
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(servo_pin, GPIO.OUT)
+pwm = GPIO.PWM(servo_pin, 50)
 pwm.start(0)
 
 def SetAngle(angle):
-	duty = angle / 18 + 2
-	GPIO.output(13, True)
-	pwm.ChangeDutyCycle(duty)
-	time.sleep(1)
-	GPIO.output(13, False)
-	pwm.ChangeDutyCycle(0)
+    duty = angle / 18 + 2
+    GPIO.output(servo_pin, True)
+    pwm.ChangeDutyCycle(duty)
+    time.sleep(1)
+    GPIO.output(servo_pin, False)
+    pwm.ChangeDutyCycle(0)
+
 
 ############################################################################################
 
@@ -246,7 +250,7 @@ def SERVER_CTRL(local_host):
                 client_connection, client_address = control_socket.accept()
                 print('\n{} - Received control command from {}.'.format(time.ctime(), client_address))
 
-                control_command_str = client_connection.recv(1024)  # Receive and decode the command
+                control_command_str = client_connection.recv(1024).decode  # Receive and decode the command
 
                 print('{} - Control command is: {}'.format(time.ctime(), control_command_str))
                 
