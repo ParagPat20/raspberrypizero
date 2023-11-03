@@ -285,7 +285,7 @@ def SERVER_receive_and_execute_immediate_command(local_host):
         try:
             client_connection, client_address = msg_socket.accept() # Establish connection with client.
             print('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
-            immediate_command_str = client_connection.recv(1024)
+            immediate_command_str = client_connection.recv(1024).decode()
             print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
             
             if status_waitForCommand == True:
@@ -318,7 +318,7 @@ def CLIENT_send_immediate_command(remote_host, immediate_command_str):
         print('{} - Caught exception : {}'.format(time.ctime(), error_msg))
         print('{} - CLIENT_send_immediate_command({}, {}) is not executed!'.format(time.ctime(), remote_host, immediate_command_str))
         return
-    client_socket.send(immediate_command_str)
+    client_socket.send(immediate_command_str.encode())
 
 ############################################################################################
 
