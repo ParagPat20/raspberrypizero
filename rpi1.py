@@ -106,17 +106,6 @@ class Drone:
         # send command to vehicle
         self.vehicle.send_mavlink(msg)
 ############################################################################################
-
-def control_servo(servo, angle):
-    if -1 <= angle <= 1:
-        servo.value = angle
-        return True
-    else:
-        print("Invalid angle. Angle should be between -1 and 1.")
-        return False
-    
-############################################################################################
-
 def camera_stream_server(host):
     def handle_client(client_socket):
         connection = client_socket.makefile('wb')
@@ -275,41 +264,40 @@ def SERVER_CTRL(local_host):
             time.sleep(1)
 
 ############################################################################################
-def SERVER_receive_and_execute_immediate_command(local_host):
+def server_receive_and_execute_immediate_command(local_host):
     global cmd_port
     global status_waitForCommand
-    # Create a socket object
+
     msg_socket = socket.socket()
     msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    # Bind to the port
-    msg_socket.bind((local_host, cmd_port))
-    msg_socket.listen(5)                 # Now wait for client connection.
+    msg_socket.bind(local_host, cmd_port)
+    msg_socket.listen(5)
     print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
+
     while True:
         try:
-            client_connection, client_address = msg_socket.accept() # Establish connection with client.
+            client_connection, client_address = msg_socket.accept()
             print('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
             immediate_command_str = client_connection.recv(1024).decode()
             print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
             
-            if status_waitForCommand == True:
-                exec(immediate_command_str)
-                status_waitForCommand = True
-                print('{} - Immediate command \'{}\' is finished!'.format(time.ctime(), immediate_command_str))
-            elif immediate_command_str == 'status(True)':
-                exec(immediate_command_str)
-            else:
-                print('{} - Omit immediate command \'{}\', because status_waitForCommand is False!'.format(time.ctime(), immediate_command_str))
+            command_thread = threading.Thread(target=exec_thread, args=(immediate_command_str,))
+            command_thread.start()
+
         except KeyboardInterrupt:
-            # Handle KeyboardInterrupt to gracefully exit the loop
             break
         except Exception as e:
-            # Handle other exceptions, e.g., if the client disconnects unexpectedly
             print(f"Error: {e}")
             time.sleep(1)
         finally:
             if client_connection:
                 client_connection.close()
+
+def exec_thread(immediate_cmd_str):
+    try:
+        exec(immediate_cmd_str)
+    except Exception as e:
+        print(f"Error in executing immediate command: {e}")
 
 def CLIENT_send_immediate_command(remote_host, immediate_command_str):
     global cmd_port
@@ -430,7 +418,7 @@ def distance_between_two_gps_coord(point1, point2):
 def start_drone_server_services(drone, local_host, port):
     threading.Thread(target=ServerSendGPS, args=(drone, local_host, port,)).start()
 def start_server(local_host):
-        threading.Thread(target=SERVER_receive_and_execute_immediate_command, args=(local_host,)).start()
+        threading.Thread(target=server_receive_and_execute_immediate_command, args=(local_host,)).start()
         threading.Thread(target=SERVER_send_status, args=(local_host,)).start()
         threading.Thread(target=SERVER_CTRL, args=(local_host,)).start()
         threading.Thread(target=camera_stream_server, args=(local_host,)).start()
@@ -455,16 +443,16 @@ def set_mode(drone,mode):
 def YAW(drone, heading):
     threading.Thread(target=drone.yaw, args=(heading,)).start()
 
-def LINEON(dis,alt):
+def LINEON(dis=1,alt=2):
     threading.Thread(target=LINE,args=(dis, alt)).start()
 
-def SQUAREON(dis,alt):
+def SQUAREON(dis=2,alt=2):
     threading.Thread(target=SQUARE,args=(dis,alt)).start()
 
-def TRION(dis,alt):
+def TRION(dis=2,alt=2):
     threading.Thread(target=TRI, args=(dis,alt,)).start()
 
-def ZIGZAGON(dis,alt):
+def ZIGZAGON(dis=1,alt=2):
     threading.Thread(target=ZIGZAG,args=(dis,alt)).start()
 
 def CTRL(drone,x,y,z):
@@ -527,6 +515,7 @@ def LANDALL():
     # CLIENT_send_immediate_command(CD4_host,'LAND(drone1)')
     # CLIENT_send_immediate_command(CD4_host,'LAND(drone2)')
 def TAKEOFFALL():
+    ARMALL()
     print("Taking off All Drones")
     TAKEOFF(drone1)
     TAKEOFF(drone2)
@@ -593,7 +582,6 @@ def SQUARE(dis = 2, alt = 2):
         cdis = dis * 0
         A = (pointA.lat, pointA.lon)
         MCU.arm()
-        goto(MCU,A[0],A[1],alt,0.7)
         print("MCU Reached and Fixed on its Position")
         YAW(MCU,0)
         POSHOLD(MCU)
@@ -692,6 +680,13 @@ def FRAME():
         time.sleep(1)
         print("Run LINE()")
     
+def dist(d1,d2):
+    A = cu_lo(d1)
+    print(f"First Drone's Lat: {A.lat} & Lon: {A.lon} & Alt: {A.alt}")
+    B = cu_lo(d2)
+    print(f"Second Drone's Lat: {B.lat} & Lon: {B.lon} & Alt: {B.alt}")
+    C = distance_between_two_gps_coord((A.lat,A.lon),(B.lat,B.lon))
+    print("Distance is :",C)
 
 start_server(local_host)
 start_drone_server_services(MCU, local_host,60002)

@@ -209,13 +209,16 @@ def status(cmd):
 def completed():
     print("Formation Completed Successfully! Recieved command from CD4 Host!")
 
-def SQUAREON(dis,alt):
+def LINEON(dis=2,alt=2):
+    threading.Thread(target=LINE, args=(dis,alt,)).start()
+
+def SQUAREON(dis=2,alt=2):
     threading.Thread(target=SQUARE, args=(dis,alt,)).start()
 
-def TRION(dis,alt):
+def TRION(dis=2,alt=2):
     threading.Thread(target=TRI, args=(dis,alt,)).start()
 
-def ZIGZAGON(dis,alt):
+def ZIGZAGON(dis=2,alt=2):
     threading.Thread(target=ZIGZAG,args=(dis,alt)).start()
 
 ############################################################################################
@@ -229,60 +232,22 @@ def SERVER_CTRL(local_host):
     print('{} - SERVER_receive_control_commands() is started!'.format(time.ctime()))
 
     while True:
-        if Drone_ID == drone1 or Drone_ID == drone2:
-            try:
-                client_connection, client_address = control_socket.accept()
-                print('\n{} - Received control command from {}.'.format(time.ctime(), client_address))
-
-                control_command_str = client_connection.recv(1024).decode()  # Receive and decode the command
-
-                print('{} - Control command is: {}'.format(time.ctime(), control_command_str))
-                
-                try:
-                    x, y, z = map(float, control_command_str.split(','))  # Split and convert to floats
-                    CTRL(Drone_ID,x,y,z)
-                except ValueError:
-                    print("Invalid control command format. Expected 'x,y,z'")
-            except KeyboardInterrupt:
-                # Handle KeyboardInterrupt to gracefully exit the loop
-                break
-            except Exception as e:
-                # Handle other exceptions, e.g., if the client disconnects unexpectedly
-                print(f"Error: {e}")
-                time.sleep(1)
-            finally:
-                if client_connection:
-                    client_connection.close()
-        else:
-            print("Not Controlling any drone herer")
-            time.sleep(1)
-
-############################################################################################
-def SERVER_receive_and_execute_immediate_command(local_host):
-    global cmd_port
-    global status_waitForCommand
-    # Create a socket object
-    msg_socket = socket.socket()
-    msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    # Bind to the port
-    msg_socket.bind((local_host, cmd_port))
-    msg_socket.listen(5)                 # Now wait for client connection.
-    print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
-    while True:
         try:
-            client_connection, client_address = msg_socket.accept() # Establish connection with client.
-            print('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
-            immediate_command_str = client_connection.recv(1024).decode()
-            print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
+            client_connection, client_address = control_socket.accept()
+            print('\n{} - Received control command from {}.'.format(time.ctime(), client_address))
+
+            control_command_str = client_connection.recv(1024).decode()  # Receive and decode the command
+
+            print('{} - Control command is: {}'.format(time.ctime(), control_command_str))
             
-            if status_waitForCommand == True:
-                exec(immediate_command_str)
-                status_waitForCommand = True
-                print('{} - Immediate command \'{}\' is finished!'.format(time.ctime(), immediate_command_str))
-            elif immediate_command_str == 'status(True)':
-                exec(immediate_command_str)
-            else:
-                print('{} - Omit immediate command \'{}\', because status_waitForCommand is False!'.format(time.ctime(), immediate_command_str))
+            try:
+                drone,x, y, z = map(float, control_command_str.split(','))  # Split and convert to floats
+                if drone == 'CD2':
+                    CTRL(CD2,x,y,z)
+                if drone == 'CD3':
+                    CTRL(CD3,x,y,z)
+            except ValueError:
+                print("Invalid control command format. Expected 'd,x,y,z'")
         except KeyboardInterrupt:
             # Handle KeyboardInterrupt to gracefully exit the loop
             break
@@ -293,6 +258,42 @@ def SERVER_receive_and_execute_immediate_command(local_host):
         finally:
             if client_connection:
                 client_connection.close()
+
+############################################################################################
+def server_receive_and_execute_immediate_command(local_host):
+    global cmd_port
+    global status_waitForCommand
+
+    msg_socket = socket.socket()
+    msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    msg_socket.bind(local_host, cmd_port)
+    msg_socket.listen(5)
+    print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
+
+    while True:
+        try:
+            client_connection, client_address = msg_socket.accept()
+            print('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
+            immediate_command_str = client_connection.recv(1024).decode()
+            print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
+            
+            command_thread = threading.Thread(target=exec_thread, args=(immediate_command_str,))
+            command_thread.start()
+
+        except KeyboardInterrupt:
+            break
+        except Exception as e:
+            print(f"Error: {e}")
+            time.sleep(1)
+        finally:
+            if client_connection:
+                client_connection.close()
+
+def exec_thread(immediate_cmd_str):
+    try:
+        exec(immediate_cmd_str)
+    except Exception as e:
+        print(f"Error in executing immediate command: {e}")
 
 def CLIENT_send_immediate_command(remote_host, immediate_command_str):
     global cmd_port
@@ -413,7 +414,7 @@ def distance_between_two_gps_coord(point1, point2):
 def start_drone_server_services(drone, local_host, port):
     threading.Thread(target=ServerSendGPS, args=(drone, local_host, port,)).start()
 def start_server(local_host):
-        threading.Thread(target=SERVER_receive_and_execute_immediate_command, args=(local_host,)).start()
+        threading.Thread(target=server_receive_and_execute_immediate_command, args=(local_host,)).start()
         threading.Thread(target=SERVER_send_status, args=(local_host,)).start()
         threading.Thread(target=SERVER_CTRL, args=(local_host,)).start()
 
@@ -548,7 +549,13 @@ def FRAME():
     POSHOLD(CD3)
     # CLIENT_send_immediate_command(CD4_host,'FRAME()')
 
-
+def dist(d1,d2):
+    A = cu_lo(d1)
+    print(f"First Drone's Lat: {A.lat} & Lon: {A.lon} & Alt: {A.alt}")
+    B = cu_lo(d2)
+    print(f"Second Drone's Lat: {B.lat} & Lon: {B.lon} & Alt: {B.alt}")
+    C = distance_between_two_gps_coord((A.lat,A.lon),(B.lat,B.lon))
+    print("Distance is :",C)
 
 start_server(local_host)
 start_drone_server_services(CD2, local_host,60004)
