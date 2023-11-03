@@ -241,7 +241,7 @@ def SERVER_CTRL(local_host):
                 
                 try:
                     d, x, y, z = control_command_str.split(',') # Split
-                    x,y,z = float(x,y,z)
+                    x,y,z = float(x),float(y),float(z)
                     if d == 'MCU':
                         CTRL(MCU,x,y,z)
                     if d == 'CD1':
