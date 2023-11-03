@@ -240,7 +240,7 @@ def SERVER_CTRL(local_host):
                 print('{} - Control command is: {}'.format(time.ctime(), control_command_str))
                 
                 try:
-                    d, x, y, z = map(float, control_command_str.split(','))  # Split and convert to floats
+                    d, x, y, z = control_command_str.split(',') # Split
                     if d == 'MCU':
                         CTRL(MCU,x,y,z)
                     if d == 'CD1':
@@ -255,7 +255,7 @@ def SERVER_CTRL(local_host):
                     #     C(CD4_host,drone2,x,y,z)
 
                 except ValueError:
-                    print("Invalid control command format. Expected 'x,y,z'")
+                    print("Invalid control command format. Expected 'd,x,y,z'")
             except KeyboardInterrupt:
                 # Handle KeyboardInterrupt to gracefully exit the loop
                 break

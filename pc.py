@@ -99,7 +99,7 @@ def send_ctrl(cmd):
         z = str(-Velocity)
     elif cmd == 'j':
         z = str(Velocity)
-    cmd = d + ',' + x + ',' + y + ',' + z
+    cmd = '"'+d+'"' + ',' + x + ',' + y + ',' + z
     CLIENT_CTRL(MCU_host, cmd)
 
 
