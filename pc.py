@@ -159,25 +159,47 @@ cd4_button.grid(row=5, column=2, padx=10, pady=5)
 cd5_button = tk.Button(root, text="CD5", command=lambda: ch_dr('CD5'))
 cd5_button.grid(row=6, column=2, padx=10, pady=5)
 
-servo_on_button = tk.Button(root, text = "Servo ON", command=lambda: servo(True))
+servo_on_button = tk.Button(root, text = "Camera ON", command=lambda: camera(True))
 servo_on_button.grid(row=5, column=3, padx=10, pady=5)
 
-servo_off_button = tk.Button(root, text = "Servo OFF", command=lambda: servo(False))
+servo_off_button = tk.Button(root, text = "Camera OFF", command=lambda: camera(False))
 servo_off_button.grid(row=6, column=3, padx=10, pady=5)
+def ctrl():
+    root.unbind('m')
+    root.unbind('l')
+    root.unbind('t')
+    root.unbind('w')
+    root.unbind('a')
+    root.unbind('d')
+    root.unbind('u')
+    root.unbind('j')
+    root.unbind('s')
 
-root.bind('m', lambda event: send_command('m'))
-root.bind('l', lambda event: send_command('l'))
-root.bind('t', lambda event: send_command('t'))
-root.bind('w', lambda event: send_ctrl('w'))
-root.bind('a', lambda event: send_ctrl('a'))
-root.bind('d', lambda event: send_ctrl('d'))
-root.bind('u', lambda event: send_ctrl('u'))
-root.bind('j', lambda event: send_ctrl('j'))
-root.bind('s', lambda event: send_ctrl('s'))
+def ctrlON():
+    root.bind('m', lambda event: send_command('m'))
+    root.bind('l', lambda event: send_command('l'))
+    root.bind('t', lambda event: send_command('t'))
+    root.bind('w', lambda event: send_ctrl('w'))
+    root.bind('a', lambda event: send_ctrl('a'))
+    root.bind('d', lambda event: send_ctrl('d'))
+    root.bind('u', lambda event: send_ctrl('u'))
+    root.bind('j', lambda event: send_ctrl('j'))
+    root.bind('s', lambda event: send_ctrl('s'))
 
-camera_feed_label = tk.Label(root)
-camera_feed_label.grid(row=7, column=0, columnspan=3)  # Adjust the row and column values as needed
+ctrl_off_button = tk.Button(root, text = "CTRL OFF", command=lambda: ctrl())
+ctrl_off_button.grid(row=7, column=0, padx=10, pady=5)
 
+ctrl_on_button = tk.Button(root, text = "CTRL ON", command=lambda: ctrlON())
+ctrl_on_button.grid(row=7, column=1, padx=10, pady=5)
+
+
+
+def camera(c):
+    global cmd
+    cmd = c
+    threading.Thread(target=(camera_init)).start()
+
+cmd = False
 def camera_init():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((MCU_host, 8000))  # Replace with your Raspberry Pi's IP address
@@ -187,27 +209,26 @@ def camera_init():
     try:
         while True:
             # Read the image size from the server
-            image_len_data = connection.read(struct.calcsize('<L'))
-            if not image_len_data:
-                break  # Break the loop if no image data is received
-            image_len = struct.unpack('<L', image_len_data)[0]
-            # Read the image data from the server
-            image_data = connection.read(image_len)
-            # Convert the image data to a NumPy array
-            image_array = np.frombuffer(image_data, dtype=np.uint8)
-            # Decode the image as a color image (you may need to adjust the format)
-            if image_array.size > 0:
-                image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-                cv2.imshow('Video Stream', image)
-            # Press 'q' to quit the video stream
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+                image_len_data = connection.read(struct.calcsize('<L'))
+                if not image_len_data:
+                    break  # Break the loop if no image data is received
+                image_len = struct.unpack('<L', image_len_data)[0]
+                # Read the image data from the server
+                image_data = connection.read(image_len)
+                # Convert the image data to a NumPy array
+                image_array = np.frombuffer(image_data, dtype=np.uint8)
+                # Decode the image as a color image (you may need to adjust the format)
+                if image_array.size > 0:
+                    image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+                    cv2.imshow('Video Stream', image)
+                # Press 'q' to quit the video stream
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+                if cmd == False:
+                    break
     except KeyboardInterrupt:
         pass
     except Exception as e:
         print(e)
-camera_feed_thread = threading.Thread(target=camera_init)
-camera_feed_thread.daemon = True
-camera_feed_thread.start()
 
 root.mainloop()

@@ -9,28 +9,10 @@ from geopy.distance import great_circle
 import io
 import picamera
 import struct
-import RPi.GPIO as GPIO
 
 global Drone_ID
 global drone1
 global drone2
-
-servo_pin = 13
-
-# Initialize GPIO and PWM
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(servo_pin, GPIO.OUT)
-pwm = GPIO.PWM(servo_pin, 50)
-pwm.start(0)
-
-def SetAngle(angle):
-    duty = angle / 18 + 2
-    GPIO.output(servo_pin, True)
-    pwm.ChangeDutyCycle(duty)
-    time.sleep(1)
-    GPIO.output(servo_pin, False)
-    pwm.ChangeDutyCycle(0)
-
 
 ############################################################################################
 
@@ -466,6 +448,11 @@ def set_mode(drone,mode):
 def YAW(drone, heading):
     threading.Thread(target=drone.yaw, args=(heading,)).start()
 
+def LINEON(dis,alt):
+    threading.Thread(target=LINE,args=(dis, alt)).start()
+
+def SQUAREON(dis,alt):
+    threading.Thread(target=SQUARE,args=(dis,alt)).start()
 def CTRL(drone,x,y,z):
     drone.send_ned_velocity(x,y,z)
     time.sleep(0.3)
@@ -556,7 +543,7 @@ CD4_host = "192.168.149.103" # change these
 
 MCU = Drone('/dev/serial0',baudrate=115200)
 print("MCU connected")
-CD1 = Drone('0.0.0.0:14553')
+CD1 = Drone('0.0.0.0:14552')
 print("CD1 Connected")
 
 drone1 = MCU
@@ -698,21 +685,3 @@ def FRAME():
 start_server(local_host)
 start_drone_server_services(MCU, local_host,60002)
 start_drone_server_services(CD1, local_host,60003)
-
-angle = 90
-def servo():
-    try:
-        while True:
-            duty = (angle/18)+2.5
-            # Rotate the servo motor to 0 degrees
-            pwm.ChangeDutyCycle(duty)
-            time.sleep(0.5)
-    except KeyboardInterrupt:
-        pass
-
-    finally:
-        # Stop the PWM object and clean up the GPIO
-        pwm.stop()
-        GPIO.cleanup()
-
-threading.Thread(target=servo).start()
