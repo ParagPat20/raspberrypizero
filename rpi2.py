@@ -267,7 +267,7 @@ def SERVER_receive_and_execute_immediate_command(local_host):
             print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
             
             if status_waitForCommand == True:
-                threading.Thread(target=exec, args=(immediate_command_str,)).start()
+                exec(immediate_command_str)
                 status_waitForCommand = True
                 print('{} - Immediate command \'{}\' is finished!'.format(time.ctime(), immediate_command_str))
             elif immediate_command_str == 'status(True)':
