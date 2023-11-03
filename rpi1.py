@@ -56,10 +56,13 @@ class Drone:
         print("Arming motors")
         self.vehicle.mode = VehicleMode(mode)
         self.vehicle.armed = True
-
+        TIMEOUT_SECONDS = 10
+        start_time = time.time()
         while not self.vehicle.armed:
             print("Waiting for Arming")
             self.vehicle.armed = True
+            if time.time() - start_time > TIMEOUT_SECONDS:
+                break
             time.sleep(1)
 
         print("Vehicle Armed")
