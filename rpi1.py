@@ -243,16 +243,16 @@ def SERVER_CTRL(local_host):
                     d, x, y, z = control_command_str.split(',') # Split
                     x,y,z = float(x),float(y),float(z)
                     print(d)
-                    if d == 'MCU':
+                    if d == "MCU":
                         CTRL(MCU,x,y,z)
-                    if d == 'CD1':
+                    if d == "CD1":
                         CTRL(CD1,x,y,z)
-                    if d == 'CD2':
+                    if d == "CD2":
                         C(CD2_host,drone1,x,y,z)
-                        print('Sent Command')
-                    if d == 'CD3':
+                        print("Sent Command")
+                    if d == "CD3":
                         C(CD2_host,drone2,x,y,z)
-                        print('Sent Command2')
+                        print("Sent Command2")
                     # if d == 'CD4':
                     #     C(CD4_host,drone1,x,y,z)
                     # if d == 'CD5':
