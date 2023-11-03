@@ -14,6 +14,7 @@ try:
     while True:
         angle = int(input("Enter Degrees: "))
         duty = (angle/18)+2.5
+        print(angle,' ',duty)
         # Rotate the servo motor to 0 degrees
         pwm.ChangeDutyCycle(duty)
         time.sleep(0.1)
