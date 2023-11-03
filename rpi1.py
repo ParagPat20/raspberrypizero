@@ -235,7 +235,7 @@ def SERVER_CTRL(local_host):
                 client_connection, client_address = control_socket.accept()
                 print('\n{} - Received control command from {}.'.format(time.ctime(), client_address))
 
-                control_command_str = client_connection.recv(1024).decode  # Receive and decode the command
+                control_command_str = client_connection.recv(1024).decode()  # Receive and decode the command
 
                 print('{} - Control command is: {}'.format(time.ctime(), control_command_str))
                 
