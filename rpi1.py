@@ -248,10 +248,10 @@ def SERVER_CTRL(local_host):
                     if d == "CD1":
                         CTRL(CD1,x,y,z)
                     if d == "CD2":
-                        C(CD2_host,drone1,x,y,z)
+                        CLIENT_send_immediate_command(CD2_host,'CTRL(drone1,'+str(x)+','+str(y)+','+str(z)+')')
                         print("Sent Command")
                     if d == "CD3":
-                        C(CD2_host,drone2,x,y,z)
+                        CLIENT_send_immediate_command(CD2_host,'CTRL(drone2,'+str(x)+','+str(y)+','+str(z)+')')                        
                         print("Sent Command2")
                     # if d == 'CD4':
                     #     C(CD4_host,drone1,x,y,z)
@@ -528,8 +528,6 @@ def TAKEOFFALL():
     # CLIENT_send_immediate_command(CD4_host,'TAKEOFF(drone1)')
     # CLIENT_send_immediate_command(CD4_host,'TAKEOFF(drone2)')
 
-def C(host,drone,x,y,z):
-    CLIENT_send_immediate_command(host,'CTRL('+str(drone)+','+str(x)+',',+str(y)+',',+str(z)+')')
 
 def set_servo(ang):
     global angle
