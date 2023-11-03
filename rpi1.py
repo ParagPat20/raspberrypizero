@@ -706,7 +706,7 @@ def servo():
             duty = (angle/18)+2.5
             # Rotate the servo motor to 0 degrees
             pwm.ChangeDutyCycle(duty)
-
+            time.sleep(0.5)
     except KeyboardInterrupt:
         pass
 
