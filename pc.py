@@ -1,6 +1,5 @@
 import socket
 import time
-import tkinter as tk
 import threading
 import struct
 import cv2
@@ -46,17 +45,12 @@ def send_command(command):
 def send(cmd):
     CLIENT_send_immediate_command(MCU_host, cmd)
 
-def send_custom_command():
-    custom_command = custom_command_entry.get()
-    CLIENT_send_immediate_command(MCU_host, custom_command)
+def send(cmd):
+    CLIENT_send_immediate_command(CD2_host, cmd)
 
-def send_custom_command2():
-    custom_command2 = custom_command_entry2.get()
-    CLIENT_send_immediate_command(CD2_host, custom_command2)
+def send(cmd):
+    CLIENT_send_immediate_command(CD4_host, cmd)
 
-def send_custom_command3():
-    custom_command3 = custom_command_entry3.get()
-    CLIENT_send_immediate_command(CD4_host, custom_command3)
 
 def ch_dr(dr):
     global d
@@ -108,78 +102,9 @@ def send_ctrl(cmd):
     CLIENT_CTRL(MCU_host, cmd)
 
 
-# Create the main GUI window
-root = tk.Tk()
-root.title("Drone Control")
-
-# Create labels and buttons
-label = tk.Label(root, text="Control the Drone")
-label.grid(row=0, column=1, pady=10)
-
-custom_command_label = tk.Label(root, text="Custom Command for MCU:")
-custom_command_label.grid(row=1, column=0, padx=10, pady=5)
-
-custom_command_entry = tk.Entry(root)
-custom_command_entry.grid(row=1, column=1, padx=10, pady=5)
-
-send_button = tk.Button(root, text="Send Custom Command to MCU", command=send_custom_command)
-send_button.grid(row=1, column=2, padx=10, pady=5)
-
-custom_command_label2 = tk.Label(root, text="Custom Command for CD2:")
-custom_command_label2.grid(row=2, column=0, padx=10, pady=5)
-
-custom_command_entry2 = tk.Entry(root)
-custom_command_entry2.grid(row=2, column=1, padx=10, pady=5)
-
-send_button2 = tk.Button(root, text="Send Custom Command to CD2", command=send_custom_command2)
-send_button2.grid(row=2, column=2, padx=10, pady=5)
-
-custom_command_label3 = tk.Label(root, text="Custom Command for CD4:")
-custom_command_label3.grid(row=3, column=0, padx=10, pady=5)
-
-custom_command_entry3 = tk.Entry(root)
-custom_command_entry3.grid(row=3, column=1, padx=10, pady=5)
-
-send_button3 = tk.Button(root, text="Send Custom Command to CD4", command=send_custom_command3)
-send_button3.grid(row=3, column=2, padx=10, pady=5)
-
-control_label = tk.Label(root, text="Control the Drone:")
-control_label.grid(row=4, column=1, pady=10)
-
-mcu_button = tk.Button(root, text="MCU", command=lambda: ch_dr('MCU'))
-mcu_button.grid(row=5, column=0, padx=10, pady=5)
-
-cd1_button = tk.Button(root, text="CD1", command=lambda: ch_dr('CD1'))
-cd1_button.grid(row=6, column=0, padx=10, pady=5)
-
-cd2_button = tk.Button(root, text="CD2", command=lambda: ch_dr('CD2'))
-cd2_button.grid(row=5, column=1, padx=10, pady=5)
-
-cd3_button = tk.Button(root, text="CD3", command=lambda: ch_dr('CD3'))
-cd3_button.grid(row=6, column=1, padx=10, pady=5)
-
-cd4_button = tk.Button(root, text="CD4", command=lambda: ch_dr('CD4'))
-cd4_button.grid(row=5, column=2, padx=10, pady=5)
-
-cd5_button = tk.Button(root, text="CD5", command=lambda: ch_dr('CD5'))
-cd5_button.grid(row=6, column=2, padx=10, pady=5)
-
-root.bind('m', lambda event: send_command('m'))
-root.bind('l', lambda event: send_command('l'))
-root.bind('t', lambda event: send_command('t'))
-root.bind('w', lambda event: send_ctrl('w'))
-root.bind('a', lambda event: send_ctrl('a'))
-root.bind('d', lambda event: send_ctrl('d'))
-root.bind('u', lambda event: send_ctrl('u'))
-root.bind('j', lambda event: send_ctrl('j'))
-root.bind('s', lambda event: send_ctrl('s'))
-
-camera_feed_label = tk.Label(root)
-camera_feed_label.grid(row=7, column=0, columnspan=3)  # Adjust the row and column values as needed
-
 def camera_init():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((MCU_host, 8888))  # Replace with your Raspberry Pi's IP address
+    client_socket.connect((MCU_host, 8000))  # Replace with your Raspberry Pi's IP address
 
     connection = client_socket.makefile('rb')
 
@@ -216,4 +141,3 @@ camera_feed_thread = threading.Thread(target=camera_init)
 camera_feed_thread.daemon = True
 camera_feed_thread.start()
 
-root.mainloop()

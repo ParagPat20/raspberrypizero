@@ -161,10 +161,10 @@ def camera_stream_server(host):
 
     # Create a socket server
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind((host, 8888))
+    server_socket.bind((host, 8000))
     server_socket.listen(0)
 
-    print("Server is listening on {}:{}".format(host, 8888))
+    print("Server is listening on {}:{}".format(host, 8000))
 
     while True:
         client_socket, _ = server_socket.accept()
@@ -440,7 +440,7 @@ def start_server(local_host):
         threading.Thread(target=SERVER_receive_and_execute_immediate_command, args=(local_host,)).start()
         threading.Thread(target=SERVER_send_status, args=(local_host,)).start()
         threading.Thread(target=SERVER_CTRL, args=(local_host,)).start()
-        threading.Thread(target=camera_stream_server, args=(local_host,))
+        threading.Thread(target=camera_stream_server, args=(local_host,)).start()
 ############################################################################################
 
 def ARM(drone):
