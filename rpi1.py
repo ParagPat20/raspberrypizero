@@ -573,7 +573,6 @@ def LINE(dis = 2, alt = 2):
     A = (pointA.lat, pointA.lon)
 
     MCU.arm()
-    goto(MCU,A[0],A[1],alt,0.7)
     print("MCU Reached and Fixed on its Position")
     YAW(MCU,0)
     POSHOLD(MCU)
