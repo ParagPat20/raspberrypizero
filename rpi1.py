@@ -543,12 +543,12 @@ status_waitForCommand = True
 in_line = False
 
 MCU_host = "192.168.12.122" # change these
-CD2_host = "192.168.149.43" # change these
+CD2_host = "192.168.12.44" # change these
 CD4_host = "192.168.149.103" # change these
 
 MCU = Drone('/dev/serial0',baudrate=115200)
 print("MCU connected")
-CD1 = Drone('0.0.0.0:14553')
+CD1 = Drone('0.0.0.0:14552')
 print("CD1 Connected")
 
 drone1 = MCU

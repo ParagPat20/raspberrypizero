@@ -408,19 +408,19 @@ def start_server(local_host):
         threading.Thread(target=SERVER_send_status, args=(local_host,)).start()
         threading.Thread(target=SERVER_CTRL, args=(local_host,)).start()
 
-local_host = '192.168.149.43'
+local_host = '192.168.12.44'
 cmd_port = 12345
 ctrl_port = 54321
 st_port = 60001
 status_waitForCommand = True
 
 MCU_host = "192.168.149.101"
-CD2_host = "192.168.149.43"
+CD2_host = "192.168.12.44"
 CD4_host = "192.168.149.103"
 
-CD2 = Drone('tcp:127.0.0.1:5782')
+CD2 = Drone('/dev/serial0',baudrate=115200)
 print("CD2 connected")
-CD3 = Drone('tcp:127.0.0.1:5792')
+CD3 = Drone('0.0.0.0:14553')
 print("CD3 Connected")
 
 drone1 = CD2
