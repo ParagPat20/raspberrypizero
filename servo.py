@@ -11,23 +11,28 @@ pwm = GPIO.PWM(servo, 50)
 pwm.start(0)
 angle = 0
 def set_angle():
-    global angle
-    degree = input("Enter Degree: ")
-    angle = degree
-
-threading.Thread(target=set_angle).start()
-try:
     while True:
-        duty = (angle/18)+2.5
-        print(angle,' ',duty)
-        # Rotate the servo motor to 0 degrees
-        pwm.ChangeDutyCycle(duty)
-        time.sleep(0.1)
+        global angle
+        degree = input("Enter Degree: ")
+        angle = degree
 
-except KeyboardInterrupt:
-    pass
+def set_servo():
+    try:
+        while True:
+            duty = (angle/18)+2.5
+            print(angle,' ',duty)
+            # Rotate the servo motor to 0 degrees
+            pwm.ChangeDutyCycle(duty)
+            time.sleep(0.1)
 
-finally:
-    # Stop the PWM object and clean up the GPIO
-    pwm.stop()
-    GPIO.cleanup()
+    except KeyboardInterrupt:
+        pass
+
+    finally:
+        # Stop the PWM object and clean up the GPIO
+        pwm.stop()
+        GPIO.cleanup()
+
+threading.Thread(target=set_servo).start()
+
+set_angle()
