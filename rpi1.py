@@ -460,6 +460,13 @@ def LINEON(dis,alt):
 
 def SQUAREON(dis,alt):
     threading.Thread(target=SQUARE,args=(dis,alt)).start()
+
+def TRION(dis,alt):
+    threading.Thread(target=TRI, args=(dis,alt,)).start()
+
+def ZIGZAGON(dis,alt):
+    threading.Thread(target=ZIGZAG,args=(dis,alt)).start()
+
 def CTRL(drone,x,y,z):
     drone.send_ned_velocity(x,y,z)
     time.sleep(0.3)
@@ -579,7 +586,7 @@ def LINE(dis = 2, alt = 2):
     YAW(CD1,0)
     POSHOLD(CD1)
 
-    CLIENT_send_immediate_command(CD2_host, 'LINE('+str(dis)+','+str(alt)+')')
+    CLIENT_send_immediate_command(CD2_host, 'LINEON('+str(dis)+','+str(alt)+')')
 
 def SQUARE(dis = 2, alt = 2):
     if in_line == True:
@@ -599,7 +606,7 @@ def SQUARE(dis = 2, alt = 2):
         print("CD1 Reached and Fixed on its Position")
         YAW(CD1,0)
         POSHOLD(CD1)
-        CLIENT_send_immediate_command(CD2_host, 'SQUARE('+str(dis)+','+str(alt)+')')
+        CLIENT_send_immediate_command(CD2_host, 'SQUAREON('+str(dis)+','+str(alt)+')')
         in_line = False
     else:
         print("Drones are not in Line")
@@ -620,7 +627,7 @@ def ZIGZAG(dis = 2, alt = 2):
         YAW(CD1,0)
         POSHOLD(CD1)
 
-        CLIENT_send_immediate_command(CD2_host, 'ZIGZAG('+str(dis)+','+str(alt)+')')
+        CLIENT_send_immediate_command(CD2_host, 'ZIGZAGON('+str(dis)+','+str(alt)+')')
         in_line = False
     else:
         print("Drones are not in Line")
@@ -642,7 +649,7 @@ def TRI(dis = 2, alt = 2):
         YAW(CD1,0)
         POSHOLD(CD1)
 
-        CLIENT_send_immediate_command(CD2_host, 'TRI('+str(dis)+','+str(alt)+')')
+        CLIENT_send_immediate_command(CD2_host, 'TRION('+str(dis)+','+str(alt)+')')
         in_line = False
     else:
         print("Drones are not in Line")

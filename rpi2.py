@@ -209,6 +209,15 @@ def status(cmd):
 def completed():
     print("Formation Completed Successfully! Recieved command from CD4 Host!")
 
+def SQUAREON(dis,alt):
+    threading.Thread(target=SQUARE, args=(dis,alt,)).start()
+
+def TRION(dis,alt):
+    threading.Thread(target=TRI, args=(dis,alt,)).start()
+
+def ZIGZAGON(dis,alt):
+    threading.Thread(target=ZIGZAG,args=(dis,alt)).start()
+
 ############################################################################################
 def SERVER_CTRL(local_host):
     global ctrl_port
