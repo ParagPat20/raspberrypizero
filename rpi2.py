@@ -32,9 +32,9 @@ class Drone:
     def takeoff(self):
         global stop
         print("Taking off!")
-        self.vehicle.simple_takeoff(1)
+        self.vehicle.simple_takeoff(2)
         start_time = time.time()
-        TIMEOUT_SECONDS = 10
+        TIMEOUT_SECONDS = 15
         while True:
             current_altitude = self.vehicle.location.global_relative_frame.alt
             if current_altitude is not None:
