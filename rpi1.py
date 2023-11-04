@@ -105,6 +105,13 @@ class Drone:
             0, 0, 0)    # param 5 ~ 7 not used
         # send command to vehicle
         self.vehicle.send_mavlink(msg)
+
+    def set_claw(self,cmd):
+        if cmd == True:
+            self.vehicle.channels.overrides['5'] = 1600
+        else:
+            self.vehicle.channels.overrides['5'] = 1000
+
 ############################################################################################
 def camera_stream_server(host):
     def handle_client(client_socket):
@@ -232,9 +239,9 @@ def SERVER_CTRL(local_host):
                     d, x, y, z = control_command_str.split(',') # Split
                     x,y,z = float(x),float(y),float(z)
                     print(d)
-                    if d == "MCU":
+                    if d == "MCU" or MCU:
                         CTRL(MCU,x,y,z)
-                    if d == "CD1":
+                    if d == "CD1" or CD1:
                         CTRL(CD1,x,y,z)
                     if d == "CD2":
                         CLIENT_send_immediate_command(CD2_host,'CTRL(drone1,'+str(x)+','+str(y)+','+str(z)+')')
@@ -524,10 +531,9 @@ def TAKEOFFALL():
     # CLIENT_send_immediate_command(CD4_host,'TAKEOFF(drone1)')
     # CLIENT_send_immediate_command(CD4_host,'TAKEOFF(drone2)')
 
+def SET_SERVO(cmd):
+    MCU.set_claw(cmd)
 
-def set_servo(ang):
-    global angle
-    angle = ang
 
 ############################################################################################
 
