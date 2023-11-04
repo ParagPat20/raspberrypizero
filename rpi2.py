@@ -445,6 +445,9 @@ def cu_lo(drone):
 def LINE(dis = 2, alt = 1):
     pointA = ClientRequestGPS(MCU_host, 60002)
     lat,lon,alt = pointA
+    lat = float(lat)
+    lon = float(lon)
+    alt = float(alt)
     cdis = 0
     A = (lat, lon)
     CD2.arm()
