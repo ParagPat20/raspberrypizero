@@ -277,7 +277,7 @@ def server_receive_and_execute_immediate_command(local_host):
 
     msg_socket = socket.socket()
     msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    msg_socket.bind(local_host, cmd_port)
+    msg_socket.bind((local_host, cmd_port))
     msg_socket.listen(5)
     print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
 
