@@ -466,7 +466,6 @@ def ZIGZAGON(dis=1,alt=2):
 def CTRL(drone,x,y,z):
     drone.send_ned_velocity(x,y,z)
     time.sleep(0.3)
-    drone.send_ned_velocity(0,0,0)
 
 def D(drone):
     global Drone_ID
