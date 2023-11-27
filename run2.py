@@ -66,6 +66,11 @@ CD3_initialized = False
 d1 = None
 d2 = None
 
+def drone_list_update(cmd):
+    global drone_list
+    drone_list = cmd
+    print(drone_list)
+
 msg_socket = socket.socket()
 msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 msg_socket.bind((local_host, cmd_port))
