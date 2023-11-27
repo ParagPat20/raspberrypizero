@@ -6,8 +6,6 @@ cmd_port = 12345
 ctrl_port = 54321
 status_port = 60003, 60004
 
-threading.Thread(target=server_receive_and_execute_immediate_command,args=(local_host,)).start()
-
 CD2 = None
 CD3 = None
 
@@ -63,28 +61,62 @@ def SQUARE(dis=1, alt=2):
     send(MCU_host,'chat("SQAURECOMPLETE")')
 
 
+CD2_initialized = False
+CD3_initialized = False
+d1 = None
+d2 = None
+
+msg_socket = socket.socket()
+msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+msg_socket.bind((local_host, cmd_port))
+msg_socket.listen(5)
+print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
+
+def execute_command(immediate_command_str):
+    try:
+        print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
+        exec(immediate_command_str)
+        ack = "Received Command: " + str(immediate_command_str)
+        client_connection.send(ack.encode())
+    except Exception as e:
+        print(f"Error: {e}")
 
 while True:
     try:
-        if "CD2" in drone_list and d1 is None:
-            CD2 = Drone(status_port[0],'/dev/serial0',115200)
+        if "CD2" in drone_list and d1 is None and not CD2_initialized:
+            CD2 = Drone(status_port[0], '/dev/serial0', 115200)
             d1 = CD2
             d1_str = 'CD2'
-        elif "CD2" not in drone_list & d1 is not None:
+            print("CD2 Connected")
+            CD2_initialized = True
+            CD2.get_vehicle_state()
+        elif "CD2" not in drone_list and d1 is not None:  # Use 'and' instead of '&'
             d1.exit()
             d1 = None
             time.sleep(2)
 
-        if "CD3" in drone_list and d2 is None:
+        if "CD3" in drone_list and d2 is None and not CD3_initialized:
             CD3 = Drone(status_port[1], '0.0.0.0:14553')
             d2 = CD3
             d2_str = 'CD3'
-        elif "CD3" not in drone_list & d2 is not None:
+            print("CD3 Connected")
+            CD3_initialized = True
+            CD3.get_vehicle_state()
+        elif "CD3" not in drone_list and d2 is not None:  # Use 'and' instead of '&'
             d2.exit()
             d2 = None
             time.sleep(2)
-        
-            
 
+        client_connection, client_address = msg_socket.accept()
+        print('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
+        immediate_command_str = client_connection.recv(1024).decode()
+
+        # Use threading to run command execution in the background
+        command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
+        command_thread.start()
+        
     except Exception as e:
-        print(f"Error in executing immediate command: {e}")
+        print(f"Error: {e}")
+
+        
+
