@@ -6,8 +6,6 @@ cmd_port = 12345
 ctrl_port = 54321
 status_port = 60001, 60002
 
-threading.Thread(target=server_receive_and_execute_immediate_command,args=(local_host,)).start()
-
 MCU = None
 CD1 = None
 
@@ -106,7 +104,8 @@ def custom_goto(cmd):
 
 
 
-
+server=threading.Thread(target=server_receive_and_execute_immediate_command,args=(local_host,))
+server.start()
 while True:
     try:
         if "MCU" in drone_list and d1 is None:
@@ -126,8 +125,14 @@ while True:
             d2.exit()
             d2 = None
             time.sleep(2)
+
+        if d1 and d2:
+            server.join(timeout=10)
+        else:
+            pass
+
         
             
 
     except Exception as e:
-        print(f"Error in executing immediate command: {e}")
+        print(f"Error: {e}")
