@@ -112,6 +112,7 @@ while True:
             MCU = Drone(status_port[0], '/dev/serial0', 115200)
             d1 = MCU
             d1_str = 'MCU'
+            print("MCU COnnected")
         elif "MCU" not in drone_list and d1 is not None:  # Use 'and' instead of '&'
             d1.exit()
             d1 = None
@@ -121,6 +122,7 @@ while True:
             CD1 = Drone(status_port[1], '0.0.0.0:14550')
             d2 = CD1
             d2_str = 'CD1'
+            print("CD1 Connected")
         elif "CD1" not in drone_list and d2 is not None:  # Use 'and' instead of '&'
             d2.exit()
             d2 = None
@@ -132,7 +134,8 @@ while True:
             wait_for_command = True
 
         else:
-            pass
+            print("Waiting for commands")
+            time.sleep(0.5)
 
     except Exception as e:
         print(f"Error: {e}")
