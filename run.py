@@ -107,8 +107,15 @@ CD1_initialized = False
 d1 = None
 d2 = None
 
-server=threading.Thread(target=server_receive_and_execute_immediate_command,args=(local_host,))
-server.start()
+# server=threading.Thread(target=server_receive_and_execute_immediate_command,args=(local_host,))
+# server.start()
+
+msg_socket = socket.socket()
+msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+msg_socket.bind((local_host, cmd_port))
+msg_socket.listen(5)
+print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
+
 while True:
     try:
         if "MCU" in drone_list and d1 is None and not MCU_initialized:
@@ -135,18 +142,15 @@ while True:
             d2 = None
             time.sleep(2)
 
-        if wait_for_command == False:
-            exec(immediate_command_str)
-            print("Executed Command = {}".format(immediate_command_str))
-            wait_for_command = True
-        else:
-            print("Waiting for commands")
-            time.sleep(0.5)
+        client_connection, client_address = msg_socket.accept()
+        print('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
+        immediate_command_str = client_connection.recv(1024).decode()
+        print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
+        exec(immediate_command_str)
+        ack = "Recieved Command : " + str(immediate_command_str)
+        client_connection.send(ack.encode())
 
     except Exception as e:
         print(f"Error: {e}")
 
-
-    except Exception as e:
-        print(f"Error: {e}")
         
