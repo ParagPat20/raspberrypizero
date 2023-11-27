@@ -30,6 +30,7 @@ drone_list = []
 in_line = False
 wait_for_command = True
 immediate_command_str = None
+local_host = '192.168.190.122'
 
 class Drone:
     
@@ -299,8 +300,6 @@ def send(remote_host, immediate_command_str):
 
 
 #==============================================================================================================
-
-drone_list = []
 
 def add_drone(string):
     global drone_list
