@@ -109,10 +109,10 @@ server.start()
 while True:
     try:
         if "MCU" in drone_list and d1 is None:
-            MCU = Drone(status_port[0],'/dev/serial0',115200)
+            MCU = Drone(status_port[0], '/dev/serial0', 115200)
             d1 = MCU
             d1_str = 'MCU'
-        elif "MCU" not in drone_list & d1 is not None:
+        elif "MCU" not in drone_list and d1 is not None:  # Use 'and' instead of '&'
             d1.exit()
             d1 = None
             time.sleep(2)
@@ -121,7 +121,7 @@ while True:
             CD1 = Drone(status_port[1], '0.0.0.0:14550')
             d2 = CD1
             d2_str = 'CD1'
-        elif "CD1" not in drone_list & d2 is not None:
+        elif "CD1" not in drone_list and d2 is not None:  # Use 'and' instead of '&'
             d2.exit()
             d2 = None
             time.sleep(2)
@@ -131,6 +131,8 @@ while True:
         else:
             pass
 
+    except Exception as e:
+        print(f"Error: {e}")
         
             
 
