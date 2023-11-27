@@ -35,11 +35,11 @@ local_host = '192.168.190.122'
 class Drone:
     
     def __init__(self, status_port, connection_string, baud=None):
-        self = connect(connection_string, baud = baud)
+        self.vehicle = connect(connection_string, baud = baud)
         self.drone_user = connection_string
         self.drone_baud = baud
-        battery = self.battery.voltage
-        groundspeed = self.groundspeed
+        battery = self.vehicle.battery.voltage
+        groundspeed = self.vehicle.groundspeed
 
         def send_status(self, status_port):
             global local_host
@@ -53,12 +53,12 @@ class Drone:
                     client_connection, client_address = status_socket.accept() # Establish connection with client.
                     print('{} - Received follower status request from {}.'.format(time.ctime(), client_address))
                     
-                    battery = str(self.battery.voltage)
-                    groundspeed = str(self.groundspeed)
-                    lat = "{:.7f}".format(self.location.global_relative_frame.lat)
-                    lon = "{:.7f}".format(self.location.global_relative_frame.lon)
-                    alt = "{:.7f}".format(self.location.global_relative_frame.alt)
-                    heading = str(self.heading)
+                    battery = str(self.vehicle.battery.voltage)
+                    groundspeed = str(self.vehicle.groundspeed)
+                    lat = "{:.7f}".format(self.vehicle.location.global_relative_frame.lat)
+                    lon = "{:.7f}".format(self.vehicle.location.global_relative_frame.lon)
+                    alt = "{:.7f}".format(self.vehicle.location.global_relative_frame.alt)
+                    heading = str(self.vehicle.heading)
 
                     status_str = battery+','+groundspeed+','+lat+','+lon+','+alt+','+heading
 
@@ -73,34 +73,32 @@ class Drone:
         threading.Thread(target=send_status, args=(self,status_port,)).start()
         
     def reconnect(self):
-        self.exit()
+        self.vehicle.exit()
         time.sleep(2)
         self = connect(self.drone_user, self.drone_baud)
         print("Reconnected Successfully")
 
     def arm(self, mode='GUIDED'):
-
         print("Arming motors")
-        self.mode = VehicleMode(mode)
-        self.armed = True
-
+        self.vehicle.mode = VehicleMode(mode)
+        self.vehicle.armed = True
         TIMEOUT_SECONDS = 10
         start_time = time.time()
-        while not self.armed:
+        while not self.vehicle.armed:
             print("Waiting for Arming")
-            self.armed = True
+            self.vehicle.armed = True
             if time.time() - start_time > TIMEOUT_SECONDS:
                 break
             time.sleep(1)
-        print("Vehicle Armed")
 
+        print("Vehicle Armed")
     def takeoff(self, alt = 2):
         print("Taking off!")
-        self.simple_takeoff(alt)
+        self.vehicle.simple_takeoff(alt)
         start_time = time.time()
         TIMEOUT_SECONDS = 15
         while True:
-            current_altitude = self.location.global_relative_frame.alt
+            current_altitude = self.vehicle.location.global_relative_frame.alt
             if current_altitude is not None:
                 print(" Altitude: ", current_altitude)
                 if current_altitude >= 1 * 0.9:
@@ -117,7 +115,7 @@ class Drone:
         velocity_y = float(velocity_y)
         velocity_z = float(velocity_z)
         
-        msg = self.message_factory.set_position_target_local_ned_encode(
+        msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
             0,  # time_boot_ms (not used)
             0, 0,  # target system, target component
             mavutil.mavlink.MAV_FRAME_LOCAL_NED,  # frame
@@ -128,10 +126,10 @@ class Drone:
             0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
         print(f"Drone Velocity Commands{velocity_x},{velocity_y},{velocity_z}")
 
-        self.send_mavlink(msg)
+        self.vehicle.send_mavlink(msg)
 
     def yaw(self, heading):
-        current_heading = self.heading
+        current_heading = self.vehicle.heading
         print("Current Heading : ", current_heading)
         if current_heading >= 180:
             rotation = 1
@@ -139,7 +137,7 @@ class Drone:
             rotation = -1
         estimatedTime = heading/30.0 + 1
 
-        msg = self.message_factory.command_long_encode(
+        msg = self.vehicle.message_factory.command_long_encode(
             0, 0,    # target system, target component
             mavutil.mavlink.MAV_CMD_CONDITION_YAW, #command
             0, #confirmation
@@ -149,7 +147,7 @@ class Drone:
             0, # param 4, relative offset 1, absolute angle 0
             0, 0, 0)    # param 5 ~ 7 not used
         # send command to vehicle
-        self.send_mavlink(msg)
+        self.vehicle.send_mavlink(msg)
 
         # Wait sort of time for the command to be fully executed.
         for t in range(0, int(math.ceil(estimatedTime))):
@@ -160,43 +158,43 @@ class Drone:
 
     def disarm(self):
         print("Disarming motors")
-        self.armed = False
+        self.vehicle.armed = False
 
-        while self.armed:
+        while self.vehicle.armed:
             print("Waiting for disarming...")
-            self.armed = False
+            self.vehicle.armed = False
             time.sleep(1)
 
         print("Vehicle Disarmed")
 
     def land(self):
-        self.mode = VehicleMode("LAND")
+        self.vehicle.mode = VehicleMode("LAND")
         print("Landing")
 
     def poshold(self):
-        self.mode = VehicleMode("POSHOLD")
+        self.vehicle.mode = VehicleMode("POSHOLD")
         print("Drone currently in POSHOLD")
 
     def rtl(self):
-        self.mode = VehicleMode("RTL")
+        self.vehicle.mode = VehicleMode("RTL")
         print("Drone currently in RTL")
 
     def exit(self):
-        self.close()
+        self.vehicle.close()
 
     def get_vehicle_state(self):
         print('{} - Checking current Vehicle Status:'.format(time.ctime()))
-        self.battery
+        self.vehicle.battery
         
-        print('     Global Location: lat={}, lon={}, alt(above sea leavel)={}'.format(self.location.global_frame.lat, self.location.global_frame.lon, self.location.global_frame.alt)) # Absolute GPS coordinate. Its lat and lon attributes are populated shortly after GPS becomes available. The alt can take several seconds longer to populate (from the barometer).
-        print('     Global Location (relative altitude): lat={}, lon={}, alt(relative)={}'.format(self.location.global_relative_frame.lat, self.location.global_relative_frame.lon, self.location.global_relative_frame.alt)) # GPS coordinate with relative altitude.
-        print('     Local Location(NED coordinate): north={}, east={}, down={}'.format(self.location.local_frame.north, self.location.local_frame.east, self.location.local_frame.down)) # North east down (NED), also known as local tangent plane (LTP)
-        print('     Velocity: Vx={}, Vy={}, Vz={}'.format(self.velocity[0], self.velocity[1], self.velocity[2])) #Current velocity as a three element list [ vx, vy, vz ] (in meter/sec).
-        print('     GPS Info: fix_type={}, num_sat={}'.format(self.gps_0.fix_type, self.gps_0.satellites_visible)) # GPS Info. fix_type: 0-1, no fix; 2, 2D fix; 3, 3D fix. satellites_visible: Number of satellites visible.
-        print('     Battery: voltage={}V, current={}A, level={}%'.format(self.battery.voltage, self.battery.current, self.battery.level))
-        print('     Heading: {} (degrees from North)'.format(self.heading)) # Current heading in degrees(0~360), where North = 0.
-        print('     Groundspeed: {} m/s'.format(self.groundspeed)) # Current groundspeed in metres/second (double).This attribute is settable. The set value is the default target groundspeed when moving the self using simple_goto() (or other position-based movement commands).
-        print('     Airspeed: {} m/s'.format(self.airspeed)) # Current airspeed in metres/second (double).This attribute is settable. The set value is the default target airspeed when moving the self using simple_goto() (or other position-based movement commands).
+        print('     Global Location: lat={}, lon={}, alt(above sea leavel)={}'.format(self.vehicle.location.global_frame.lat, self.vehicle.location.global_frame.lon, self.vehicle.location.global_frame.alt)) # Absolute GPS coordinate. Its lat and lon attributes are populated shortly after GPS becomes available. The alt can take several seconds longer to populate (from the barometer).
+        print('     Global Location (relative altitude): lat={}, lon={}, alt(relative)={}'.format(self.vehicle.location.global_relative_frame.lat, self.vehicle.location.global_relative_frame.lon, self.vehicle.location.global_relative_frame.alt)) # GPS coordinate with relative altitude.
+        print('     Local Location(NED coordinate): north={}, east={}, down={}'.format(self.vehicle.location.local_frame.north, self.vehicle.location.local_frame.east, self.vehicle.location.local_frame.down)) # North east down (NED), also known as local tangent plane (LTP)
+        print('     Velocity: Vx={}, Vy={}, Vz={}'.format(self.vehicle.velocity[0], self.vehicle.velocity[1], self.vehicle.velocity[2])) #Current velocity as a three element list [ vx, vy, vz ] (in meter/sec).
+        print('     GPS Info: fix_type={}, num_sat={}'.format(self.vehicle.gps_0.fix_type, self.vehicle.gps_0.satellites_visible)) # GPS Info. fix_type: 0-1, no fix; 2, 2D fix; 3, 3D fix. satellites_visible: Number of satellites visible.
+        print('     Battery: voltage={}V, current={}A, level={}%'.format(self.vehicle.battery.voltage, self.vehicle.battery.current, self.vehicle.battery.level))
+        print('     Heading: {} (degrees from North)'.format(self.vehicle.heading)) # Current heading in degrees(0~360), where North = 0.
+        print('     Groundspeed: {} m/s'.format(self.vehicle.groundspeed)) # Current groundspeed in metres/second (double).This attribute is settable. The set value is the default target groundspeed when moving the self using simple_goto() (or other position-based movement commands).
+        print('     Airspeed: {} m/s'.format(self.vehicle.airspeed)) # Current airspeed in metres/second (double).This attribute is settable. The set value is the default target airspeed when moving the self using simple_goto() (or other position-based movement commands).
 
     def goto(self, l, alt, groundspeed=0.7):
 
@@ -205,15 +203,15 @@ class Drone:
         destination = LocationGlobalRelative(l[0], l[1], alt)
         print('{} - Before calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
         self.get_vehicle_state()
-        current_lat = self.location.global_relative_frame.lat
-        current_lon = self.location.global_relative_frame.lon
-        current_alt = self.location.global_relative_frame.alt
+        current_lat = self.vehicle.location.global_relative_frame.lat
+        current_lon = self.vehicle.location.global_relative_frame.lon
+        current_alt = self.vehicle.location.global_relative_frame.alt
         while ((self.distance_between_two_gps_coord((current_lat,current_lon), l) >0.5) or (abs(current_alt-alt)>0.3)):
-            self.simple_goto(destination, groundspeed=groundspeed)
+            self.vehicle.simple_goto(destination, groundspeed=groundspeed)
             time.sleep(0.5)
-            current_lat = self.location.global_relative_frame.lat
-            current_lon = self.location.global_relative_frame.lon
-            current_alt = self.location.global_relative_frame.alt
+            current_lat = self.vehicle.location.global_relative_frame.lat
+            current_lon = self.vehicle.location.global_relative_frame.lon
+            current_alt = self.vehicle.location.global_relative_frame.alt
             print('{} - Horizontal distance to destination: {} m.'.format(time.ctime(), self.distance_between_two_gps_coord((current_lat,current_lon), l)))
             print('{} - Perpendicular distance to destination: {} m.'.format(time.ctime(), current_alt-alt))
         print('{} - After calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
