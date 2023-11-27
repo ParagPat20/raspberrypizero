@@ -8,9 +8,9 @@ from geopy.distance import great_circle
 import math
 import threading
 import socket
-import io
-import picamera
-import struct
+# import io
+# import picamera
+# import struct
 
 '''
 global variables
@@ -213,7 +213,7 @@ class Drone:
             current_lat = self.location.global_relative_frame.lat
             current_lon = self.location.global_relative_frame.lon
             current_alt = self.location.global_relative_frame.alt
-            print('{} - Horizontal distance to destination: {} m.'.format(time.ctime(), self.distance_between_two_gps_coord((current_lat,current_lon), (lat,lon))))
+            print('{} - Horizontal distance to destination: {} m.'.format(time.ctime(), self.distance_between_two_gps_coord((current_lat,current_lon), l)))
             print('{} - Perpendicular distance to destination: {} m.'.format(time.ctime(), current_alt-alt))
         print('{} - After calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
         self.get_vehicle_state()
@@ -313,48 +313,48 @@ def remove_drone(string):
     global drone_list
     drone_list.remove(string)
 
-def camera_stream_server(host):
-    def handle_client(client_socket):
-        connection = client_socket.makefile('wb')
+# def camera_stream_server(host):
+#     def handle_client(client_socket):
+#         connection = client_socket.makefile('wb')
 
-        try:
-            with picamera.PiCamera() as camera:
-                camera.resolution = (640, 480)  # Adjust resolution as needed
-                camera.framerate = 30  # Adjust frame rate as needed
+#         try:
+#             with picamera.PiCamera() as camera:
+#                 camera.resolution = (640, 480)  # Adjust resolution as needed
+#                 camera.framerate = 30  # Adjust frame rate as needed
 
-                # Start capturing and sending the video feed
-                time.sleep(2)  # Give the camera some time to warm up
-                stream = io.BytesIO()
-                for _ in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
-                    stream.seek(0)
-                    image_data = stream.read()
+#                 # Start capturing and sending the video feed
+#                 time.sleep(2)  # Give the camera some time to warm up
+#                 stream = io.BytesIO()
+#                 for _ in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
+#                     stream.seek(0)
+#                     image_data = stream.read()
 
-                    # Send the image size to the client
-                    connection.write(struct.pack('<L', len(image_data)))
-                    connection.flush()
+#                     # Send the image size to the client
+#                     connection.write(struct.pack('<L', len(image_data)))
+#                     connection.flush()
 
-                    # Send the image data to the client
-                    connection.write(image_data)
-                    stream.seek(0)
-                    stream.truncate()
-        except Exception as e:
-            print("Error: ", e)
+#                     # Send the image data to the client
+#                     connection.write(image_data)
+#                     stream.seek(0)
+#                     stream.truncate()
+#         except Exception as e:
+#             print("Error: ", e)
 
-        finally:
-            connection.close()
-            client_socket.close()
+#         finally:
+#             connection.close()
+#             client_socket.close()
 
-    # Create a socket server
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind((host, 8000))
-    server_socket.listen(0)
+#     # Create a socket server
+#     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#     server_socket.bind((host, 8000))
+#     server_socket.listen(0)
 
-    print("Server is listening on {}:{}".format(host, 8000))
+#     print("Server is listening on {}:{}".format(host, 8000))
 
-    while True:
-        client_socket, _ = server_socket.accept()
-        client_thread = threading.Thread(target=handle_client, args=(client_socket,))
-        client_thread.start()
+#     while True:
+#         client_socket, _ = server_socket.accept()
+#         client_thread = threading.Thread(target=handle_client, args=(client_socket,))
+#         client_thread.start()
 
 def recv_status(remote_host,status_port):
         
