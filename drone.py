@@ -22,7 +22,7 @@ d1 = None
 d2 = None
 selected_drone = None
 MCU_host = '192.168.190.122'
-CD2_host = '192.168.12.123'
+CD2_host = '192.168.190.43'
 CD4_host = '192.168.12.124'
 cmd_port = 12345
 ctrl_port = 54321
@@ -43,6 +43,7 @@ class Drone:
 
         def send_status(self, status_port):
             global local_host
+            print(local_host)
             status_socket = socket.socket()
             status_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             status_socket.bind((local_host, status_port))
