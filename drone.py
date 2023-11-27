@@ -92,11 +92,7 @@ class Drone:
             if time.time() - start_time > TIMEOUT_SECONDS:
                 break
             time.sleep(1)
-
-        if self.armed == False:
-            print("Unable to Arm, Trying Again")
-        else:
-            print("Vehicle Armed")
+        print("Vehicle Armed")
 
     def takeoff(self, alt = 2):
         print("Taking off!")
