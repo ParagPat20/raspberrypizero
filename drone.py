@@ -381,4 +381,4 @@ def chat(string):
 
 def drone_list_update(cmd):
     global drone_list
-    drone_list.append(cmd)
+    drone_list = cmd
