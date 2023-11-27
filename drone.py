@@ -238,9 +238,9 @@ def new_coords(original_gps_coord, displacement, rotation_degree_relative):
     return round(new_gps_lat, 7), round(new_gps_lon, 7)
 
 def cu_lo(drone):
-    lat = drone.location.global_relative_frame.lat
-    lon = drone.location.global_relative_frame.lon
-    heading = drone.heading
+    lat = drone.vehicle.location.global_relative_frame.lat
+    lon = drone.vehicle.location.global_relative_frame.lon
+    heading = drone.vehicle.heading
     return (lat,lon),heading
 
 #==============================================================================================================
