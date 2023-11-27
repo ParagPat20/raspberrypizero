@@ -403,10 +403,9 @@ def goto(drone, lat, lon, alt, groundspeed = 1):
         current_alt = drone.vehicle.location.global_relative_frame.alt
         print('{} - Horizontal distance to destination: {} m.'.format(time.ctime(), distance_between_two_gps_coord((current_lat,current_lon), (lat,lon))))
         print('{} - Perpendicular distance to destination: {} m.'.format(time.ctime(), current_alt-alt))
-        if drone.vehicle.mode == VehicleMode('LAND'):
-            break
 
 def new_coords(original_gps_coord, displacement, rotation_degree):
+
     vincentyDistance = geopy.distance.distance(meters = displacement)
     original_point = geopy.Point(original_gps_coord[0], original_gps_coord[1])
     new_gps_coord = vincentyDistance.destination(point=original_point, bearing=rotation_degree)
