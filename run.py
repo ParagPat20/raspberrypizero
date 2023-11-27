@@ -145,7 +145,7 @@ while True:
             time.sleep(2)
 
         if "CD1" in drone_list and d2 is None and not CD1_initialized:
-            CD1 = Drone(status_port[1], '0.0.0.0:14550')
+            CD1 = Drone(status_port[1], '0.0.0.0:14552')
             d2 = CD1
             d2_str = 'CD1'
             print("CD1 Connected")
@@ -163,7 +163,7 @@ while True:
         # Use threading to run command execution in the background
         command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
         command_thread.start()
-        
+
     except Exception as e:
         print(f"Error: {e}")
 
