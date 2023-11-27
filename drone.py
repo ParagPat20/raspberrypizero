@@ -62,7 +62,8 @@ class Drone:
 
                     status_str = battery+','+groundspeed+','+lat+','+lon+','+alt+','+heading
 
-                    client_connection.send(status_str)
+                    client_connection.send(status_str.encode('utf-8'))
+
                     client_connection.close()
 
                 except Exception as e:
@@ -358,7 +359,7 @@ def recv_status(remote_host,status_port):
         client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             client_socket.connect((remote_host, status_port))
-            status_msg_str = client_socket.recv(1024)
+            status_msg_str = client_socket.recv(1024).decode('utf-8')
             battery ,gs, lat, lon, alt, heading = status_msg_str.split(',')
             lat = float(lat)
             lon = float(lon)
