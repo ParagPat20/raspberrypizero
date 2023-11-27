@@ -378,3 +378,7 @@ def chat(string):
     print(string)
     if string == 'LINECOMPLETE':
         in_line = True
+
+def drone_list_update(cmd):
+    global drone_list
+    drone_list.append(cmd)
