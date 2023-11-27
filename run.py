@@ -116,6 +116,11 @@ msg_socket.bind((local_host, cmd_port))
 msg_socket.listen(5)
 print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
 
+def drone_list_update(cmd):
+    global drone_list
+    drone_list = cmd
+    print(drone_list)
+
 while True:
     try:
         if "MCU" in drone_list and d1 is None and not MCU_initialized:
@@ -154,3 +159,4 @@ while True:
         print(f"Error: {e}")
 
         
+
