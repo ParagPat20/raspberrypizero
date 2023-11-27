@@ -67,7 +67,7 @@ class Drone:
                 except Exception as e:
                     print("Error: ", e)
 
-            
+        time.sleep(3)
         threading.Thread(target=send_status, args=(self,status_port,)).start()
         
     def reconnect(self):

@@ -102,27 +102,32 @@ def custom_goto(cmd):
 
 
 
-
+MCU_initialized = False
+CD1_initialized = False
 
 server=threading.Thread(target=server_receive_and_execute_immediate_command,args=(local_host,))
 server.start()
 while True:
     try:
-        if "MCU" or MCU in drone_list and d1 is None:
+        if "MCU" or MCU in drone_list and d1 is None and not MCU_initialized:
             MCU = Drone(status_port[0], '/dev/serial0', 115200)
             d1 = MCU
             d1_str = 'MCU'
             print("MCU COnnected")
+            MCU_initialized = True
+            MCU.get_vehicle_state()
         elif "MCU" or MCU not in drone_list and d1 is not None:  # Use 'and' instead of '&'
             d1.exit()
             d1 = None
             time.sleep(2)
 
-        if "CD1" or CD1 in drone_list and d2 is None and CD1 in drone_list:
+        if "CD1" or CD1 in drone_list and d2 is None and not CD1_initialized:
             CD1 = Drone(status_port[1], '0.0.0.0:14550')
             d2 = CD1
             d2_str = 'CD1'
             print("CD1 Connected")
+            CD1_initialized = True
+            CD1.get_vehicle_state()
         elif "CD1" or CD1 not in drone_list and d2 is not None:  # Use 'and' instead of '&'
             d2.exit()
             d2 = None
