@@ -4,7 +4,7 @@ from drone import *
 local_host = '192.168.12.123'
 cmd_port = 12345
 ctrl_port = 54321
-status_port = 60003, 60004
+status_port = [60003, 60004]
 
 CD2 = None
 CD3 = None
