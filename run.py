@@ -1,7 +1,7 @@
 from drone import Drone
 from drone import *
 
-local_host = '192.168.12.122'
+local_host = '192.168.190.122'
 cmd_port = 12345
 ctrl_port = 54321
 status_port = 60001, 60002

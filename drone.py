@@ -21,7 +21,7 @@ local_host
 d1 = None
 d2 = None
 selected_drone = None
-MCU_host = '192.168.12.122'
+MCU_host = '192.168.190.122'
 CD2_host = '192.168.12.123'
 CD4_host = '192.168.12.124'
 cmd_port = 12345
