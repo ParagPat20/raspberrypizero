@@ -4,7 +4,7 @@ from drone import *
 local_host = '192.168.190.122'
 cmd_port = 12345
 ctrl_port = 54321
-status_port = 60001, 60002
+status_port = [60001, 60002]
 
 MCU = None
 CD1 = None
@@ -125,16 +125,15 @@ while True:
             d2.exit()
             d2 = None
             time.sleep(2)
+        
+        if wait_for_command == False:
+            exec(immediate_command_str)
+            print("Executed Command = {}".format(immediate_command_str))
+            wait_for_command = True
 
-        if d1 and d2:
-            server.join(timeout=10)
         else:
             pass
 
     except Exception as e:
         print(f"Error: {e}")
         
-            
-
-    except Exception as e:
-        print(f"Error: {e}")

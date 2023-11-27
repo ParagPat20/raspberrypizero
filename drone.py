@@ -28,6 +28,8 @@ cmd_port = 12345
 ctrl_port = 54321
 drone_list = []
 in_line = False
+wait_for_command = True
+immediate_command_str = None
 
 class Drone:
     
@@ -64,6 +66,7 @@ class Drone:
 
                 except Exception as e:
                     print("Error: ", e)
+
             
         threading.Thread(target=send_status, args=(self,status_port,)).start()
         
@@ -247,7 +250,8 @@ def cu_lo(drone):
 
 def server_receive_and_execute_immediate_command(local_host):
     global cmd_port
-
+    global immediate_command_str
+    global wait_for_command
     msg_socket = socket.socket()
     msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     msg_socket.bind((local_host, cmd_port))
@@ -260,10 +264,8 @@ def server_receive_and_execute_immediate_command(local_host):
             print('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
             immediate_command_str = client_connection.recv(1024).decode()
             print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
-            
-            command_thread = threading.Thread(target=exec_thread, args=(immediate_command_str,))
-            command_thread.start()
-            ack = "Recieved Command" + str(immediate_command_str)
+            wait_for_command = False
+            ack = "Recieved Command : " + str(immediate_command_str)
             client_connection.send(ack.encode())
 
         except KeyboardInterrupt:
@@ -275,11 +277,6 @@ def server_receive_and_execute_immediate_command(local_host):
             if client_connection:
                 client_connection.close()
 
-def exec_thread(immediate_cmd_str):
-    try:
-        exec(immediate_cmd_str)
-    except Exception as e:
-        print(f"Error in executing immediate command: {e}")
 
 def send(remote_host, immediate_command_str):
     global cmd_port
