@@ -103,24 +103,25 @@ while True:
         command_thread.start()
         
         if "CD2" in drone_list and d1 is None and not CD2_initialized:
-            CD2 = Drone(status_port[0], '/dev/serial0', 115200)
             d1 = CD2
             d1_str = 'CD2'
             print("CD2 Connected")
             CD2_initialized = True
-            CD2.get_vehicle_state()
+            if CD2:
+                CD2.get_vehicle_state()
         elif "CD2" not in drone_list and d1 is not None:  # Use 'and' instead of '&'
             d1.exit()
             d1 = None
             time.sleep(2)
 
         if "CD3" in drone_list and d2 is None and not CD3_initialized:
-            CD3 = Drone(status_port[1], '0.0.0.0:14553')
+            # CD3 = Drone(status_port[1], '0.0.0.0:14553')
             d2 = CD3
             d2_str = 'CD3'
             print("CD3 Connected")
             CD3_initialized = True
-            CD3.get_vehicle_state()
+            if CD3:
+                CD3.get_vehicle_state()
         elif "CD3" not in drone_list and d2 is not None:  # Use 'and' instead of '&'
             d2.exit()
             d2 = None
