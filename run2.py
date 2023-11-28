@@ -85,8 +85,6 @@ def execute_command(immediate_command_str):
     try:
         print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
         exec(immediate_command_str)
-        ack = "Received Command: " + str(immediate_command_str)
-        client_connection.send(ack.encode())
     except Exception as e:
         print(f"Error: {e}")
 
@@ -128,6 +126,9 @@ while True:
         # Use threading to run command execution in the background
         command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
         command_thread.start()
+
+        ack = "Received Command: " + str(immediate_command_str)
+        client_connection.send(ack.encode())
         
     except Exception as e:
         print(f"Error: {e}")
