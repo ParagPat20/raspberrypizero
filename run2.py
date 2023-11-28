@@ -105,7 +105,7 @@ def initialize_CD2():
 def initialize_CD3():
     global d2, CD3, CD3_initialized
     if not CD3 and not CD3_initialized:
-        CD3 = Drone(status_port[1], '0.0.0.0:14552')
+        CD3 = Drone(status_port[1], '0.0.0.0:14553')
         d2 = CD3
         d2_str = 'CD3'
         print("CD3 Connected")
