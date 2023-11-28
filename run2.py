@@ -100,6 +100,8 @@ def initialize_CD2():
         d1_str = 'CD2'
         print("CD2 Connected")
         CD2_initialized = True
+        time.sleep(1)
+        print("Getting Params")
         CD2.get_vehicle_state()
 
 def initialize_CD3():
@@ -110,6 +112,8 @@ def initialize_CD3():
         d2_str = 'CD3'
         print("CD3 Connected")
         CD3_initialized = True
+        time.sleep(1)
+        print("Getting Params")
         CD3.get_vehicle_state()
 
 ##########################################################################################################################
