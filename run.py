@@ -142,7 +142,7 @@ while True:
 
 
         if "MCU" in drone_list and d1 is None and not MCU_initialized:
-            MCU = Drone(status_port[0], '/dev/serial0', 115200)
+            # MCU = Drone(status_port[0], '/dev/serial0', 115200)
             d1 = MCU
             d1_str = 'MCU'
             print("MCU Connected")
