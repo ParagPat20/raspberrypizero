@@ -1,5 +1,5 @@
-from drone import Drone
-from drone import *
+from drone2 import Drone
+from drone2 import *
 
 local_host = '192.168.190.43'
 cmd_port = 12345
