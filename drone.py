@@ -68,7 +68,7 @@ class Drone:
                     client_connection.close()
 
                 except Exception as e:
-                    log("Error: ", e)
+                    log("Error: sending battery...")
 
         time.sleep(3)
         threading.Thread(target=send_status, args=(self,status_port,)).start()
@@ -101,7 +101,7 @@ class Drone:
         while True:
             current_altitude = self.vehicle.location.global_relative_frame.alt
             if current_altitude is not None:
-                log(" Altitude: ", current_altitude)
+                log(" Altitude: {}".foramt(current_altitude))
                 if current_altitude >= 1 * 0.9:
                     log("Reached target altitude")
                     break
@@ -131,7 +131,7 @@ class Drone:
 
     def yaw(self, heading):
         current_heading = self.vehicle.heading
-        log("Current Heading : ", current_heading)
+        log("Current Heading : {}".format(current_heading))
         if current_heading >= 180:
             rotation = 1
         else:
@@ -286,7 +286,7 @@ def send(remote_host, immediate_command_str):
         client_socket.send(immediate_command_str.encode())
         log('{} - CLIENT_send_immediate_command({}, {}) is executed!'.format(time.ctime(), remote_host, immediate_command_str))
         ack = client_socket.recv(1024)
-        log("ACK", ack)
+        log("ACK : Command sent succeffuly, cmd:{}".format(ack))
     
     except socket.error as error_msg:
         log('{} - Caught exception : {}'.format(time.ctime(), error_msg))
