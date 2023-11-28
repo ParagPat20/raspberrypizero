@@ -100,7 +100,7 @@ def initialize_CD2():
         d1_str = 'CD2'
         print("CD2 Connected")
         CD2_initialized = True
-    CD2.get_vehicle_state()
+        CD2.get_vehicle_state()
 
 def initialize_CD3():
     global d2, CD3, CD3_initialized
@@ -110,7 +110,7 @@ def initialize_CD3():
         d2_str = 'CD3'
         print("CD3 Connected")
         CD3_initialized = True
-    CD3.get_vehicle_state()
+        CD3.get_vehicle_state()
 
 ##########################################################################################################################
 
