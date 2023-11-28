@@ -8,9 +8,9 @@ from geopy.distance import great_circle
 import math
 import threading
 import socket
-# import io
-# import picamera
-# import struct
+import io
+import picamera
+import struct
 
 '''
 global variables
@@ -74,174 +74,235 @@ class Drone:
         threading.Thread(target=send_status, args=(self,status_port,)).start()
         
     def reconnect(self):
-        self.vehicle.exit()
-        time.sleep(2)
-        self = connect(self.drone_user, self.drone_baud)
-        log("Reconnected Successfully")
+        try:
+            self.vehicle.exit()
+            time.sleep(2)
+            self = connect(self.drone_user, self.drone_baud)
+            log("Reconnected Successfully")
+        except Exception as e:
+            log(f"Error during reconnection: {e}")
 
     def arm(self, mode='GUIDED'):
-        log("Arming motors")
-        self.vehicle.mode = VehicleMode(mode)
-        self.vehicle.armed = True
-        TIMEOUT_SECONDS = 10
-        start_time = time.time()
-        while not self.vehicle.armed:
-            log("Waiting for Arming")
+        try:
+            log("Arming motors")
+            self.vehicle.mode = VehicleMode(mode)
             self.vehicle.armed = True
-            if time.time() - start_time > TIMEOUT_SECONDS:
-                break
-            time.sleep(1)
-
-        log("Vehicle Armed")
-    def takeoff(self, alt = 2):
-        log("Taking off!")
-        self.vehicle.simple_takeoff(alt)
-        start_time = time.time()
-        TIMEOUT_SECONDS = 15
-        while True:
-            current_altitude = self.vehicle.location.global_relative_frame.alt
-            if current_altitude is not None:
-                log(" Altitude: {}".foramt(current_altitude))
-                if current_altitude >= 1 * 0.9:
-                    log("Reached target altitude")
+            TIMEOUT_SECONDS = 10
+            start_time = time.time()
+            while not self.vehicle.armed:
+                log("Waiting for Arming")
+                self.vehicle.armed = True
+                if time.time() - start_time > TIMEOUT_SECONDS:
                     break
-            else:
-                log("Waiting for altitude information...")
-            if time.time() - start_time > TIMEOUT_SECONDS:
-                break
-            time.sleep(1)
+                time.sleep(1)
+
+            log("Vehicle Armed")
+        except Exception as e:
+            log(f"Error during arming: {e}")
+
+    def takeoff(self, alt=2):
+        try:
+            log("Taking off!")
+            self.vehicle.simple_takeoff(alt)
+            start_time = time.time()
+            TIMEOUT_SECONDS = 15
+            while True:
+                current_altitude = self.vehicle.location.global_relative_frame.alt
+                if current_altitude is not None:
+                    log(" Altitude: {}".format(current_altitude))
+                    if current_altitude >= 1 * 0.9:
+                        log("Reached target altitude")
+                        break
+                else:
+                    log("Waiting for altitude information...")
+                if time.time() - start_time > TIMEOUT_SECONDS:
+                    break
+                time.sleep(1)
+        except Exception as e:
+            log(f"Error during takeoff: {e}")
 
     def send_ned_velocity(self, velocity_x, velocity_y, velocity_z):
-        velocity_x = float(velocity_x)
-        velocity_y = float(velocity_y)
-        velocity_z = float(velocity_z)
-        
-        msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
-            0,  # time_boot_ms (not used)
-            0, 0,  # target system, target component
-            mavutil.mavlink.MAV_FRAME_LOCAL_NED,  # frame
-            0b0000111111000111,  # type_mask (only speeds enabled)
-            0, 0, 0,  # x, y, z positions (not used)
-            velocity_x, velocity_y, velocity_z,  # x, y, z velocity in m/s
-            0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
-            0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
-        log(f"Drone Velocity Commands{velocity_x},{velocity_y},{velocity_z}")
+        try:
+            velocity_x = float(velocity_x)
+            velocity_y = float(velocity_y)
+            velocity_z = float(velocity_z)
 
-        self.vehicle.send_mavlink(msg)
+            msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
+                0,  # time_boot_ms (not used)
+                0, 0,  # target system, target component
+                mavutil.mavlink.MAV_FRAME_LOCAL_NED,  # frame
+                0b0000111111000111,  # type_mask (only speeds enabled)
+                0, 0, 0,  # x, y, z positions (not used)
+                velocity_x, velocity_y, velocity_z,  # x, y, z velocity in m/s
+                0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
+                0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+            log(f"Drone Velocity Commands{velocity_x},{velocity_y},{velocity_z}")
+
+            self.vehicle.send_mavlink(msg)
+        except Exception as e:
+            log(f"Error sending velocity commands: {e}")
 
     def yaw(self, heading):
-        current_heading = self.vehicle.heading
-        log("Current Heading : {}".format(current_heading))
-        if current_heading >= 180:
-            rotation = 1
-        else:
-            rotation = -1
-        estimatedTime = heading/30.0 + 1
+        try:
+            current_heading = self.vehicle.heading
+            log("Current Heading : {}".format(current_heading))
+            if current_heading >= 180:
+                rotation = 1
+            else:
+                rotation = -1
+            estimatedTime = heading / 30.0 + 1
 
-        msg = self.vehicle.message_factory.command_long_encode(
-            0, 0,    # target system, target component
-            mavutil.mavlink.MAV_CMD_CONDITION_YAW, #command
-            0, #confirmation
-            heading,    # param 1, yaw in degrees
-            0,          # param 2, yaw speed deg/s
-            rotation,          # param 3, direction -1 ccw, 1 cw
-            0, # param 4, relative offset 1, absolute angle 0
-            0, 0, 0)    # param 5 ~ 7 not used
-        # send command to vehicle
-        self.vehicle.send_mavlink(msg)
+            msg = self.vehicle.message_factory.command_long_encode(
+                0, 0,  # target system, target component
+                mavutil.mavlink.MAV_CMD_CONDITION_YAW,  # command
+                0,  # confirmation
+                heading,  # param 1, yaw in degrees
+                0,  # param 2, yaw speed deg/s
+                rotation,  # param 3, direction -1 ccw, 1 cw
+                0,  # param 4, relative offset 1, absolute angle 0
+                0, 0, 0)  # param 5 ~ 7 not used
+            # send command to vehicle
+            self.vehicle.send_mavlink(msg)
 
-        # Wait sort of time for the command to be fully executed.
-        for t in range(0, int(math.ceil(estimatedTime))):
-            time.sleep(1)
-            log('{} - Executed yaw(heading={}) for {} seconds.'.format(time.ctime(), heading, t+1))
-            self.get_vehicle_state()
-            log('\n')
+            # Wait sort of time for the command to be fully executed.
+            for t in range(0, int(math.ceil(estimatedTime))):
+                time.sleep(1)
+                log('{} - Executed yaw(heading={}) for {} seconds.'.format(time.ctime(), heading, t + 1))
+                self.get_vehicle_state()
+                log('\n')
+        except Exception as e:
+            log(f"Error during yaw command: {e}")
 
     def disarm(self):
-        log("Disarming motors")
-        self.vehicle.armed = False
-
-        while self.vehicle.armed:
-            log("Waiting for disarming...")
+        try:
+            log("Disarming motors")
             self.vehicle.armed = False
-            time.sleep(1)
 
-        log("Vehicle Disarmed")
+            while self.vehicle.armed:
+                log("Waiting for disarming...")
+                self.vehicle.armed = False
+                time.sleep(1)
+
+            log("Vehicle Disarmed")
+        except Exception as e:
+            log(f"Error during disarming: {e}")
 
     def land(self):
-        self.vehicle.mode = VehicleMode("LAND")
-        log("Landing")
+        try:
+            self.vehicle.mode = VehicleMode("LAND")
+            log("Landing")
+        except Exception as e:
+            log(f"Error during landing: {e}")
 
     def poshold(self):
-        self.vehicle.mode = VehicleMode("POSHOLD")
-        log("Drone currently in POSHOLD")
+        try:
+            self.vehicle.mode = VehicleMode("POSHOLD")
+            log("Drone currently in POSHOLD")
+        except Exception as e:
+            log(f"Error during POSHOLD mode setting: {e}")
 
     def rtl(self):
-        self.vehicle.mode = VehicleMode("RTL")
-        log("Drone currently in RTL")
+        try:
+            self.vehicle.mode = VehicleMode("RTL")
+            log("Drone currently in RTL")
+        except Exception as e:
+            log(f"Error during RTL mode setting: {e}")
 
     def exit(self):
-        self.vehicle.close()
+        try:
+            self.vehicle.close()
+        except Exception as e:
+            log(f"Error during vehicle exit: {e}")
 
     def get_vehicle_state(self):
-        log('{} - Checking current Vehicle Status:'.format(time.ctime()))
-        self.vehicle.battery
-        
-        log('     Global Location: lat={}, lon={}, alt(above sea leavel)={}'.format(self.vehicle.location.global_frame.lat, self.vehicle.location.global_frame.lon, self.vehicle.location.global_frame.alt)) # Absolute GPS coordinate. Its lat and lon attributes are populated shortly after GPS becomes available. The alt can take several seconds longer to populate (from the barometer).
-        log('     Global Location (relative altitude): lat={}, lon={}, alt(relative)={}'.format(self.vehicle.location.global_relative_frame.lat, self.vehicle.location.global_relative_frame.lon, self.vehicle.location.global_relative_frame.alt)) # GPS coordinate with relative altitude.
-        log('     Local Location(NED coordinate): north={}, east={}, down={}'.format(self.vehicle.location.local_frame.north, self.vehicle.location.local_frame.east, self.vehicle.location.local_frame.down)) # North east down (NED), also known as local tangent plane (LTP)
-        log('     Velocity: Vx={}, Vy={}, Vz={}'.format(self.vehicle.velocity[0], self.vehicle.velocity[1], self.vehicle.velocity[2])) #Current velocity as a three element list [ vx, vy, vz ] (in meter/sec).
-        log('     GPS Info: fix_type={}, num_sat={}'.format(self.vehicle.gps_0.fix_type, self.vehicle.gps_0.satellites_visible)) # GPS Info. fix_type: 0-1, no fix; 2, 2D fix; 3, 3D fix. satellites_visible: Number of satellites visible.
-        log('     Battery: voltage={}V, current={}A, level={}%'.format(self.vehicle.battery.voltage, self.vehicle.battery.current, self.vehicle.battery.level))
-        log('     Heading: {} (degrees from North)'.format(self.vehicle.heading)) # Current heading in degrees(0~360), where North = 0.
-        log('     Groundspeed: {} m/s'.format(self.vehicle.groundspeed)) # Current groundspeed in metres/second (double).This attribute is settable. The set value is the default target groundspeed when moving the self using simple_goto() (or other position-based movement commands).
-        log('     Airspeed: {} m/s'.format(self.vehicle.airspeed)) # Current airspeed in metres/second (double).This attribute is settable. The set value is the default target airspeed when moving the self using simple_goto() (or other position-based movement commands).
+        try:
+            log('{} - Checking current Vehicle Status:'.format(time.ctime()))
+            self.vehicle.battery
+
+            log('     Global Location: lat={}, lon={}, alt(above sea leavel)={}'.format(
+                self.vehicle.location.global_frame.lat, self.vehicle.location.global_frame.lon,
+                self.vehicle.location.global_frame.alt))
+            log('     Global Location (relative altitude): lat={}, lon={}, alt(relative)={}'.format(
+                self.vehicle.location.global_relative_frame.lat, self.vehicle.location.global_relative_frame.lon,
+                self.vehicle.location.global_relative_frame.alt))
+            log('     Local Location(NED coordinate): north={}, east={}, down={}'.format(
+                self.vehicle.location.local_frame.north, self.vehicle.location.local_frame.east,
+                self.vehicle.location.local_frame.down))
+            log('     Velocity: Vx={}, Vy={}, Vz={}'.format(self.vehicle.velocity[0], self.vehicle.velocity[1],
+                                                            self.vehicle.velocity[2]))
+            log('     GPS Info: fix_type={}, num_sat={}'.format(self.vehicle.gps_0.fix_type,
+                                                                self.vehicle.gps_0.satellites_visible))
+            log('     Battery: voltage={}V, current={}A, level={}%'.format(self.vehicle.battery.voltage,
+                                                                           self.vehicle.battery.current,
+                                                                           self.vehicle.battery.level))
+            log('     Heading: {} (degrees from North)'.format(self.vehicle.heading))
+            log('     Groundspeed: {} m/s'.format(self.vehicle.groundspeed))
+            log('     Airspeed: {} m/s'.format(self.vehicle.airspeed))
+        except Exception as e:
+            log(f"Error getting vehicle state: {e}")
 
     def goto(self, l, alt, groundspeed=0.7):
-
-        log('\n')
-        log('{} - Calling goto_gps_location_relative(lat={}, lon={}, alt={}, groundspeed={}).'.format(time.ctime(), l[0], l[1], alt, groundspeed))
-        destination = LocationGlobalRelative(l[0], l[1], alt)
-        log('{} - Before calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
-        self.get_vehicle_state()
-        current_lat = self.vehicle.location.global_relative_frame.lat
-        current_lon = self.vehicle.location.global_relative_frame.lon
-        current_alt = self.vehicle.location.global_relative_frame.alt
-        while ((self.distance_between_two_gps_coord((current_lat,current_lon), l) >0.5) or (abs(current_alt-alt)>0.3)):
-            self.vehicle.simple_goto(destination, groundspeed=groundspeed)
-            time.sleep(0.5)
+        try:
+            log('\n')
+            log('{} - Calling goto_gps_location_relative(lat={}, lon={}, alt={}, groundspeed={}).'.format(
+                time.ctime(), l[0], l[1], alt, groundspeed))
+            destination = LocationGlobalRelative(l[0], l[1], alt)
+            log('{} - Before calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
+            self.get_vehicle_state()
             current_lat = self.vehicle.location.global_relative_frame.lat
             current_lon = self.vehicle.location.global_relative_frame.lon
             current_alt = self.vehicle.location.global_relative_frame.alt
-            log('{} - Horizontal distance to destination: {} m.'.format(time.ctime(), self.distance_between_two_gps_coord((current_lat,current_lon), l)))
-            log('{} - Perpendicular distance to destination: {} m.'.format(time.ctime(), current_alt-alt))
-        log('{} - After calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
-        self.get_vehicle_state()
+            while ((self.distance_between_two_gps_coord((current_lat, current_lon), l) > 0.5) or (
+                    abs(current_alt - alt) > 0.3)):
+                self.vehicle.simple_goto(destination, groundspeed=groundspeed)
+                time.sleep(0.5)
+                current_lat = self.vehicle.location.global_relative_frame.lat
+                current_lon = self.vehicle.location.global_relative_frame.lon
+                current_alt = self.vehicle.location.global_relative_frame.alt
+                log('{} - Horizontal distance to destination: {} m.'.format(time.ctime(),
+                                                                             self.distance_between_two_gps_coord(
+                                                                                 (current_lat, current_lon), l)))
+                log('{} - Perpendicular distance to destination: {} m.'.format(time.ctime(),
+                                                                                 current_alt - alt))
+            log('{} - After calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
+            self.get_vehicle_state()
+        except Exception as e:
+            log(f"Error during goto command: {e}")
 
     def distance_between_two_gps_coord(self, point1, point2):
-        distance = great_circle(point1, point2).meters
-        return distance
-    
+        try:
+            distance = great_circle(point1, point2).meters
+            return distance
+        except Exception as e:
+            log(f"Error calculating distance between two GPS coordinates: {e}")
+
 
 
 
 #=============================================================================================================
     
 def new_coords(original_gps_coord, displacement, rotation_degree_relative):
+    try:
+        vincentyDistance = geopy.distance.distance(meters=displacement)
+        original_point = geopy.Point(original_gps_coord[0], original_gps_coord[1])
+        new_gps_coord = vincentyDistance.destination(point=original_point, bearing=rotation_degree_relative)
+        new_gps_lat = new_gps_coord.latitude
+        new_gps_lon = new_gps_coord.longitude
 
-    vincentyDistance = geopy.distance.distance(meters = displacement)
-    original_point = geopy.Point(original_gps_coord[0], original_gps_coord[1])
-    new_gps_coord = vincentyDistance.destination(point=original_point, bearing=rotation_degree_relative)
-    new_gps_lat = new_gps_coord.latitude
-    new_gps_lon = new_gps_coord.longitude
-
-    return round(new_gps_lat, 7), round(new_gps_lon, 7)
+        return round(new_gps_lat, 7), round(new_gps_lon, 7)
+    except Exception as e:
+        log(f"Error in calculating new coordinates: {e}")
 
 def cu_lo(drone):
-    lat = drone.vehicle.location.global_relative_frame.lat
-    lon = drone.vehicle.location.global_relative_frame.lon
-    heading = drone.vehicle.heading
-    return (lat,lon),heading
+    try:
+        lat = drone.vehicle.location.global_relative_frame.lat
+        lon = drone.vehicle.location.global_relative_frame.lon
+        heading = drone.vehicle.heading
+        return (lat, lon), heading
+    except Exception as e:
+        log(f"Error in getting current location: {e}")
+        return (0.0, 0.0), 0.0  # Returning default values in case of an error
+
 
 #==============================================================================================================
 
@@ -298,55 +359,62 @@ def send(remote_host, immediate_command_str):
 #==============================================================================================================
 
 def add_drone(string):
-    global drone_list
-    drone_list.append(string)
+    try:
+        global drone_list
+        drone_list.append(string)
+    except Exception as e:
+        log(f"Error adding drone: {e}")
 
 def remove_drone(string):
-    global drone_list
-    drone_list.remove(string)
+    try:
+        global drone_list
+        drone_list.remove(string)
+    except Exception as e:
+        log(f"Error removing drone: {e}")
 
-# def camera_stream_server(host):
-#     def handle_client(client_socket):
-#         connection = client_socket.makefile('wb')
 
-#         try:
-#             with picamera.PiCamera() as camera:
-#                 camera.resolution = (640, 480)  # Adjust resolution as needed
-#                 camera.framerate = 30  # Adjust frame rate as needed
+def camera_stream_server(host):
+    def handle_client(client_socket):
+        connection = client_socket.makefile('wb')
 
-#                 # Start capturing and sending the video feed
-#                 time.sleep(2)  # Give the camera some time to warm up
-#                 stream = io.BytesIO()
-#                 for _ in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
-#                     stream.seek(0)
-#                     image_data = stream.read()
+        try:
+            with picamera.PiCamera() as camera:
+                camera.resolution = (640, 480)  # Adjust resolution as needed
+                camera.framerate = 30  # Adjust frame rate as needed
 
-#                     # Send the image size to the client
-#                     connection.write(struct.pack('<L', len(image_data)))
-#                     connection.flush()
+                # Start capturing and sending the video feed
+                time.sleep(2)  # Give the camera some time to warm up
+                stream = io.BytesIO()
+                for _ in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
+                    stream.seek(0)
+                    image_data = stream.read()
 
-#                     # Send the image data to the client
-#                     connection.write(image_data)
-#                     stream.seek(0)
-#                     stream.truncate()
-#         except Exception as e:
-#             log("Error: ", e)
+                    # Send the image size to the client
+                    connection.write(struct.pack('<L', len(image_data)))
+                    connection.flush()
 
-#         finally:
-#             connection.close()
-#             client_socket.close()
+                    # Send the image data to the client
+                    connection.write(image_data)
+                    stream.seek(0)
+                    stream.truncate()
+        except Exception as e:
+            log("Error: ", e)
 
-#     # Create a socket server
-#     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#     server_socket.bind((host, 8000))
-#     server_socket.listen(0)
+        finally:
+            connection.close()
+            client_socket.close()
 
-#     log("Server is listening on {}:{}".format(host, 8000))
+    # Create a socket server
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind((host, 8000))
+    server_socket.listen(0)
 
-#     while True:
-#         client_socket, _ = server_socket.accept()
-#         client_thread = threading.Thread(target=handle_client, args=(client_socket,))
-#         client_thread.start()
+    log("Server is listening on {}:{}".format(host, 8000))
+
+    while True:
+        client_socket, _ = server_socket.accept()
+        client_thread = threading.Thread(target=handle_client, args=(client_socket,))
+        client_thread.start()
 
 def recv_status(remote_host,status_port):
         
@@ -367,16 +435,22 @@ def recv_status(remote_host,status_port):
             log('{} - CLIENT_request_status({}) is not executed!'.format(time.ctime(), remote_host))
             
 def chat(string):
-    log(string)
-    if string == 'LINECOMPLETE':
-        in_line = True
-
-def log(msg,pc_host = '192.168.190.101',port = 8765):
-    cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    cli.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
-        cli.connect((pc_host, port))
-        msg = str(msg)
-        cli.send(str.encode(msg))
+        log(string)
+        if string == 'LINECOMPLETE':
+            in_line = True
     except Exception as e:
-        print("There was an error connecting to the server: " + str(e))
+        log(f"Error in chat function: {e}")
+
+def log(msg, pc_host='192.168.190.101', port=8765):
+    try:
+        cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        cli.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            cli.connect((pc_host, port))
+            msg = str(msg)
+            cli.send(str.encode(msg))
+        except Exception as e:
+            print("There was an error connecting to the server: " + str(e))
+    except Exception as e:
+        print(f"Error in log function: {e}")
