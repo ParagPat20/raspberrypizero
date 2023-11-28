@@ -132,6 +132,15 @@ def execute_command(immediate_command_str):
 
 while True:
     try:
+        client_connection, client_address = msg_socket.accept()
+        print('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
+        immediate_command_str = client_connection.recv(1024).decode()
+
+        # Use threading to run command execution in the background
+        command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
+        command_thread.start()
+
+
         if "MCU" in drone_list and d1 is None and not MCU_initialized:
             MCU = Drone(status_port[0], '/dev/serial0', 115200)
             d1 = MCU
@@ -155,14 +164,6 @@ while True:
             d2.exit()
             d2 = None
             time.sleep(2)
-
-        client_connection, client_address = msg_socket.accept()
-        print('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
-        immediate_command_str = client_connection.recv(1024).decode()
-
-        # Use threading to run command execution in the background
-        command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
-        command_thread.start()
 
     except Exception as e:
         print(f"Error: {e}")
