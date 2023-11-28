@@ -138,17 +138,17 @@ def initialize_MCU():
         d1_str = 'MCU'
         print("MCU Connected")
         MCU_initialized = True
-        MCU.get_vehicle_state()
+    MCU.get_vehicle_state()
 
 def initialize_CD1():
     global d2, CD1, CD1_initialized
     if not CD1 and not CD1_initialized:
-        
+        CD1 = Drone(status_port[1], '0.0.0.0:14552')
         d2 = CD1
         d2_str = 'CD1'
         print("CD1 Connected")
         CD1_initialized = True
-        CD1.get_vehicle_state()
+    CD1.get_vehicle_state()
 
 
 

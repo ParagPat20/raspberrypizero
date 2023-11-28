@@ -92,6 +92,26 @@ def execute_command(immediate_command_str):
 
 ##########################################################################################################################
 
+def initialize_MCU():
+    global d1, CD2, CD2_initialized
+    if not MCU and not MCU_initialized:
+        MCU = Drone(status_port[0], '/dev/serial0', 115200)
+        d1 = MCU
+        d1_str = 'MCU'
+        print("MCU Connected")
+        MCU_initialized = True
+    MCU.get_vehicle_state()
+
+def initialize_CD1():
+    global d2, CD2, CD2_initialized
+    if not CD1 and not CD1_initialized:
+        CD1 = Drone(status_port[1], '0.0.0.0:14552')
+        d2 = CD1
+        d2_str = 'CD1'
+        print("CD1 Connected")
+        CD1_initialized = True
+    CD1.get_vehicle_state()
+
 while True:
     try:
         client_connection, client_address = msg_socket.accept()
@@ -101,31 +121,6 @@ while True:
         # Use threading to run command execution in the background
         command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
         command_thread.start()
-        
-        if "CD2" in drone_list and d1 is None and not CD2_initialized:
-            d1 = CD2
-            d1_str = 'CD2'
-            print("CD2 Connected")
-            CD2_initialized = True
-            if CD2:
-                CD2.get_vehicle_state()
-        elif "CD2" not in drone_list and d1 is not None:  # Use 'and' instead of '&'
-            d1.exit()
-            d1 = None
-            time.sleep(2)
-
-        if "CD3" in drone_list and d2 is None and not CD3_initialized:
-            d2 = CD3
-            d2_str = 'CD3'
-            print("CD3 Connected")
-            CD3_initialized = True
-            if CD3:
-                CD3.get_vehicle_state()
-        elif "CD3" not in drone_list and d2 is not None:  # Use 'and' instead of '&'
-            d2.exit()
-            d2 = None
-            time.sleep(2)
-
         
     except Exception as e:
         print(f"Error: {e}")
