@@ -376,6 +376,7 @@ def log(msg,pc_host = '192.168.190.101',port = 8765):
     cli.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
         cli.connect((pc_host, port))
+        msg = str(msg)
         cli.send(str.encode(msg))
     except Exception as e:
         print("There was an error connecting to the server: " + str(e))
