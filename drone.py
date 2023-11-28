@@ -454,3 +454,23 @@ def log(msg, pc_host='192.168.190.101', port=8765):
             print("There was an error connecting to the server: " + str(e))
     except Exception as e:
         print(f"Error in log function: {e}")
+
+
+import sys
+
+class LogStream:
+    def __init__(self):
+        self.buffer = ""
+
+    def write(self, data):
+        self.buffer += data
+        while "\n" in self.buffer:
+            line, self.buffer = self.buffer.split("\n", 1)
+            log(line)
+
+    def flush(self):
+        pass
+
+log_stream = LogStream()
+sys.stdout = log_stream
+sys.stderr = log_stream
