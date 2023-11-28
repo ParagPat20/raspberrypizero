@@ -43,16 +43,16 @@ class Drone:
 
         def send_status(self, status_port):
             global local_host
-            print(local_host)
+            log(local_host)
             status_socket = socket.socket()
             status_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             status_socket.bind((local_host, status_port))
             status_socket.listen(5)
-            print('{} -send_status() is started!'.format(time.ctime()))
+            log('{} -send_status() is started!'.format(time.ctime()))
             while True:
                 try:
                     client_connection, client_address = status_socket.accept() # Establish connection with client.
-                    print('{} - Received follower status request from {}.'.format(time.ctime(), client_address))
+                    log('{} - Received follower status request from {}.'.format(time.ctime(), client_address))
                     
                     battery = str(self.vehicle.battery.voltage)
                     groundspeed = str(self.vehicle.groundspeed)
@@ -68,7 +68,7 @@ class Drone:
                     client_connection.close()
 
                 except Exception as e:
-                    print("Error: ", e)
+                    log("Error: ", e)
 
         time.sleep(3)
         threading.Thread(target=send_status, args=(self,status_port,)).start()
@@ -77,36 +77,36 @@ class Drone:
         self.vehicle.exit()
         time.sleep(2)
         self = connect(self.drone_user, self.drone_baud)
-        print("Reconnected Successfully")
+        log("Reconnected Successfully")
 
     def arm(self, mode='GUIDED'):
-        print("Arming motors")
+        log("Arming motors")
         self.vehicle.mode = VehicleMode(mode)
         self.vehicle.armed = True
         TIMEOUT_SECONDS = 10
         start_time = time.time()
         while not self.vehicle.armed:
-            print("Waiting for Arming")
+            log("Waiting for Arming")
             self.vehicle.armed = True
             if time.time() - start_time > TIMEOUT_SECONDS:
                 break
             time.sleep(1)
 
-        print("Vehicle Armed")
+        log("Vehicle Armed")
     def takeoff(self, alt = 2):
-        print("Taking off!")
+        log("Taking off!")
         self.vehicle.simple_takeoff(alt)
         start_time = time.time()
         TIMEOUT_SECONDS = 15
         while True:
             current_altitude = self.vehicle.location.global_relative_frame.alt
             if current_altitude is not None:
-                print(" Altitude: ", current_altitude)
+                log(" Altitude: ", current_altitude)
                 if current_altitude >= 1 * 0.9:
-                    print("Reached target altitude")
+                    log("Reached target altitude")
                     break
             else:
-                print("Waiting for altitude information...")
+                log("Waiting for altitude information...")
             if time.time() - start_time > TIMEOUT_SECONDS:
                 break
             time.sleep(1)
@@ -125,13 +125,13 @@ class Drone:
             velocity_x, velocity_y, velocity_z,  # x, y, z velocity in m/s
             0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
             0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
-        print(f"Drone Velocity Commands{velocity_x},{velocity_y},{velocity_z}")
+        log(f"Drone Velocity Commands{velocity_x},{velocity_y},{velocity_z}")
 
         self.vehicle.send_mavlink(msg)
 
     def yaw(self, heading):
         current_heading = self.vehicle.heading
-        print("Current Heading : ", current_heading)
+        log("Current Heading : ", current_heading)
         if current_heading >= 180:
             rotation = 1
         else:
@@ -153,56 +153,56 @@ class Drone:
         # Wait sort of time for the command to be fully executed.
         for t in range(0, int(math.ceil(estimatedTime))):
             time.sleep(1)
-            print('{} - Executed yaw(heading={}) for {} seconds.'.format(time.ctime(), heading, t+1))
+            log('{} - Executed yaw(heading={}) for {} seconds.'.format(time.ctime(), heading, t+1))
             self.get_vehicle_state()
-            print('\n')
+            log('\n')
 
     def disarm(self):
-        print("Disarming motors")
+        log("Disarming motors")
         self.vehicle.armed = False
 
         while self.vehicle.armed:
-            print("Waiting for disarming...")
+            log("Waiting for disarming...")
             self.vehicle.armed = False
             time.sleep(1)
 
-        print("Vehicle Disarmed")
+        log("Vehicle Disarmed")
 
     def land(self):
         self.vehicle.mode = VehicleMode("LAND")
-        print("Landing")
+        log("Landing")
 
     def poshold(self):
         self.vehicle.mode = VehicleMode("POSHOLD")
-        print("Drone currently in POSHOLD")
+        log("Drone currently in POSHOLD")
 
     def rtl(self):
         self.vehicle.mode = VehicleMode("RTL")
-        print("Drone currently in RTL")
+        log("Drone currently in RTL")
 
     def exit(self):
         self.vehicle.close()
 
     def get_vehicle_state(self):
-        print('{} - Checking current Vehicle Status:'.format(time.ctime()))
+        log('{} - Checking current Vehicle Status:'.format(time.ctime()))
         self.vehicle.battery
         
-        print('     Global Location: lat={}, lon={}, alt(above sea leavel)={}'.format(self.vehicle.location.global_frame.lat, self.vehicle.location.global_frame.lon, self.vehicle.location.global_frame.alt)) # Absolute GPS coordinate. Its lat and lon attributes are populated shortly after GPS becomes available. The alt can take several seconds longer to populate (from the barometer).
-        print('     Global Location (relative altitude): lat={}, lon={}, alt(relative)={}'.format(self.vehicle.location.global_relative_frame.lat, self.vehicle.location.global_relative_frame.lon, self.vehicle.location.global_relative_frame.alt)) # GPS coordinate with relative altitude.
-        print('     Local Location(NED coordinate): north={}, east={}, down={}'.format(self.vehicle.location.local_frame.north, self.vehicle.location.local_frame.east, self.vehicle.location.local_frame.down)) # North east down (NED), also known as local tangent plane (LTP)
-        print('     Velocity: Vx={}, Vy={}, Vz={}'.format(self.vehicle.velocity[0], self.vehicle.velocity[1], self.vehicle.velocity[2])) #Current velocity as a three element list [ vx, vy, vz ] (in meter/sec).
-        print('     GPS Info: fix_type={}, num_sat={}'.format(self.vehicle.gps_0.fix_type, self.vehicle.gps_0.satellites_visible)) # GPS Info. fix_type: 0-1, no fix; 2, 2D fix; 3, 3D fix. satellites_visible: Number of satellites visible.
-        print('     Battery: voltage={}V, current={}A, level={}%'.format(self.vehicle.battery.voltage, self.vehicle.battery.current, self.vehicle.battery.level))
-        print('     Heading: {} (degrees from North)'.format(self.vehicle.heading)) # Current heading in degrees(0~360), where North = 0.
-        print('     Groundspeed: {} m/s'.format(self.vehicle.groundspeed)) # Current groundspeed in metres/second (double).This attribute is settable. The set value is the default target groundspeed when moving the self using simple_goto() (or other position-based movement commands).
-        print('     Airspeed: {} m/s'.format(self.vehicle.airspeed)) # Current airspeed in metres/second (double).This attribute is settable. The set value is the default target airspeed when moving the self using simple_goto() (or other position-based movement commands).
+        log('     Global Location: lat={}, lon={}, alt(above sea leavel)={}'.format(self.vehicle.location.global_frame.lat, self.vehicle.location.global_frame.lon, self.vehicle.location.global_frame.alt)) # Absolute GPS coordinate. Its lat and lon attributes are populated shortly after GPS becomes available. The alt can take several seconds longer to populate (from the barometer).
+        log('     Global Location (relative altitude): lat={}, lon={}, alt(relative)={}'.format(self.vehicle.location.global_relative_frame.lat, self.vehicle.location.global_relative_frame.lon, self.vehicle.location.global_relative_frame.alt)) # GPS coordinate with relative altitude.
+        log('     Local Location(NED coordinate): north={}, east={}, down={}'.format(self.vehicle.location.local_frame.north, self.vehicle.location.local_frame.east, self.vehicle.location.local_frame.down)) # North east down (NED), also known as local tangent plane (LTP)
+        log('     Velocity: Vx={}, Vy={}, Vz={}'.format(self.vehicle.velocity[0], self.vehicle.velocity[1], self.vehicle.velocity[2])) #Current velocity as a three element list [ vx, vy, vz ] (in meter/sec).
+        log('     GPS Info: fix_type={}, num_sat={}'.format(self.vehicle.gps_0.fix_type, self.vehicle.gps_0.satellites_visible)) # GPS Info. fix_type: 0-1, no fix; 2, 2D fix; 3, 3D fix. satellites_visible: Number of satellites visible.
+        log('     Battery: voltage={}V, current={}A, level={}%'.format(self.vehicle.battery.voltage, self.vehicle.battery.current, self.vehicle.battery.level))
+        log('     Heading: {} (degrees from North)'.format(self.vehicle.heading)) # Current heading in degrees(0~360), where North = 0.
+        log('     Groundspeed: {} m/s'.format(self.vehicle.groundspeed)) # Current groundspeed in metres/second (double).This attribute is settable. The set value is the default target groundspeed when moving the self using simple_goto() (or other position-based movement commands).
+        log('     Airspeed: {} m/s'.format(self.vehicle.airspeed)) # Current airspeed in metres/second (double).This attribute is settable. The set value is the default target airspeed when moving the self using simple_goto() (or other position-based movement commands).
 
     def goto(self, l, alt, groundspeed=0.7):
 
-        print('\n')
-        print('{} - Calling goto_gps_location_relative(lat={}, lon={}, alt={}, groundspeed={}).'.format(time.ctime(), l[0], l[1], alt, groundspeed))
+        log('\n')
+        log('{} - Calling goto_gps_location_relative(lat={}, lon={}, alt={}, groundspeed={}).'.format(time.ctime(), l[0], l[1], alt, groundspeed))
         destination = LocationGlobalRelative(l[0], l[1], alt)
-        print('{} - Before calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
+        log('{} - Before calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
         self.get_vehicle_state()
         current_lat = self.vehicle.location.global_relative_frame.lat
         current_lon = self.vehicle.location.global_relative_frame.lon
@@ -213,9 +213,9 @@ class Drone:
             current_lat = self.vehicle.location.global_relative_frame.lat
             current_lon = self.vehicle.location.global_relative_frame.lon
             current_alt = self.vehicle.location.global_relative_frame.alt
-            print('{} - Horizontal distance to destination: {} m.'.format(time.ctime(), self.distance_between_two_gps_coord((current_lat,current_lon), l)))
-            print('{} - Perpendicular distance to destination: {} m.'.format(time.ctime(), current_alt-alt))
-        print('{} - After calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
+            log('{} - Horizontal distance to destination: {} m.'.format(time.ctime(), self.distance_between_two_gps_coord((current_lat,current_lon), l)))
+            log('{} - Perpendicular distance to destination: {} m.'.format(time.ctime(), current_alt-alt))
+        log('{} - After calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
         self.get_vehicle_state()
 
     def distance_between_two_gps_coord(self, point1, point2):
@@ -253,14 +253,14 @@ def server_receive_and_execute_immediate_command(local_host):
     msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     msg_socket.bind((local_host, cmd_port))
     msg_socket.listen(5)
-    print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
+    log('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
 
     while True:
         try:
             client_connection, client_address = msg_socket.accept()
-            print('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
+            log('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
             immediate_command_str = client_connection.recv(1024).decode()
-            print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
+            log('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
             wait_for_command = False
             ack = "Recieved Command : " + str(immediate_command_str)
             client_connection.send(ack.encode())
@@ -268,7 +268,7 @@ def server_receive_and_execute_immediate_command(local_host):
         except KeyboardInterrupt:
             break
         except Exception as e:
-            print(f"Error: {e}")
+            log(f"Error: {e}")
             time.sleep(1)
         finally:
             if client_connection:
@@ -284,13 +284,13 @@ def send(remote_host, immediate_command_str):
     try:
         client_socket.connect((remote_host, cmd_port))
         client_socket.send(immediate_command_str.encode())
-        print('{} - CLIENT_send_immediate_command({}, {}) is executed!'.format(time.ctime(), remote_host, immediate_command_str))
+        log('{} - CLIENT_send_immediate_command({}, {}) is executed!'.format(time.ctime(), remote_host, immediate_command_str))
         ack = client_socket.recv(1024)
-        print("ACK", ack)
+        log("ACK", ack)
     
     except socket.error as error_msg:
-        print('{} - Caught exception : {}'.format(time.ctime(), error_msg))
-        print('{} - CLIENT_send_immediate_command({}, {}) is not executed!'.format(time.ctime(), remote_host, immediate_command_str))
+        log('{} - Caught exception : {}'.format(time.ctime(), error_msg))
+        log('{} - CLIENT_send_immediate_command({}, {}) is not executed!'.format(time.ctime(), remote_host, immediate_command_str))
         return
     
 
@@ -330,7 +330,7 @@ def remove_drone(string):
 #                     stream.seek(0)
 #                     stream.truncate()
 #         except Exception as e:
-#             print("Error: ", e)
+#             log("Error: ", e)
 
 #         finally:
 #             connection.close()
@@ -341,7 +341,7 @@ def remove_drone(string):
 #     server_socket.bind((host, 8000))
 #     server_socket.listen(0)
 
-#     print("Server is listening on {}:{}".format(host, 8000))
+#     log("Server is listening on {}:{}".format(host, 8000))
 
 #     while True:
 #         client_socket, _ = server_socket.accept()
@@ -363,11 +363,19 @@ def recv_status(remote_host,status_port):
 
             return (lat,lon),alt,heading
         except socket.error as error_msg:
-            print('{} - Caught exception : {}'.format(time.ctime(), error_msg))
-            print('{} - CLIENT_request_status({}) is not executed!'.format(time.ctime(), remote_host))
+            log('{} - Caught exception : {}'.format(time.ctime(), error_msg))
+            log('{} - CLIENT_request_status({}) is not executed!'.format(time.ctime(), remote_host))
             
 def chat(string):
-    print(string)
+    log(string)
     if string == 'LINECOMPLETE':
         in_line = True
 
+def log(msg,pc_host = '192.168190.101',port = 8765):
+    cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    cli.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        cli.connect((pc_host, port))
+        cli.send(str.encode(msg))
+    except Exception as e:
+        print("There was an error connecting to the server: " + str(e))
