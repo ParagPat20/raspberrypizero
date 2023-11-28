@@ -133,6 +133,7 @@ def execute_command(immediate_command_str):
 def initialize_MCU():
     global d1, MCU, MCU_initialized
     if not MCU and not MCU_initialized:
+        MCU = Drone(status_port[0], '/dev/serial0', 115200)
         d1 = MCU
         d1_str = 'MCU'
         print("MCU Connected")
@@ -142,6 +143,7 @@ def initialize_MCU():
 def initialize_CD1():
     global d2, CD1, CD1_initialized
     if not CD1 and not CD1_initialized:
+        
         d2 = CD1
         d2_str = 'CD1'
         print("CD1 Connected")
