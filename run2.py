@@ -92,25 +92,28 @@ def execute_command(immediate_command_str):
 
 ##########################################################################################################################
 
-def initialize_MCU():
+def initialize_CD2():
     global d1, CD2, CD2_initialized
-    if not MCU and not MCU_initialized:
-        MCU = Drone(status_port[0], '/dev/serial0', 115200)
-        d1 = MCU
-        d1_str = 'MCU'
-        print("MCU Connected")
-        MCU_initialized = True
-    MCU.get_vehicle_state()
+    if not CD2 and not CD2_initialized:
+        CD2 = Drone(status_port[0], '/dev/serial0', 115200)
+        d1 = CD2
+        d1_str = 'CD2'
+        print("CD2 Connected")
+        CD2_initialized = True
+    CD2.get_vehicle_state()
 
-def initialize_CD1():
-    global d2, CD2, CD2_initialized
-    if not CD1 and not CD1_initialized:
-        CD1 = Drone(status_port[1], '0.0.0.0:14552')
-        d2 = CD1
-        d2_str = 'CD1'
-        print("CD1 Connected")
-        CD1_initialized = True
-    CD1.get_vehicle_state()
+def initialize_CD3():
+    global d2, CD3, CD3_initialized
+    if not CD3 and not CD3_initialized:
+        CD3 = Drone(status_port[1], '0.0.0.0:14552')
+        d2 = CD3
+        d2_str = 'CD3'
+        print("CD3 Connected")
+        CD3_initialized = True
+    CD3.get_vehicle_state()
+
+##########################################################################################################################
+
 
 while True:
     try:

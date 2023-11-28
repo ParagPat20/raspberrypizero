@@ -5,11 +5,14 @@ local_host = '192.168.190.122'
 cmd_port = 12345
 ctrl_port = 54321
 status_port = [60001, 60002]
+local_host = MCU_host
 
 MCU = None
 CD1 = None
 
 #FORMATIONS#
+######################################################## FORMATIONS ########################################################
+
 
 def LINE(dis=1, alt=2):
 
@@ -96,19 +99,14 @@ def custom_goto(cmd):
 
 
 
+##########################################################################################################################
 
-
-
-
-
+##################################################### Initialization #####################################################
 
 MCU_initialized = False
 CD1_initialized = False
 d1 = None
 d2 = None
-
-# server=threading.Thread(target=server_receive_and_execute_immediate_command,args=(local_host,))
-# server.start()
 
 msg_socket = socket.socket()
 msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -130,6 +128,8 @@ def execute_command(immediate_command_str):
     except Exception as e:
         print(f"Error: {e}")
 
+##########################################################################################################################
+
 def initialize_MCU():
     global d1, MCU, MCU_initialized
     if not MCU and not MCU_initialized:
@@ -150,6 +150,7 @@ def initialize_CD1():
         CD1_initialized = True
     CD1.get_vehicle_state()
 
+##########################################################################################################################
 
 
 while True:
@@ -166,4 +167,5 @@ while True:
         print(f"Error: {e}")
 
         
+##########################################################################################################################
 
