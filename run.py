@@ -154,7 +154,7 @@ while True:
             time.sleep(2)
 
         if "CD1" in drone_list and d2 is None and not CD1_initialized:
-            CD1 = Drone(status_port[1], '0.0.0.0:14552')
+            
             d2 = CD1
             d2_str = 'CD1'
             print("CD1 Connected")
