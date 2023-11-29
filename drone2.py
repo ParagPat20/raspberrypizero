@@ -142,9 +142,9 @@ class Drone:
             log(f"Error sending velocity commands: {e}")
 
     def send_ned_velocity(self, x, y, z):
-        self.send_ned_velocity_drone(self,x,y,z)
+        self.send_ned_velocity_drone(x,y,z)
         time.sleep(0.2)
-        self.send_ned_velocity_drone(self,0,0,0)
+        self.send_ned_velocity_drone(0,0,0)
 
     def yaw(self, heading):
         try:
