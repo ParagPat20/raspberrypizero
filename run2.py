@@ -119,7 +119,7 @@ def initialize_CD3():
 
 ##########################################################################################################################
 try:
-    log("Starting CD2_host at {socket.gethostbyname(socket.gethostname())}".format())
+    log("Starting CD2_host at {}".format(socket.gethostbyname(socket.gethostname())))
 except Exception as e:
     print(f"Error: {e}")
 
