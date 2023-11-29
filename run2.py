@@ -93,35 +93,27 @@ def initialize_CD2():
     try:
         global d1, CD2, CD2_initialized
         if not CD2 and not CD2_initialized:
-            CD2 = Drone(status_port[0], '/dev/serial0', 115200)
+            CD2 = Drone('/dev/serial0', 115200)
             d1 = CD2
             d1_str = 'CD2'
             print("CD2 Connected")
-            if CD2.vehicle.battery is not None:
-                CD2_initialized = True
-            else:
-                while CD2.vehicle.battery is not None:
-                    time.sleep(0.2)
-                    log("CD2 getting connected")
-                CD2.get_vehicle_state()
+            threading.Thread(target=CD2.send_status, args=(status_port[0],)).start()
+            CD2_initialized=True
+        CD2.get_vehicle_state()
     except Exception as e:
         log(f"Error in initialize_CD2: {e}")
 
 def initialize_CD3():
     try:
-        global d2, CD3, CD3_initialized
+        global d1, CD3, CD3_initialized
         if not CD3 and not CD3_initialized:
-            CD3 = Drone(status_port[1], '0.0.0.0:14552')
-            d2 = CD3
-            d2_str = 'CD3'
+            CD3 = Drone('/dev/serial0', 115200)
+            d1 = CD3
+            d1_str = 'CD3'
             print("CD3 Connected")
-            if CD3.vehicle.battery is not None:
-                CD3_initialized = True
-            else:
-                while CD3.vehicle.battery is not None:
-                    time.sleep(0.2)
-                    log("CD3 getting connected")
-                CD3.get_vehicle_state()
+            threading.Thread(target=CD3.send_status, args=(status_port[0],)).start()
+            CD3_initialized=True
+        CD3.get_vehicle_state()
     except Exception as e:
         log(f"Error in initialize_CD3: {e}")
 
