@@ -145,12 +145,12 @@ class Drone:
         self.send_ned_velocity_drone(self,x,y,z)
         time.sleep(0.2)
         self.send_ned_velocity_drone(self,0,0,0)
-        
+
     def yaw(self, heading):
         try:
             current_heading = self.vehicle.heading
             log("Current Heading : {}".format(current_heading))
-            if current_heading >= 180:
+            if heading - current_heading <= 0:
                 rotation = 1
             else:
                 rotation = -1
