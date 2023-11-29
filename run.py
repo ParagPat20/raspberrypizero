@@ -172,6 +172,8 @@ def initialize_CD1():
 
 ##########################################################################################################################
 
+log("Starting MCU_host at {socket.gethostbyname(socket.gethostname())}".format())
+
 while True:
     try:
         client_connection, client_address = msg_socket.accept()
