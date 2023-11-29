@@ -182,7 +182,7 @@ def initialize_CD1():
 
 ##########################################################################################################################
 try:
-    log("Starting MCU_host at {socket.gethostbyname(socket.gethostname())}".format())
+    log("Starting MCU_host at {}".format(socket.gethostbyname(socket.gethostname())))
 except Exception as e:
     print(f"Error: {e}")
 
