@@ -107,7 +107,7 @@ def initialize_CD3():
     try:
         global d1, CD3, CD3_initialized
         if not CD3 and not CD3_initialized:
-            CD3 = Drone('/dev/serial0', 115200)
+            CD3 = Drone('0.0.0.0:14553')
             d1 = CD3
             d1_str = 'CD3'
             print("CD3 Connected")
@@ -118,10 +118,12 @@ def initialize_CD3():
         log(f"Error in initialize_CD3: {e}")
 
 ##########################################################################################################################
+print("Sending IP to Computer, please start the computer")
 try:
-    log("Starting CD2_host at {}".format(socket.gethostbyname(socket.gethostname())))
+    log("Starting CD1_host at {}".format(socket.gethostbyname(socket.gethostname())))
 except Exception as e:
     print(f"Error: {e}")
+print("Cheers! Server is already going on!")
 
 while True:
     try:

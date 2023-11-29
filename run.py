@@ -117,6 +117,8 @@ msg_socket.bind((local_host, cmd_port))
 msg_socket.listen(5)
 print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
 
+
+
 def drone_list_update(cmd):
     try:
         global drone_list
@@ -152,7 +154,7 @@ def initialize_CD1():
     try:
         global d1, CD1, CD1_initialized
         if not CD1 and not CD1_initialized:
-            CD1 = Drone('/dev/serial0', 115200)
+            CD1 = Drone('0.0.0.0:14552')
             d1 = CD1
             d1_str = 'CD1'
             print("CD1 Connected")
@@ -163,10 +165,12 @@ def initialize_CD1():
         log(f"Error in initialize_CD1: {e}")
 
 ##########################################################################################################################
+print("Sending IP to Computer, please start the computer")
 try:
     log("Starting MCU_host at {}".format(socket.gethostbyname(socket.gethostname())))
 except Exception as e:
     print(f"Error: {e}")
+print("Cheers! Server is already going on!")
 
 while True:
     try:
