@@ -475,10 +475,6 @@ class LogStream:
     def flush(self):
         pass
 
-log_stream = LogStream()
-sys.stdout = log_stream
-sys.stderr = log_stream
-
 def check_distance(d1,d2):
     try:
         log("First drone's current location{}".format(cu_lo(d1)))
@@ -488,3 +484,7 @@ def check_distance(d1,d2):
         
     except Exception as e:
         log(f"Error in check_distance: {e}")
+
+log_stream = LogStream()
+sys.stdout = log_stream
+sys.stderr = log_stream
