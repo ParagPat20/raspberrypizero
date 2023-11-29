@@ -34,48 +34,44 @@ local_host = '192.168.190.43'
 
 class Drone:
     
-    def __init__(self, status_port, connection_string, baud=None):
+    def __init__(self,connection_string, baud=None):
         self.vehicle = connect(connection_string, baud = baud)
         self.drone_user = connection_string
         self.drone_baud = baud
         battery = self.vehicle.battery.voltage
         groundspeed = self.vehicle.groundspeed
 
-        def send_status(self, status_port):
-            global local_host
-            log(local_host)
-            status_socket = socket.socket()
-            status_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            status_socket.bind((local_host, status_port))
-            status_socket.listen(5)
-            log('{} -send_status() is started!'.format(time.ctime()))
-            while True:
-                try:
-                    client_connection, client_address = status_socket.accept() # Establish connection with client.
-                    log('{} - Received follower status request from {}.'.format(time.ctime(), client_address))
-                    
-                    battery = str(self.vehicle.battery.voltage)
-                    groundspeed = str(self.vehicle.groundspeed)
-                    lat = "{:.7f}".format(self.vehicle.location.global_relative_frame.lat)
-                    lon = "{:.7f}".format(self.vehicle.location.global_relative_frame.lon)
-                    alt = "{:.7f}".format(self.vehicle.location.global_relative_frame.alt)
-                    heading = str(self.vehicle.heading)
+    def send_status(self, status_port):
+        status_socket = socket.socket()
+        status_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        status_socket.bind((local_host, status_port))
+        status_socket.listen(5)
+        log('{} -send_status() is started!'.format(time.ctime()))
+        while True:
+            try:
+                client_connection, client_address = status_socket.accept() # Establish connection with client.
+                log('{} - Received follower status request from {}.'.format(time.ctime(), client_address))
+                
+                battery = str(self.vehicle.battery.voltage)
+                groundspeed = str(self.vehicle.groundspeed)
+                lat = "{:.7f}".format(self.vehicle.location.global_relative_frame.lat)
+                lon = "{:.7f}".format(self.vehicle.location.global_relative_frame.lon)
+                alt = "{:.7f}".format(self.vehicle.location.global_relative_frame.alt)
+                heading = str(self.vehicle.heading)
 
-                    status_str = battery+','+groundspeed+','+lat+','+lon+','+alt+','+heading
+                status_str = battery+','+groundspeed+','+lat+','+lon+','+alt+','+heading
 
-                    client_connection.send(status_str.encode('utf-8'))
+                client_connection.send(status_str.encode('utf-8'))
 
-                    client_connection.close()
+                client_connection.close()
 
-                except Exception as e:
-                    log("Error: sending battery...")
+            except Exception as e:
+                log("Error: sending battery...")
 
-        time.sleep(3)
-        threading.Thread(target=send_status, args=(self,status_port,)).start()
         
     def reconnect(self):
         try:
-            self.vehicle.exit()
+            self.exit()
             time.sleep(2)
             self = connect(self.drone_user, self.drone_baud)
             log("Reconnected Successfully")
@@ -102,6 +98,7 @@ class Drone:
 
     def takeoff(self, alt=2):
         try:
+            self.arm()
             log("Taking off!")
             self.vehicle.simple_takeoff(alt)
             start_time = time.time()
@@ -121,7 +118,7 @@ class Drone:
         except Exception as e:
             log(f"Error during takeoff: {e}")
 
-    def send_ned_velocity(self, velocity_x, velocity_y, velocity_z):
+    def send_ned_velocity_drone(self, velocity_x, velocity_y, velocity_z):
         try:
             velocity_x = float(velocity_x)
             velocity_y = float(velocity_y)
@@ -139,14 +136,21 @@ class Drone:
             log(f"Drone Velocity Commands{velocity_x},{velocity_y},{velocity_z}")
 
             self.vehicle.send_mavlink(msg)
+
+
         except Exception as e:
             log(f"Error sending velocity commands: {e}")
+
+    def send_ned_velocity(self, x, y, z):
+        self.send_ned_velocity_drone(self,x,y,z)
+        time.sleep(0.2)
+        self.send_ned_velocity_drone(self,0,0,0)
 
     def yaw(self, heading):
         try:
             current_heading = self.vehicle.heading
             log("Current Heading : {}".format(current_heading))
-            if current_heading >= 180:
+            if heading - current_heading <= 0:
                 rotation = 1
             else:
                 rotation = -1
@@ -306,13 +310,13 @@ def cu_lo(drone):
 
 #==============================================================================================================
 
-def server_receive_and_execute_immediate_command(local_host):
+def server_receive_and_execute_immediate_command():
     global cmd_port
     global immediate_command_str
     global wait_for_command
     msg_socket = socket.socket()
     msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    msg_socket.bind((local_host, cmd_port))
+    msg_socket.bind(('', cmd_port))
     msg_socket.listen(5)
     log('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
 
@@ -454,3 +458,33 @@ def log(msg, pc_host='192.168.190.101', port=8765):
             print("There was an error connecting to the server: " + str(e))
     except Exception as e:
         print(f"Error in log function: {e}")
+
+
+import sys
+
+class LogStream:
+    def __init__(self):
+        self.buffer = ""
+
+    def write(self, data):
+        self.buffer += data
+        while "\n" in self.buffer:
+            line, self.buffer = self.buffer.split("\n", 1)
+            log(line)
+
+    def flush(self):
+        pass
+
+def check_distance(d1,d2):
+    try:
+        log("First drone's current location{}".format(cu_lo(d1)))
+        log("Second drone's current location{}".format(cu_lo(d2)))
+        distance = d1.distance_between_two_gps_coord(cu_lo(d1)[0],cu_lo(d2)[0])
+        log("Distance between those drones is {} meters".format(distance))
+        
+    except Exception as e:
+        log(f"Error in check_distance: {e}")
+
+log_stream = LogStream()
+sys.stdout = log_stream
+sys.stderr = log_stream

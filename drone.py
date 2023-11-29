@@ -44,7 +44,7 @@ class Drone:
     def send_status(self, status_port):
         status_socket = socket.socket()
         status_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        status_socket.bind(('', status_port))
+        status_socket.bind((local_host, status_port))
         status_socket.listen(5)
         log('{} -send_status() is started!'.format(time.ctime()))
         while True:
