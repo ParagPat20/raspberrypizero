@@ -41,32 +41,32 @@ class Drone:
         battery = self.vehicle.battery.voltage
         groundspeed = self.vehicle.groundspeed
 
-        def send_status(self, status_port):
-            status_socket = socket.socket()
-            status_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            status_socket.bind(('', status_port))
-            status_socket.listen(5)
-            log('{} -send_status() is started!'.format(time.ctime()))
-            while True:
-                try:
-                    client_connection, client_address = status_socket.accept() # Establish connection with client.
-                    log('{} - Received follower status request from {}.'.format(time.ctime(), client_address))
-                    
-                    battery = str(self.vehicle.battery.voltage)
-                    groundspeed = str(self.vehicle.groundspeed)
-                    lat = "{:.7f}".format(self.vehicle.location.global_relative_frame.lat)
-                    lon = "{:.7f}".format(self.vehicle.location.global_relative_frame.lon)
-                    alt = "{:.7f}".format(self.vehicle.location.global_relative_frame.alt)
-                    heading = str(self.vehicle.heading)
+    def send_status(self, status_port):
+        status_socket = socket.socket()
+        status_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        status_socket.bind(('', status_port))
+        status_socket.listen(5)
+        log('{} -send_status() is started!'.format(time.ctime()))
+        while True:
+            try:
+                client_connection, client_address = status_socket.accept() # Establish connection with client.
+                log('{} - Received follower status request from {}.'.format(time.ctime(), client_address))
+                
+                battery = str(self.vehicle.battery.voltage)
+                groundspeed = str(self.vehicle.groundspeed)
+                lat = "{:.7f}".format(self.vehicle.location.global_relative_frame.lat)
+                lon = "{:.7f}".format(self.vehicle.location.global_relative_frame.lon)
+                alt = "{:.7f}".format(self.vehicle.location.global_relative_frame.alt)
+                heading = str(self.vehicle.heading)
 
-                    status_str = battery+','+groundspeed+','+lat+','+lon+','+alt+','+heading
+                status_str = battery+','+groundspeed+','+lat+','+lon+','+alt+','+heading
 
-                    client_connection.send(status_str.encode('utf-8'))
+                client_connection.send(status_str.encode('utf-8'))
 
-                    client_connection.close()
+                client_connection.close()
 
-                except Exception as e:
-                    log("Error: sending battery...")
+            except Exception as e:
+                log("Error: sending battery...")
 
         
     def reconnect(self):
