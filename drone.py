@@ -118,7 +118,7 @@ class Drone:
         except Exception as e:
             log(f"Error during takeoff: {e}")
 
-    def send_ned_velocity(self, velocity_x, velocity_y, velocity_z):
+    def send_ned_velocity_drone(self, velocity_x, velocity_y, velocity_z):
         try:
             velocity_x = float(velocity_x)
             velocity_y = float(velocity_y)
@@ -136,9 +136,16 @@ class Drone:
             log(f"Drone Velocity Commands{velocity_x},{velocity_y},{velocity_z}")
 
             self.vehicle.send_mavlink(msg)
+
+
         except Exception as e:
             log(f"Error sending velocity commands: {e}")
 
+    def send_ned_velocity(self, x, y, z):
+        self.send_ned_velocity_drone(self,x,y,z)
+        time.sleep(0.2)
+        self.send_ned_velocity_drone(self,0,0,0)
+        
     def yaw(self, heading):
         try:
             current_heading = self.vehicle.heading
