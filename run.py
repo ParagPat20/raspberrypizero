@@ -142,12 +142,16 @@ def initialize_MCU():
             d1 = MCU
             d1_str = 'MCU'
             print("MCU Connected")
-            if MCU.vehicle.battery is not None:
-                MCU_initialized = True
-            else:
-                while MCU.vehicle.battery is not None:
+            if MCU:
+                if MCU.vehicle.battery is not None:
+                    MCU_initialized = True
+                else:
+                    while MCU.vehicle.battery is not None:
+                        time.sleep(0.2)
+                        log("MCU getting connected")
+                while not MCU:
                     time.sleep(0.2)
-                    log("MCU getting connected")
+                    log('MCU is None, Trying to Conenect')
                 MCU.get_vehicle_state()
     except Exception as e:
         log(f"Error in initialize_MCU: {e}")
@@ -160,12 +164,16 @@ def initialize_CD1():
             d2 = CD1
             d2_str = 'CD1'
             print("CD1 Connected")
-            if CD1.vehicle.battery is not None:
-                CD1_initialized = True
-            else:
-                while CD1.vehicle.battery is not None:
+            if CD1:
+                if CD1.vehicle.battery is not None:
+                    CD1_initialized = True
+                else:
+                    while CD1.vehicle.battery is not None:
+                        time.sleep(0.2)
+                        log("CD1 getting connected")
+                while not CD1:
                     time.sleep(0.2)
-                    log("CD1 getting connected")
+                    log('CD1 is None, Trying to Conenect')
                 CD1.get_vehicle_state()
     except Exception as e:
         log(f"Error in initialize_CD1: {e}")
