@@ -126,8 +126,10 @@ def initialize_CD3():
         log(f"Error in initialize_CD3: {e}")
 
 ##########################################################################################################################
-
-log("Starting CD2_host at {socket.gethostbyname(socket.gethostname())}".format())
+try:
+    log("Starting CD2_host at {socket.gethostbyname(socket.gethostname())}".format())
+except Exception as e:
+    print(f"Error: {e}")
 
 while True:
     try:
