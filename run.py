@@ -4,7 +4,6 @@ import socket
 import threading
 import time
 
-local_host = '192.168.190.122'
 cmd_port = 12345
 ctrl_port = 54321
 status_port = [60001, 60002]
@@ -149,7 +148,7 @@ def initialize_MCU():
                 while MCU.vehicle.battery is not None:
                     time.sleep(0.2)
                     log("MCU getting connected")
-            MCU.get_vehicle_state()
+                MCU.get_vehicle_state()
     except Exception as e:
         log(f"Error in initialize_MCU: {e}")
 
@@ -167,8 +166,7 @@ def initialize_CD1():
                 while CD1.vehicle.battery is not None:
                     time.sleep(0.2)
                     log("CD1 getting connected")
-            CD1_initialized = True
-            CD1.get_vehicle_state()
+                CD1.get_vehicle_state()
     except Exception as e:
         log(f"Error in initialize_CD1: {e}")
 

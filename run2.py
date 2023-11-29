@@ -1,7 +1,6 @@
-from drone2 import Drone
-from drone2 import *
+from drone import Drone
+from drone import *
 
-local_host = '192.168.190.43'
 cmd_port = 12345
 ctrl_port = 54321
 status_port = [60003, 60004]
@@ -91,31 +90,44 @@ def execute_command(immediate_command_str):
 ##########################################################################################################################
 
 def initialize_CD2():
-    global d1, CD2, CD2_initialized
-    if not CD2 and not CD2_initialized:
-        CD2 = Drone(status_port[0], '/dev/serial0', 115200)
-        d1 = CD2
-        d1_str = 'CD2'
-        print("CD2 Connected")
-        CD2_initialized = True
-        time.sleep(1)
-        print("Getting Params")
-        CD2.get_vehicle_state()
+    try:
+        global d1, CD2, CD2_initialized
+        if not CD2 and not CD2_initialized:
+            CD2 = Drone(status_port[0], '/dev/serial0', 115200)
+            d1 = CD2
+            d1_str = 'CD2'
+            print("CD2 Connected")
+            if CD2.vehicle.battery is not None:
+                CD2_initialized = True
+            else:
+                while CD2.vehicle.battery is not None:
+                    time.sleep(0.2)
+                    log("CD2 getting connected")
+                CD2.get_vehicle_state()
+    except Exception as e:
+        log(f"Error in initialize_CD2: {e}")
 
 def initialize_CD3():
-    global d2, CD3, CD3_initialized
-    if not CD3 and not CD3_initialized:
-        CD3 = Drone(status_port[1], '0.0.0.0:14553')
-        d2 = CD3
-        d2_str = 'CD3'
-        print("CD3 Connected")
-        CD3_initialized = True
-        time.sleep(1)
-        print("Getting Params")
-        CD3.get_vehicle_state()
+    try:
+        global d2, CD3, CD3_initialized
+        if not CD3 and not CD3_initialized:
+            CD3 = Drone(status_port[1], '0.0.0.0:14552')
+            d2 = CD3
+            d2_str = 'CD3'
+            print("CD3 Connected")
+            if CD3.vehicle.battery is not None:
+                CD3_initialized = True
+            else:
+                while CD3.vehicle.battery is not None:
+                    time.sleep(0.2)
+                    log("CD3 getting connected")
+                CD3.get_vehicle_state()
+    except Exception as e:
+        log(f"Error in initialize_CD3: {e}")
 
 ##########################################################################################################################
 
+log("Starting CD2_host at {socket.gethostbyname(socket.gethostname())}".format())
 
 while True:
     try:

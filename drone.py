@@ -42,11 +42,9 @@ class Drone:
         groundspeed = self.vehicle.groundspeed
 
         def send_status(self, status_port):
-            global local_host
-            log(local_host)
             status_socket = socket.socket()
             status_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            status_socket.bind((local_host, status_port))
+            status_socket.bind(('', status_port))
             status_socket.listen(5)
             log('{} -send_status() is started!'.format(time.ctime()))
             while True:
@@ -306,13 +304,13 @@ def cu_lo(drone):
 
 #==============================================================================================================
 
-def server_receive_and_execute_immediate_command(local_host):
+def server_receive_and_execute_immediate_command():
     global cmd_port
     global immediate_command_str
     global wait_for_command
     msg_socket = socket.socket()
     msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    msg_socket.bind((local_host, cmd_port))
+    msg_socket.bind(('', cmd_port))
     msg_socket.listen(5)
     log('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
 
@@ -448,6 +446,7 @@ def log(msg, pc_host='192.168.190.101', port=8765):
         cli.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
             cli.connect((pc_host, port))
+
             msg = str(msg)
             cli.send(str.encode(msg))
         except Exception as e:
