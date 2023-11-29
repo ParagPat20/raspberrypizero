@@ -98,6 +98,7 @@ class Drone:
 
     def takeoff(self, alt=2):
         try:
+            self.arm()
             log("Taking off!")
             self.vehicle.simple_takeoff(alt)
             start_time = time.time()
