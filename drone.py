@@ -34,7 +34,7 @@ local_host = '192.168.190.122'
 
 class Drone:
     
-    def __init__(self, status_port, connection_string, baud=None):
+    def __init__(self,connection_string, baud=None):
         self.vehicle = connect(connection_string, baud = baud)
         self.drone_user = connection_string
         self.drone_baud = baud
@@ -68,8 +68,6 @@ class Drone:
                 except Exception as e:
                     log("Error: sending battery...")
 
-        time.sleep(3)
-        threading.Thread(target=send_status, args=(self,status_port,)).start()
         
     def reconnect(self):
         try:

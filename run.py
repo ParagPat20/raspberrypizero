@@ -138,13 +138,14 @@ def initialize_MCU():
     try:
         global d1, MCU, MCU_initialized
         if not MCU and not MCU_initialized:
-            MCU = Drone(status_port[0], '/dev/serial0', 115200)
+            MCU = Drone('/dev/serial0', 115200)
             d1 = MCU
             d1_str = 'MCU'
             print("MCU Connected")
             if MCU:
                 if MCU.vehicle.battery is not None:
                     MCU_initialized = True
+                    threading.Thread(target=MCU.send_status, args=(status_port[0],)).start()
                 else:
                     while MCU.vehicle.battery is not None:
                         time.sleep(0.2)
@@ -160,13 +161,14 @@ def initialize_CD1():
     try:
         global d2, CD1, CD1_initialized
         if not CD1 and not CD1_initialized:
-            CD1 = Drone(status_port[1], '0.0.0.0:14552')
+            CD1 = Drone('0.0.0.0:14552')
             d2 = CD1
             d2_str = 'CD1'
             print("CD1 Connected")
             if CD1:
                 if CD1.vehicle.battery is not None:
                     CD1_initialized = True
+                    threading.Thread(target=CD1.send_status, args=(status_port[1],)).start()
                 else:
                     while CD1.vehicle.battery is not None:
                         time.sleep(0.2)
