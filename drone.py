@@ -478,3 +478,13 @@ class LogStream:
 log_stream = LogStream()
 sys.stdout = log_stream
 sys.stderr = log_stream
+
+def check_distance(d1,d2):
+    try:
+        log("First drone's current location{}".format(cu_lo(d1)))
+        log("Second drone's current location{}".format(cu_lo(d2)))
+        distance = d1.distance_between_two_gps_coord(cu_lo(d1)[0],cu_lo(d2)[0])
+        log("Distance between those drones is {} meters".format(distance))
+        
+    except Exception as e:
+        log(f"Error in check_distance: {e}")
