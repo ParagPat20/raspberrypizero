@@ -71,7 +71,7 @@ class Drone:
         
     def reconnect(self):
         try:
-            self.vehicle.exit()
+            self.exit()
             time.sleep(2)
             self = connect(self.drone_user, self.drone_baud)
             log("Reconnected Successfully")
