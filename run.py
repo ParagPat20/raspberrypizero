@@ -142,41 +142,23 @@ def initialize_MCU():
             d1 = MCU
             d1_str = 'MCU'
             print("MCU Connected")
-            if MCU:
-                if MCU.vehicle.battery is not None:
-                    MCU_initialized = True
-                    threading.Thread(target=MCU.send_status, args=(status_port[0],)).start()
-                else:
-                    while MCU.vehicle.battery is not None:
-                        time.sleep(0.2)
-                        log("MCU getting connected")
-                while not MCU:
-                    time.sleep(0.2)
-                    log('MCU is None, Trying to Conenect')
-                MCU.get_vehicle_state()
+            threading.Thread(target=MCU.send_status, args=(status_port[0],)).start()
+            MCU_initialized=True
+        MCU.get_vehicle_state()
     except Exception as e:
         log(f"Error in initialize_MCU: {e}")
 
 def initialize_CD1():
     try:
-        global d2, CD1, CD1_initialized
+        global d1, CD1, CD1_initialized
         if not CD1 and not CD1_initialized:
-            CD1 = Drone('0.0.0.0:14552')
-            d2 = CD1
-            d2_str = 'CD1'
+            CD1 = Drone('/dev/serial0', 115200)
+            d1 = CD1
+            d1_str = 'CD1'
             print("CD1 Connected")
-            if CD1:
-                if CD1.vehicle.battery is not None:
-                    CD1_initialized = True
-                    threading.Thread(target=CD1.send_status, args=(status_port[1],)).start()
-                else:
-                    while CD1.vehicle.battery is not None:
-                        time.sleep(0.2)
-                        log("CD1 getting connected")
-                while not CD1:
-                    time.sleep(0.2)
-                    log('CD1 is None, Trying to Conenect')
-                CD1.get_vehicle_state()
+            threading.Thread(target=CD1.send_status, args=(status_port[0],)).start()
+            CD1_initialized=True
+        CD1.get_vehicle_state()
     except Exception as e:
         log(f"Error in initialize_CD1: {e}")
 
