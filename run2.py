@@ -1,5 +1,5 @@
-from drone import Drone
-from drone import *
+from drone2 import Drone
+from drone2 import *
 
 cmd_port = 12345
 ctrl_port = 54321
