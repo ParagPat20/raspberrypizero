@@ -111,7 +111,7 @@ def initialize_CD3():
             d1 = CD3
             d1_str = 'CD3'
             print("CD3 Connected")
-            threading.Thread(target=CD3.send_status, args=(status_port[0],)).start()
+            threading.Thread(target=CD3.send_status, args=(status_port[1],)).start()
             CD3_initialized=True
         CD3.get_vehicle_state()
     except Exception as e:

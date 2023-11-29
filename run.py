@@ -158,7 +158,7 @@ def initialize_CD1():
             d1 = CD1
             d1_str = 'CD1'
             print("CD1 Connected")
-            threading.Thread(target=CD1.send_status, args=(status_port[0],)).start()
+            threading.Thread(target=CD1.send_status, args=(status_port[1],)).start()
             CD1_initialized=True
         CD1.get_vehicle_state()
     except Exception as e:
