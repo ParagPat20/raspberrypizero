@@ -11,5 +11,12 @@ while True:
     conn ,addr = server.accept()
     data = conn.recv(1024).decode('utf-8')
     data = str(data)
-    log("TESTRP @ {} : {} ".format(int(round(time.time() * 1000)),data))
+    data = int(data)
+    data2 = int(round(time.time() * 1000))
+    data3 = abs(data-data2)
+    log("Test: Time1 = {} \nTime2 = {} \nTime_diff = {}".format(data,data2,data3))
+    
+    
+    
+    
     conn.close()
