@@ -141,10 +141,19 @@ class Drone:
         except Exception as e:
             log(f"Error sending velocity commands: {e}")
 
-    def send_ned_velocity(self, x, y, z):
-        self.send_ned_velocity_drone(x,y,z)
-        time.sleep(0.2)
-        self.send_ned_velocity_drone(0,0,0)
+    def send_ned_velocity(self, x, y, z, duration = None):
+        if duration:
+            for i in range(0,duration):
+                self.send_ned_velocity_drone(x,y,z)
+                log(i)
+                time.sleep(1)
+
+            self.send_ned_velocity_drone(0,0,0)
+            
+        else:
+            self.send_ned_velocity_drone(x,y,z)
+            time.sleep(0.5)
+            self.send_ned_velocity_drone(0,0,0)
 
     def yaw(self, heading):
         try:
@@ -406,7 +415,7 @@ def camera_stream_server(host):
     # Create a socket server
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind((host, 8000))
-    server_socket.listen(0)
+    server_socket.listen(2)
 
     log("Server is listening on {}:{}".format(host, 8000))
 
