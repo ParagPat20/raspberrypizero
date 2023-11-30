@@ -326,7 +326,6 @@ def server_receive_and_execute_immediate_command():
             log('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
             immediate_command_str = client_connection.recv(1024).decode()
             log('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
-            wait_for_command = False
 
         except KeyboardInterrupt:
             break
@@ -348,8 +347,7 @@ def send(remote_host, immediate_command_str):
         client_socket.connect((remote_host, cmd_port))
         client_socket.send(immediate_command_str.encode())
         log('{} - CLIENT_send_immediate_command({}, {}) is executed!'.format(time.ctime(), remote_host, immediate_command_str))
-        ack = client_socket.recv(1024)
-        log("ACK : Command sent succeffuly, cmd:{}".format(ack))
+
     
     except socket.error as error_msg:
         log('{} - Caught exception : {}'.format(time.ctime(), error_msg))
