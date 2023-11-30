@@ -10,98 +10,6 @@ local_host = MCU_host
 MCU = None
 CD1 = None
 
-# FORMATIONS
-######################################################## FORMATIONS ########################################################
-
-def LINE(dis=1, alt=2):
-    try:
-        # MCU #
-        MCU.arm('GUIDED')
-        MCU.takeoff(2)
-        MCU.yaw(0)
-        mcul, mcuh = cu_lo(MCU)
-        print(f"First Drone's Lat: {mcul[0]} & Lon: {mcul[1]} & Heading: {mcuh}")
-        MCU.poshold()
-
-        # CD1 #
-        cdis = dis * 1
-        CD1.arm('GUIDED')
-        CD1.takeoff(2)
-        CD1.yaw(0)
-        cd1l, cd1h = cu_lo(CD1)
-        print(f"Second Drone's Lat: {cd1l[0]} & Lon: {cd1l[1]} & Heading: {cd1h}")
-        Bl = new_coords(mcul, cdis, 0)
-        CD1.goto(Bl, alt)
-        CD1.yaw(0)
-        CD1.poshold()
-
-        send(CD2_host, 'LINE(' + str(dis) + ',' + str(alt) + ')')
-    except Exception as e:
-        log(f"MCU_Host: Error in LINE formation: {e}")
-
-def SQUARE(dis=1, alt=2):
-    try:
-        if in_line:
-            # MCU #
-            MCU.yaw(0)
-            mcul, mcuh = cu_lo(MCU)
-            print(f"First Drone's Lat: {mcul[0]} & Lon: {mcul[1]} & Heading: {mcuh}")
-            MCU.poshold()
-
-            # CD1 #
-            cdis = dis * 1
-            CD1.yaw(0)
-            cd1l, cd1h = cu_lo(CD1)
-            print(f"Second Drone's Lat: {cd1l[0]} & Lon: {cd1l[1]} & Heading: {cd1h}")
-            Bl = new_coords(mcul, cdis, 90)
-            CD1.goto(Bl, alt)
-            CD1.yaw(0)
-            CD1.poshold()
-
-            send(CD2_host, '(' + str(dis) + ',' + str(alt) + ')')
-            in_line = False
-        else:
-            print("They are not in line, Run LINE(1,2)")
-    except Exception as e:
-        log(f"MCU_Host: Error in SQUARE formation: {e}")
-
-def custom_goto(cmd):
-    try:
-        print(cmd)
-        eval(cmd)
-        drone1 = cmd[0]
-        drone2 = cmd[1]
-        distance = cmd[2]
-        angle = cmd[3]
-        alt = cmd[4]
-
-        if drone1 == 1:
-            d1l, d1h = cu_lo(MCU)
-        elif drone1 == 2:
-            d1l, d1h == cu_lo(CD1)
-        elif drone1 == 3:
-            d1l, a, d1h = recv_status(CD2_host, 60003)
-        elif drone1 == 4:
-            d1l, a, d1h = recv_status(CD2_host, 60004)
-
-        print(d1l, d1h)
-
-        nl = new_coords(d1l, distance, angle)
-
-        if drone2 == 1:
-            MCU.goto(nl, alt)
-        elif drone2 == 2:
-            CD1.goto(nl, alt)
-        elif drone2 == 3:
-            send(CD2_host, 'CD2.goto(' + str(nl) + ')')
-        elif drone2 == 4:
-            d2l, a, d2h = recv_status(CD2_host, 60004)
-            send(CD2_host, 'CD3.goto(' + str(nl) + ')')
-    except Exception as e:
-        log(f"MCU_Host: Error in custom_goto: {e}")
-
-##########################################################################################################################
-
 ##################################################### Initialization #####################################################
 
 MCU_initialized = False
@@ -169,7 +77,7 @@ try:
 except Exception as e:
     print(f"Error: {e}")
 print("Cheers! Server is already going on!")
-
+##########################################################################################################################
 while True:
     try:
         client_connection, client_address = msg_socket.accept()
@@ -184,5 +92,98 @@ while True:
 
     except Exception as e:
         print(f"Error: {e}")
+
+##########################################################################################################################
+
+
+# # FORMATIONS
+# ######################################################## FORMATIONS ########################################################
+
+# def LINE(dis=1, alt=2):
+#     try:
+#         # MCU #
+#         MCU.arm('GUIDED')
+#         MCU.takeoff(2)
+#         MCU.yaw(0)
+#         mcul, mcuh = cu_lo(MCU)
+#         print(f"First Drone's Lat: {mcul[0]} & Lon: {mcul[1]} & Heading: {mcuh}")
+#         MCU.poshold()
+
+#         # CD1 #
+#         cdis = dis * 1
+#         CD1.arm('GUIDED')
+#         CD1.takeoff(2)
+#         CD1.yaw(0)
+#         cd1l, cd1h = cu_lo(CD1)
+#         print(f"Second Drone's Lat: {cd1l[0]} & Lon: {cd1l[1]} & Heading: {cd1h}")
+#         Bl = new_coords(mcul, cdis, 0)
+#         CD1.goto(Bl, alt)
+#         CD1.yaw(0)
+#         CD1.poshold()
+
+#         send(CD2_host, 'LINE(' + str(dis) + ',' + str(alt) + ')')
+#     except Exception as e:
+#         log(f"MCU_Host: Error in LINE formation: {e}")
+
+# def SQUARE(dis=1, alt=2):
+#     try:
+#         if in_line:
+#             # MCU #
+#             MCU.yaw(0)
+#             mcul, mcuh = cu_lo(MCU)
+#             print(f"First Drone's Lat: {mcul[0]} & Lon: {mcul[1]} & Heading: {mcuh}")
+#             MCU.poshold()
+
+#             # CD1 #
+#             cdis = dis * 1
+#             CD1.yaw(0)
+#             cd1l, cd1h = cu_lo(CD1)
+#             print(f"Second Drone's Lat: {cd1l[0]} & Lon: {cd1l[1]} & Heading: {cd1h}")
+#             Bl = new_coords(mcul, cdis, 90)
+#             CD1.goto(Bl, alt)
+#             CD1.yaw(0)
+#             CD1.poshold()
+
+#             send(CD2_host, '(' + str(dis) + ',' + str(alt) + ')')
+#             in_line = False
+#         else:
+#             print("They are not in line, Run LINE(1,2)")
+#     except Exception as e:
+#         log(f"MCU_Host: Error in SQUARE formation: {e}")
+
+# def custom_goto(cmd):
+#     try:
+#         print(cmd)
+#         eval(cmd)
+#         drone1 = cmd[0]
+#         drone2 = cmd[1]
+#         distance = cmd[2]
+#         angle = cmd[3]
+#         alt = cmd[4]
+
+#         if drone1 == 1:
+#             d1l, d1h = cu_lo(MCU)
+#         elif drone1 == 2:
+#             d1l, d1h == cu_lo(CD1)
+#         elif drone1 == 3:
+#             d1l, a, d1h = recv_status(CD2_host, 60003)
+#         elif drone1 == 4:
+#             d1l, a, d1h = recv_status(CD2_host, 60004)
+
+#         print(d1l, d1h)
+
+#         nl = new_coords(d1l, distance, angle)
+
+#         if drone2 == 1:
+#             MCU.goto(nl, alt)
+#         elif drone2 == 2:
+#             CD1.goto(nl, alt)
+#         elif drone2 == 3:
+#             send(CD2_host, 'CD2.goto(' + str(nl) + ')')
+#         elif drone2 == 4:
+#             d2l, a, d2h = recv_status(CD2_host, 60004)
+#             send(CD2_host, 'CD3.goto(' + str(nl) + ')')
+#     except Exception as e:
+#         log(f"MCU_Host: Error in custom_goto: {e}")
 
 ##########################################################################################################################
