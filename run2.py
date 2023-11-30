@@ -101,7 +101,7 @@ def initialize_CD2():
             CD2_initialized=True
         CD2.get_vehicle_state()
     except Exception as e:
-        log(f"Error in initialize_CD2: {e}")
+        log(f"CD2_Host: Error in initialize_CD2: {e}")
 
 def initialize_CD3():
     try:
@@ -115,12 +115,12 @@ def initialize_CD3():
             CD3_initialized=True
         CD3.get_vehicle_state()
     except Exception as e:
-        log(f"Error in initialize_CD3: {e}")
+        log(f"CD2_Host: Error in initialize_CD3: {e}")
 
 ##########################################################################################################################
 print("Sending IP to Computer, please start the computer")
 try:
-    log("Starting CD1_host at {}".format(socket.gethostbyname(socket.gethostname())))
+    log("CD2_Host: Starting CD1_host at {}".format(socket.gethostbyname(socket.gethostname())))
 except Exception as e:
     print(f"Error: {e}")
 print("Cheers! Server is already going on!")

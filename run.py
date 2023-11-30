@@ -39,7 +39,7 @@ def LINE(dis=1, alt=2):
 
         send(CD2_host, 'LINE(' + str(dis) + ',' + str(alt) + ')')
     except Exception as e:
-        log(f"Error in LINE formation: {e}")
+        log(f"MCU_Host: Error in LINE formation: {e}")
 
 def SQUARE(dis=1, alt=2):
     try:
@@ -65,7 +65,7 @@ def SQUARE(dis=1, alt=2):
         else:
             print("They are not in line, Run LINE(1,2)")
     except Exception as e:
-        log(f"Error in SQUARE formation: {e}")
+        log(f"MCU_Host: Error in SQUARE formation: {e}")
 
 def custom_goto(cmd):
     try:
@@ -100,7 +100,7 @@ def custom_goto(cmd):
             d2l, a, d2h = recv_status(CD2_host, 60004)
             send(CD2_host, 'CD3.goto(' + str(nl) + ')')
     except Exception as e:
-        log(f"Error in custom_goto: {e}")
+        log(f"MCU_Host: Error in custom_goto: {e}")
 
 ##########################################################################################################################
 
@@ -125,14 +125,14 @@ def drone_list_update(cmd):
         drone_list = cmd
         print(drone_list)
     except Exception as e:
-        log(f"Error in drone_list_update: {e}")
+        log(f"MCU_Host: Error in drone_list_update: {e}")
 
 def execute_command(immediate_command_str):
     try:
         print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
         exec(immediate_command_str)
     except Exception as e:
-        log(f"Error in execute_command: {e}")
+        log(f"MCU_Host: Error in execute_command: {e}")
 
 ##########################################################################################################################
 
@@ -148,7 +148,7 @@ def initialize_MCU():
             MCU_initialized=True
         MCU.get_vehicle_state()
     except Exception as e:
-        log(f"Error in initialize_MCU: {e}")
+        log(f"MCU_Host: Error in initialize_MCU: {e}")
 
 def initialize_CD1():
     try:
@@ -162,7 +162,7 @@ def initialize_CD1():
             CD1_initialized=True
         CD1.get_vehicle_state()
     except Exception as e:
-        log(f"Error in initialize_CD1: {e}")
+        log(f"MCU_Host: Error in initialize_CD1: {e}")
 
 ##########################################################################################################################
 print("Sending IP to Computer, please start the computer")

@@ -327,8 +327,6 @@ def server_receive_and_execute_immediate_command():
             immediate_command_str = client_connection.recv(1024).decode()
             log('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
             wait_for_command = False
-            ack = "Recieved Command : " + str(immediate_command_str)
-            client_connection.send(ack.encode())
 
         except KeyboardInterrupt:
             break
