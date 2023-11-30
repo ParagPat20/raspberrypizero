@@ -1,8 +1,6 @@
 from drone import Drone
 from drone import *
-import socket
-import threading
-import time
+
 
 cmd_port = 12345
 ctrl_port = 54321
