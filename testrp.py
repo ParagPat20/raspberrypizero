@@ -11,5 +11,5 @@ while True:
     conn ,addr = server.accept()
     data = conn.recv(1024).decode('utf-8')
     data = str(data)
-    log(data)
+    log("TESTRP @ {} : {} ".format(int(round(time.time() * 1000)),data))
     conn.close()
