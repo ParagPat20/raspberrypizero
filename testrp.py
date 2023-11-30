@@ -10,8 +10,8 @@ server.listen(100)
 while True:
     conn ,addr = server.accept()
     data = conn.recv(1024).decode('utf-8')
-    data = int(round(float(data)))
-    data2 = int(round(time.time()))
+    data = (float(data))
+    data2 = (time.time())
     data3 = abs(data-data2)
     log("Test: Time1 = {} \nTime2 = {} \nTime_diff = {}".format(data,data2,data3))
 
