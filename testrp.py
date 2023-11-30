@@ -12,8 +12,8 @@ while True:
     data = conn.recv(1024).decode('utf-8')
     data = str(data)
     data = int(data)
-    data2 = int(round(time.time() * 1000))
+    data2 = int(time.time())
     data3 = abs(data-data2)
     log("Test: Time1 = {} \nTime2 = {} \nTime_diff = {}".format(data,data2,data3))
-    
+
     conn.close()
