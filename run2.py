@@ -1,5 +1,5 @@
-from drone2 import Drone
-from drone2 import *
+from drone import Drone
+from drone import *
 
 cmd_port = 12345
 ctrl_port = 54321
@@ -97,7 +97,7 @@ def initialize_CD2():
             d1 = CD2
             d1_str = 'CD2'
             print("CD2 Connected")
-            threading.Thread(target=CD2.send_status, args=(60003,)).start()
+            threading.Thread(target=CD2.send_status, args=(CD2_host,60003,)).start()
             CD2_initialized=True
         CD2.get_vehicle_state()
     except Exception as e:
@@ -111,7 +111,7 @@ def initialize_CD3():
             d1 = CD3
             d1_str = 'CD3'
             print("CD3 Connected")
-            threading.Thread(target=CD3.send_status, args=(60004,)).start()
+            threading.Thread(target=CD3.send_status, args=(CD2_host,60004,)).start()
             CD3_initialized=True
         CD3.get_vehicle_state()
     except Exception as e:

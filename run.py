@@ -144,7 +144,7 @@ def initialize_MCU():
             d1 = MCU
             d1_str = 'MCU'
             print("MCU Connected")
-            threading.Thread(target=MCU.send_status, args=(60001,)).start()
+            threading.Thread(target=MCU.send_status, args=(MCU_host,60001,)).start()
             MCU_initialized=True
         MCU.get_vehicle_state()
     except Exception as e:
@@ -158,7 +158,7 @@ def initialize_CD1():
             d1 = CD1
             d1_str = 'CD1'
             print("CD1 Connected")
-            threading.Thread(target=CD1.send_status, args=(60002,)).start()
+            threading.Thread(target=CD1.send_status, args=(MCU_host,60002,)).start()
             CD1_initialized=True
         CD1.get_vehicle_state()
     except Exception as e:

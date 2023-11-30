@@ -41,7 +41,7 @@ class Drone:
         battery = self.vehicle.battery.voltage
         groundspeed = self.vehicle.groundspeed
 
-    def send_status(self, status_port):
+    def send_status(self, local_host, status_port):
         status_socket = socket.socket()
         status_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         status_socket.bind((local_host, status_port))
