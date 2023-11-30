@@ -6,8 +6,10 @@ server = socket.socket()
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 server.bind(('192.168.190.122', 12345))
 server.listen(100)
-conn ,addr = server.accept()
+
 while True:
+    conn ,addr = server.accept()
     data = conn.recv(1024).decode('utf-8')
     data = str(data)
     log(data)
+    conn.close()
