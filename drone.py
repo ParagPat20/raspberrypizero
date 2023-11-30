@@ -348,7 +348,6 @@ def send(remote_host, immediate_command_str):
         client_socket.send(immediate_command_str.encode())
         log('{} - CLIENT_send_immediate_command({}, {}) is executed!'.format(time.ctime(), remote_host, immediate_command_str))
 
-    
     except socket.error as error_msg:
         log('{} - Caught exception : {}'.format(time.ctime(), error_msg))
         log('{} - CLIENT_send_immediate_command({}, {}) is not executed!'.format(time.ctime(), remote_host, immediate_command_str))
@@ -436,7 +435,9 @@ def recv_status(remote_host,status_port):
             
 def chat(string):
     try:
-        log("TESTRP @ {} : {} ".format(int(round(time.time() * 1000)),string))
+        log(string)
+        if string == 'LINECOMPLETE':
+            in_line = True
     except Exception as e:
         log(f"Error in chat function: {e}")
 
