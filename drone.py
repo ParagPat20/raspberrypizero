@@ -436,9 +436,7 @@ def recv_status(remote_host,status_port):
             
 def chat(string):
     try:
-        log(string)
-        if string == 'LINECOMPLETE':
-            in_line = True
+        log("TESTRP @ {} : {} ".format(int(round(time.time() * 1000)),string))
     except Exception as e:
         log(f"Error in chat function: {e}")
 
