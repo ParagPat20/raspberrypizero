@@ -21,16 +21,14 @@ local_host
 d1 = None
 d2 = None
 selected_drone = None
-MCU_host = '192.168.190.122'
-CD2_host = '192.168.190.43'
-CD4_host = '192.168.12.124'
+MCU_host = '192.168.170.122'
+CD2_host = '192.168.170.43'
+CD4_host = '192.168.170.124'
 cmd_port = 12345
 ctrl_port = 54321
 drone_list = []
-in_line = False
 wait_for_command = True
 immediate_command_str = None
-local_host = '192.168.190.122'
 
 class Drone:
     
@@ -38,32 +36,36 @@ class Drone:
         self.vehicle = connect(connection_string, baud = baud)
         self.drone_user = connection_string
         self.drone_baud = baud
-        battery = self.vehicle.battery.voltage
-        groundspeed = self.vehicle.groundspeed
 
     def send_status(self, local_host, status_port):
+        def handle_clients(client_connection, client_address):
+            log('{} - Received follower status request from {}.'.format(time.ctime(), client_address))
+            
+            battery = str(self.vehicle.battery.voltage)
+            groundspeed = str(self.vehicle.groundspeed)
+            lat = "{:.7f}".format(self.vehicle.location.global_relative_frame.lat)
+            lon = "{:.7f}".format(self.vehicle.location.global_relative_frame.lon)
+            alt = "{:.7f}".format(self.vehicle.location.global_relative_frame.alt)
+            heading = str(self.vehicle.heading)
+
+            status_str = battery+','+groundspeed+','+lat+','+lon+','+alt+','+heading
+
+            client_connection.send(status_str.encode('utf-8'))
+            client_connection.close()
+
+
         status_socket = socket.socket()
         status_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         status_socket.bind((local_host, status_port))
         status_socket.listen(5)
         log('{} -send_status() is started!'.format(time.ctime()))
+
         while True:
             try:
                 client_connection, client_address = status_socket.accept() # Establish connection with client.
-                log('{} - Received follower status request from {}.'.format(time.ctime(), client_address))
-                
-                battery = str(self.vehicle.battery.voltage)
-                groundspeed = str(self.vehicle.groundspeed)
-                lat = "{:.7f}".format(self.vehicle.location.global_relative_frame.lat)
-                lon = "{:.7f}".format(self.vehicle.location.global_relative_frame.lon)
-                alt = "{:.7f}".format(self.vehicle.location.global_relative_frame.alt)
-                heading = str(self.vehicle.heading)
 
-                status_str = battery+','+groundspeed+','+lat+','+lon+','+alt+','+heading
-
-                client_connection.send(status_str.encode('utf-8'))
-
-                client_connection.close()
+                handle = threading.Thread(target=handle_clients, args=(client_connection, client_address,))
+                handle.start()
 
             except Exception as e:
                 log("Error: sending battery...")
@@ -251,6 +253,7 @@ class Drone:
             log('     Heading: {} (degrees from North)'.format(self.vehicle.heading))
             log('     Groundspeed: {} m/s'.format(self.vehicle.groundspeed))
             log('     Airspeed: {} m/s'.format(self.vehicle.airspeed))
+
         except Exception as e:
             log(f"Error getting vehicle state: {e}")
 
@@ -290,8 +293,6 @@ class Drone:
             log(f"Error calculating distance between two GPS coordinates: {e}")
 
 
-
-
 #=============================================================================================================
     
 def new_coords(original_gps_coord, displacement, rotation_degree_relative):
@@ -322,7 +323,13 @@ def cu_lo(drone):
 def server_receive_and_execute_immediate_command():
     global cmd_port
     global immediate_command_str
-    global wait_for_command
+
+    def hadle_client(client_connection ,client_address):
+        log('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
+        immediate_command_str = client_connection.recv(1024).decode()
+        log('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
+        client_connection.close()
+
     msg_socket = socket.socket()
     msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     msg_socket.bind(('', cmd_port))
@@ -332,18 +339,16 @@ def server_receive_and_execute_immediate_command():
     while True:
         try:
             client_connection, client_address = msg_socket.accept()
-            log('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
-            immediate_command_str = client_connection.recv(1024).decode()
-            log('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
+            handle = threading.Thread(target=hadle_client, args=(client_connection, client_address,))
+            handle.start()
 
         except KeyboardInterrupt:
             break
+
         except Exception as e:
             log(f"Error: {e}")
             time.sleep(1)
-        finally:
-            if client_connection:
-                client_connection.close()
+            
 
 
 def send(remote_host, immediate_command_str):
@@ -361,26 +366,10 @@ def send(remote_host, immediate_command_str):
         log('{} - Caught exception : {}'.format(time.ctime(), error_msg))
         log('{} - CLIENT_send_immediate_command({}, {}) is not executed!'.format(time.ctime(), remote_host, immediate_command_str))
         return
+    finally:
+        if client_socket:
+            client_socket.close()
     
-
-
-#==============================================================================================================
-
-def add_drone(string):
-    try:
-        global drone_list
-        drone_list.append(string)
-    except Exception as e:
-        log(f"Error adding drone: {e}")
-
-def remove_drone(string):
-    try:
-        global drone_list
-        drone_list.remove(string)
-    except Exception as e:
-        log(f"Error removing drone: {e}")
-
-
 def camera_stream_server(host):
     def handle_client(client_socket):
         connection = client_socket.makefile('wb')
@@ -424,6 +413,23 @@ def camera_stream_server(host):
         client_thread = threading.Thread(target=handle_client, args=(client_socket,))
         client_thread.start()
 
+#==============================================================================================================
+
+def add_drone(string):
+    try:
+        global drone_list
+        drone_list.append(string)
+    except Exception as e:
+        log(f"Error adding drone: {e}")
+
+def remove_drone(string):
+    try:
+        global drone_list
+        drone_list.remove(string)
+    except Exception as e:
+        log(f"Error removing drone: {e}")
+
+
 def recv_status(remote_host,status_port):
         
         client_socket = socket.socket()
@@ -445,8 +451,7 @@ def recv_status(remote_host,status_port):
 def chat(string):
     try:
         log(string)
-        if string == 'LINECOMPLETE':
-            in_line = True
+        
     except Exception as e:
         log(f"Error in chat function: {e}")
 

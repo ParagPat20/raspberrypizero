@@ -52,23 +52,26 @@ def initialize_MCU():
             print("MCU Connected")
             # threading.Thread(target=MCU.send_status, args=(MCU_host,60001,)).start()
             MCU_initialized=True
-        # MCU.get_vehicle_state()
+        log("MCU getting ready for the params...")
+        time.sleep(2) #getting ready for params
+        MCU.get_vehicle_state()
     except Exception as e:
         log(f"MCU_Host: Error in initialize_MCU: {e}")
 
-def initialize_CD1():
-    try:
-        global d1, CD1, CD1_initialized
-        if not CD1 and not CD1_initialized:
-            CD1 = Drone('0.0.0.0:14552')
-            d1 = CD1
-            d1_str = 'CD1'
-            print("CD1 Connected")
-            # threading.Thread(target=CD1.send_status, args=(MCU_host,60002,)).start()
-            CD1_initialized=True
-        # CD1.get_vehicle_state()
-    except Exception as e:
-        log(f"MCU_Host: Error in initialize_CD1: {e}")
+# def initialize_CD1():
+#     try:
+#         global d1, CD1, CD1_initialized
+#         if not CD1 and not CD1_initialized:
+#             CD1 = Drone('0.0.0.0:14552')
+#             d1 = CD1
+#             d1_str = 'CD1'
+#             print("CD1 Connected")
+#             # threading.Thread(target=CD1.send_status, args=(MCU_host,60002,)).start()
+#             CD1_initialized=True
+#         time.sleep(2) # time to get params
+#         CD1.get_vehicle_state()
+#     except Exception as e:
+#         log(f"MCU_Host: Error in initialize_CD1: {e}")
 
 ##########################################################################################################################
 print("Sending IP to Computer, please start the computer")
