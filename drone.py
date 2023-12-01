@@ -455,7 +455,7 @@ def chat(string):
     except Exception as e:
         log(f"Error in chat function: {e}")
 
-def log(msg, pc_host='192.168.190.101', port=8765):
+def log(msg, pc_host='192.168.170.101', port=8765):
     try:
         cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         cli.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
