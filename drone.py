@@ -451,7 +451,7 @@ def recv_status(remote_host,status_port):
 def chat(string):
     try:
         log(string)
-        
+
     except Exception as e:
         log(f"Error in chat function: {e}")
 
@@ -463,6 +463,7 @@ def log(msg, pc_host='192.168.190.101', port=8765):
             cli.connect((pc_host, port))
             msg = str(msg)
             cli.send(str.encode(msg))
+            cli.close()
         except Exception as e:
             print("There was an error connecting to the server: " + str(e))
     except Exception as e:
