@@ -320,37 +320,6 @@ def cu_lo(drone):
 
 #==============================================================================================================
 
-def server_receive_and_execute_immediate_command(local_host):
-    global cmd_port
-    global immediate_command_str
-
-    def hadle_client(client_connection ,client_address):
-        log('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
-        immediate_command_str = client_connection.recv(1024).decode()
-        log('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
-        exec(immediate_command_str)
-        client_connection.close()
-
-    msg_socket = socket.socket()
-    msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    msg_socket.bind((local_host, cmd_port))
-    msg_socket.listen(5)
-    log('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
-
-    while True:
-        try:
-            client_connection, client_address = msg_socket.accept()
-            handle = threading.Thread(target=hadle_client, args=(client_connection, client_address,))
-            handle.start()
-
-        except KeyboardInterrupt:
-            break
-
-        except Exception as e:
-            log(f"Error: {e}")
-            time.sleep(1)
-            
-
 
 def send(remote_host, immediate_command_str):
     global cmd_port
