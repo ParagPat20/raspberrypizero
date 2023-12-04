@@ -495,6 +495,6 @@ def check_distance(d1,d2):
     except Exception as e:
         log(f"Error in check_distance: {e}")
 
-log_stream = LogStream()
-sys.stdout = log_stream
-sys.stderr = log_stream
+# log_stream = LogStream()
+# sys.stdout = log_stream
+# sys.stderr = log_stream
