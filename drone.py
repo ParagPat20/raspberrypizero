@@ -431,8 +431,8 @@ def log(msg, pc_host='192.168.170.101', port=8765):
             try:
                 cli.connect((pc_host, port))
                 msg = str(msg)
-                print('Message sent')
                 cli.send(msg.encode())
+                print('Message sent')
                 cli.close()
             except Exception as e:
                 raise ConnectionError("Error connecting to the server: " + str(e))
