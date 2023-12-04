@@ -426,16 +426,17 @@ def chat(string):
 
 def log(msg, pc_host='192.168.170.101', port=8765):
     try:
-        cli = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        cli.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        try:
-            cli.connect((pc_host, port))
-            msg = str(msg)
-            cli.send(msg.encode())
-        except Exception as e:
-            print("There was an error connecting to the server: " + str(e))
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as cli:
+            cli.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            try:
+                cli.connect((pc_host, port))
+                msg = str(msg)
+                cli.send(msg.encode())
+            except Exception as e:
+                raise ConnectionError("Error connecting to the server: " + str(e))
     except Exception as e:
-        print(f"Error in log function: {e}")
+        raise Exception("Error in log function: " + str(e))
+
 
 
 # import sys
