@@ -71,7 +71,6 @@ while True:
         # Use threading to run command execution in the background
         command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
         command_thread.start()
-        command_thread.isDaemon()
         
     except Exception as e:
         print(f"Error: {e}")
