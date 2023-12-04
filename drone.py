@@ -8,9 +8,9 @@ from geopy.distance import great_circle
 import math
 import threading
 import socket
-import io
-import picamera
-import struct
+# import io
+# import picamera
+# import struct
 
 '''
 global variables
@@ -22,8 +22,8 @@ d1 = None
 d2 = None
 selected_drone = None
 MCU_host = '192.168.170.122'
-CD2_host = '192.168.170.43'
-CD4_host = '192.168.170.124'
+CD1_host = '192.168.170.43'
+CD2_host = '192.168.170.124'
 cmd_port = 12345
 ctrl_port = 54321
 drone_list = []
@@ -370,48 +370,48 @@ def send(remote_host, immediate_command_str):
         if client_socket:
             client_socket.close()
     
-def camera_stream_server(host):
-    def handle_client(client_socket):
-        connection = client_socket.makefile('wb')
+# def camera_stream_server(host):
+#     def handle_client(client_socket):
+#         connection = client_socket.makefile('wb')
 
-        try:
-            with picamera.PiCamera() as camera:
-                camera.resolution = (640, 480)  # Adjust resolution as needed
-                camera.framerate = 30  # Adjust frame rate as needed
+#         try:
+#             with picamera.PiCamera() as camera:
+#                 camera.resolution = (640, 480)  # Adjust resolution as needed
+#                 camera.framerate = 30  # Adjust frame rate as needed
 
-                # Start capturing and sending the video feed
-                time.sleep(2)  # Give the camera some time to warm up
-                stream = io.BytesIO()
-                for _ in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
-                    stream.seek(0)
-                    image_data = stream.read()
+#                 # Start capturing and sending the video feed
+#                 time.sleep(2)  # Give the camera some time to warm up
+#                 stream = io.BytesIO()
+#                 for _ in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
+#                     stream.seek(0)
+#                     image_data = stream.read()
 
-                    # Send the image size to the client
-                    connection.write(struct.pack('<L', len(image_data)))
-                    connection.flush()
+#                     # Send the image size to the client
+#                     connection.write(struct.pack('<L', len(image_data)))
+#                     connection.flush()
 
-                    # Send the image data to the client
-                    connection.write(image_data)
-                    stream.seek(0)
-                    stream.truncate()
-        except Exception as e:
-            log("Error: ", e)
+#                     # Send the image data to the client
+#                     connection.write(image_data)
+#                     stream.seek(0)
+#                     stream.truncate()
+#         except Exception as e:
+#             log("Error: ", e)
 
-        finally:
-            connection.close()
-            client_socket.close()
+#         finally:
+#             connection.close()
+#             client_socket.close()
 
-    # Create a socket server
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind((host, 8000))
-    server_socket.listen(2)
+#     # Create a socket server
+#     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#     server_socket.bind((host, 8000))
+#     server_socket.listen(2)
 
-    log("Server is listening on {}:{}".format(host, 8000))
+#     log("Server is listening on {}:{}".format(host, 8000))
 
-    while True:
-        client_socket, _ = server_socket.accept()
-        client_thread = threading.Thread(target=handle_client, args=(client_socket,))
-        client_thread.start()
+#     while True:
+#         client_socket, _ = server_socket.accept()
+#         client_thread = threading.Thread(target=handle_client, args=(client_socket,))
+#         client_thread.start()
 
 #==============================================================================================================
 

@@ -4,14 +4,14 @@ from drone import *
 
 cmd_port = 12345
 ctrl_port = 54321
-status_port = 60001
-local_host = MCU_host
+status_port = 60002
+local_host = CD1_host
 
-MCU = None
+CD1 = None
 
 ##################################################### Initialization #####################################################
 
-MCU_initialized = False
+CD1_initialized = False
 d1 = None
 
 msg_socket = socket.socket()
@@ -26,37 +26,37 @@ def drone_list_update(cmd):
         drone_list = cmd
         print(drone_list)
     except Exception as e:
-        log(f"MCU_Host: Error in drone_list_update: {e}")
+        log(f"CD1_Host: Error in drone_list_update: {e}")
 
 def execute_command(immediate_command_str):
     try:
         print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
         exec(immediate_command_str)
     except Exception as e:
-        log(f"MCU_Host: Error in execute_command: {e}")
+        log(f"CD1_Host: Error in execute_command: {e}")
 
 ##########################################################################################################################
 
-def initialize_MCU():
+def initialize_CD1():
     try:
-        global d1, MCU, MCU_initialized
-        if not MCU and not MCU_initialized:
-            MCU = Drone('/dev/serial0', 115200)
-            d1 = MCU
-            d1_str = 'MCU'
-            print("MCU Connected")
-            threading.Thread(target=MCU.send_status, args=(MCU_host,60001,)).start()
-            MCU_initialized=True
-        log("MCU getting ready for the params...")
+        global d1, CD1, CD1_initialized
+        if not CD1 and not CD1_initialized:
+            CD1 = Drone('/dev/serial0', 115200)
+            d1 = CD1
+            d1_str = 'CD1'
+            print("CD1 Connected")
+            threading.Thread(target=CD1.send_status, args=(CD1_host,60002,)).start()
+            CD1_initialized=True
+        log("CD1 getting ready for the params...")
         time.sleep(2) #getting ready for params
-        MCU.get_vehicle_state()
+        CD1.get_vehicle_state()
     except Exception as e:
-        log(f"MCU_Host: Error in initialize_MCU: {e}")
+        log(f"CD1_Host: Error in initialize_CD1: {e}")
 
 ##########################################################################################################################
 print("Sending IP to Computer, please start the computer")
 try:
-    log("Starting MCU_host at {}".format(socket.gethostbyname(socket.gethostname())))
+    log("Starting CD1_host at {}".format(socket.gethostbyname(socket.gethostname())))
 except Exception as e:
     print(f"Error: {e}")
 print("Cheers! Server is already going on!")
