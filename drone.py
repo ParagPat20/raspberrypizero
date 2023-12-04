@@ -328,6 +328,7 @@ def server_receive_and_execute_immediate_command():
         log('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
         immediate_command_str = client_connection.recv(1024).decode()
         log('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
+        exec(immediate_command_str)
         client_connection.close()
 
     msg_socket = socket.socket()
