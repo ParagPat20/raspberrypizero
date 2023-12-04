@@ -432,7 +432,6 @@ def log(msg, pc_host='192.168.170.101', port=61234):
                 cli.connect(('192.168.170.101', 61234))
                 msg = str(msg)
                 cli.send(msg.encode())
-                print('Message sent')
                 cli.close()
             except Exception as e:
                 raise ConnectionError("Error connecting to the server: " + str(e))
@@ -441,31 +440,31 @@ def log(msg, pc_host='192.168.170.101', port=61234):
 
 
 
-import sys
+# import sys
 
-class LogStream:
-    def __init__(self):
-        self.buffer = ""
+# class LogStream:
+#     def __init__(self):
+#         self.buffer = ""
 
-    def write(self, data):
-        self.buffer += data
-        while "\n" in self.buffer:
-            line, self.buffer = self.buffer.split("\n", 1)
-            log(line)
+#     def write(self, data):
+#         self.buffer += data
+#         while "\n" in self.buffer:
+#             line, self.buffer = self.buffer.split("\n", 1)
+#             log(line)
 
-    def flush(self):
-        pass
+#     def flush(self):
+#         pass
 
-def check_distance(d1,d2):
-    try:
-        log("First drone's current location{}".format(cu_lo(d1)))
-        log("Second drone's current location{}".format(cu_lo(d2)))
-        distance = d1.distance_between_two_gps_coord(cu_lo(d1)[0],cu_lo(d2)[0])
-        log("Distance between those drones is {} meters".format(distance))
+# def check_distance(d1,d2):
+#     try:
+#         log("First drone's current location{}".format(cu_lo(d1)))
+#         log("Second drone's current location{}".format(cu_lo(d2)))
+#         distance = d1.distance_between_two_gps_coord(cu_lo(d1)[0],cu_lo(d2)[0])
+#         log("Distance between those drones is {} meters".format(distance))
         
-    except Exception as e:
-        log(f"Error in check_distance: {e}")
+#     except Exception as e:
+#         log(f"Error in check_distance: {e}")
 
-log_stream = LogStream()
-sys.stdout = log_stream
-sys.stderr = log_stream
+# log_stream = LogStream()
+# sys.stdout = log_stream
+# sys.stderr = log_stream
