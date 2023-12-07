@@ -425,20 +425,14 @@ def chat(string):
         print(f"Error in chat function: {e}")
 
 def log_thread(immediate_command_str):
-    # Create a socket object
+    
     client_socket = socket.socket()
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
-    try:
-        client_socket.connect(('192.168.207.101',12345))
-        client_socket.send(immediate_command_str.encode())
-    
-    except socket.error as error_msg:
-        print('PC: {} - Caught exception : {}'.format(time.ctime(), error_msg))
-        return
-    finally:
-        if client_socket:
-            client_socket.close()
+    client_socket.connect(('192.168.207.101',12345))
+    client_socket.send(immediate_command_str.encode())
+
+    client_socket.close()
 
 def log(cmd):
     threading.Thread(target=log_thread, args=(cmd,)).start()
