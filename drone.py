@@ -37,7 +37,7 @@ class Drone:
         self.drone_user = connection_string
         self.drone_baud = baud
 
-    def send_status(self, status_port):
+    def send_status(self, local_host, status_port):
         def handle_clients(client_connection, client_address):
             log('{} - Received follower status request from {}.'.format(time.ctime(), client_address))
             
@@ -56,8 +56,7 @@ class Drone:
 
         status_socket = socket.socket()
         status_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        host_ip = socket.gethostbyname(socket.gethostname())
-        status_socket.bind((host_ip, status_port))
+        status_socket.bind((local_host, status_port))
         status_socket.listen(5)
         log('{} -send_status() is started!'.format(time.ctime()))
 
@@ -440,31 +439,31 @@ def log(msg):
 
 
 
-# import sys
+import sys
 
-# class LogStream:
-#     def __init__(self):
-#         self.buffer = ""
+class LogStream:
+    def __init__(self):
+        self.buffer = ""
 
-#     def write(self, data):
-#         self.buffer += data
-#         while "\n" in self.buffer:
-#             line, self.buffer = self.buffer.split("\n", 1)
-#             log(line)
+    def write(self, data):
+        self.buffer += data
+        while "\n" in self.buffer:
+            line, self.buffer = self.buffer.split("\n", 1)
+            log(line)
 
-#     def flush(self):
-#         pass
+    def flush(self):
+        pass
 
-# def check_distance(d1,d2):
-#     try:
-#         log("First drone's current location{}".format(cu_lo(d1)))
-#         log("Second drone's current location{}".format(cu_lo(d2)))
-#         distance = d1.distance_between_two_gps_coord(cu_lo(d1)[0],cu_lo(d2)[0])
-#         log("Distance between those drones is {} meters".format(distance))
+def check_distance(d1,d2):
+    try:
+        log("First drone's current location{}".format(cu_lo(d1)))
+        log("Second drone's current location{}".format(cu_lo(d2)))
+        distance = d1.distance_between_two_gps_coord(cu_lo(d1)[0],cu_lo(d2)[0])
+        log("Distance between those drones is {} meters".format(distance))
         
-#     except Exception as e:
-#         log(f"Error in check_distance: {e}")
+    except Exception as e:
+        log(f"Error in check_distance: {e}")
 
-# log_stream = LogStream()
-# sys.stdout = log_stream
-# sys.stderr = log_stream
+log_stream = LogStream()
+sys.stdout = log_stream
+sys.stderr = log_stream

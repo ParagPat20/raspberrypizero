@@ -17,7 +17,7 @@ d1 = None
 msg_socket = socket.socket()
 msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 host_ip = socket.gethostbyname(socket.gethostname())
-msg_socket.bind((host_ip, cmd_port))
+msg_socket.bind((MCU_host, cmd_port))
 msg_socket.listen(5)
 
 print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
@@ -47,7 +47,7 @@ def initialize_MCU():
             d1 = MCU
             d1_str = 'MCU'
             print("MCU Connected")
-            threading.Thread(target=MCU.send_status, args=(60001,)).start()
+            threading.Thread(target=MCU.send_status, args=(MCU_host,60001,)).start()
             MCU_initialized=True
         log("MCU getting ready for the params...")
         time.sleep(2) #getting ready for params

@@ -17,7 +17,7 @@ d1 = None
 msg_socket = socket.socket()
 msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 host_ip = socket.gethostbyname(socket.gethostname())
-msg_socket.bind((host_ip, cmd_port))
+msg_socket.bind((CD1_host, cmd_port))
 msg_socket.listen(5)
 print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
 
@@ -46,7 +46,7 @@ def initialize_CD1():
             d1 = CD1
             d1_str = 'CD1'
             print("CD1 Connected")
-            threading.Thread(target=CD1.send_status, args=(60002,)).start()
+            threading.Thread(target=CD1.send_status, args=(CD1_host, 60002,)).start()
             CD1_initialized=True
         log("CD1 getting ready for the params...")
         time.sleep(2) #getting ready for params
