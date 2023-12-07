@@ -433,9 +433,9 @@ def log(msg):
             msg = str(msg)
             cli.send(msg.encode())
         except Exception as e:
-            raise ConnectionError("Error connecting to the server: " + str(e))
+            print("Error connecting to the server: " + str(e))
     except Exception as e:
-        raise Exception("Error in log function: " + str(e))
+        print("Error in log function: " + str(e))
 
 
 
