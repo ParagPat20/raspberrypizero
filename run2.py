@@ -18,7 +18,7 @@ msg_socket = socket.socket()
 msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 host_ip = socket.gethostbyname(socket.gethostname())
 msg_socket.bind((CD2_host, cmd_port))
-msg_socket.listen(5)
+msg_socket.listen(10)
 print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
 
 def drone_list_update(cmd):
