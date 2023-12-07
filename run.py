@@ -58,7 +58,7 @@ def initialize_MCU():
 ##########################################################################################################################
 print("Sending IP to Computer, please start the computer")
 try:
-    log("Starting MCU_host at {}".format(socket.gethostbyname(socket.gethostname())))
+    print("Starting MCU_host at {}".format(socket.gethostbyname(socket.gethostname())))
 except Exception as e:
     print(f"Error: {e}")
 print("Cheers! Server is already going on!")
