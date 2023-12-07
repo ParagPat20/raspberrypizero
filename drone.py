@@ -424,7 +424,7 @@ def chat(string):
     except Exception as e:
         print(f"Error in chat function: {e}")
 
-def log_thread(immediate_command_str):
+def log(immediate_command_str):
     print('thread starting')
     client_socket = socket.socket()
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -434,10 +434,6 @@ def log_thread(immediate_command_str):
     client_socket.send(immediate_command_str.encode())
     print('sent,close')
     client_socket.close()
-
-def log(cmd):
-    threading.Thread(target=log_thread, args=(cmd,)).start()
-
 
 def check_distance(d1,d2):
     try:
