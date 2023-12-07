@@ -47,7 +47,7 @@ def initialize_MCU():
             d1 = MCU
             d1_str = 'MCU'
             print("MCU Connected")
-            threading.Thread(target=MCU.send_status, args=(MCU_host,60001,)).start()
+            threading.Thread(target=MCU.send_status, args=(60001,)).start()
             MCU_initialized=True
         log("MCU getting ready for the params...")
         time.sleep(2) #getting ready for params

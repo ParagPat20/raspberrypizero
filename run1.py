@@ -46,7 +46,7 @@ def initialize_CD1():
             d1 = CD1
             d1_str = 'CD1'
             print("CD1 Connected")
-            threading.Thread(target=CD1.send_status, args=(CD1_host,60002,)).start()
+            threading.Thread(target=CD1.send_status, args=(60002,)).start()
             CD1_initialized=True
         log("CD1 getting ready for the params...")
         time.sleep(2) #getting ready for params

@@ -46,7 +46,7 @@ def initialize_CD2():
             d1 = CD2
             d1_str = 'CD2'
             print("CD2 Connected")
-            threading.Thread(target=CD2.send_status, args=(CD2_host,60003,)).start()
+            threading.Thread(target=CD2.send_status, args=(60003,)).start()
             CD2_initialized=True
         log("CD2 getting ready for the params...")
         time.sleep(2) #getting ready for params

@@ -37,7 +37,7 @@ class Drone:
         self.drone_user = connection_string
         self.drone_baud = baud
 
-    def send_status(self, local_host, status_port):
+    def send_status(self, status_port):
         def handle_clients(client_connection, client_address):
             log('{} - Received follower status request from {}.'.format(time.ctime(), client_address))
             
@@ -56,7 +56,8 @@ class Drone:
 
         status_socket = socket.socket()
         status_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        status_socket.bind((local_host, status_port))
+        host_ip = socket.gethostbyname(socket.gethostname())
+        status_socket.bind((host_ip, status_port))
         status_socket.listen(5)
         log('{} -send_status() is started!'.format(time.ctime()))
 
