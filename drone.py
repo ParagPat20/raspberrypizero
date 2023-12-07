@@ -432,8 +432,6 @@ def log(immediate_command_str):
     client_socket.connect(('192.168.207.101',12345))
     print('connected,sending')
     client_socket.send(immediate_command_str.encode())
-    print('sent,close')
-    client_socket.close()
 
 def check_distance(d1,d2):
     try:
