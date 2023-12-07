@@ -434,9 +434,22 @@ def log(msg):
             cli.send(msg.encode())
         except Exception as e:
             print("Error connecting to the server: " + str(e))
+        finally:
+            if cli:
+                cli.close()
     except Exception as e:
         print("Error in log function: " + str(e))
 
+
+def check_distance(d1,d2):
+    try:
+        print("First drone's current location{}".format(cu_lo(d1)))
+        print("Second drone's current location{}".format(cu_lo(d2)))
+        distance = d1.distance_between_two_gps_coord(cu_lo(d1)[0],cu_lo(d2)[0])
+        print("Distance between those drones is {} meters".format(distance))
+        
+    except Exception as e:
+        print(f"Error in check_distance: {e}")
 
 
 import sys
@@ -453,16 +466,6 @@ class LogStream:
 
     def flush(self):
         pass
-
-def check_distance(d1,d2):
-    try:
-        print("First drone's current location{}".format(cu_lo(d1)))
-        print("Second drone's current location{}".format(cu_lo(d2)))
-        distance = d1.distance_between_two_gps_coord(cu_lo(d1)[0],cu_lo(d2)[0])
-        print("Distance between those drones is {} meters".format(distance))
-        
-    except Exception as e:
-        print(f"Error in check_distance: {e}")
 
 log_stream = LogStream()
 sys.stdout = log_stream
