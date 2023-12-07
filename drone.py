@@ -424,21 +424,21 @@ def chat(string):
     except Exception as e:
         print(f"Error in chat function: {e}")
 
-def log(msg):
+def log(immediate_command_str):
+    # Create a socket object
+    client_socket = socket.socket()
+    client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    
     try:
-        cli = socket.socket()
-        cli.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        try:
-            cli.connect(('192.168.207.101',12345))
-            msg = str(msg)
-            cli.send(msg.encode())
-        except Exception as e:
-            print("Error connecting to the server: " + str(e))
-        finally:
-            if cli:
-                cli.close()
-    except Exception as e:
-        print("Error in log function: " + str(e))
+        client_socket.connect(('192.168.207.101',12345))
+        client_socket.send(immediate_command_str.encode())
+    
+    except socket.error as error_msg:
+        print('PC: {} - Caught exception : {}'.format(time.ctime(), error_msg))
+        return
+    finally:
+        if client_socket:
+            client_socket.close()
 
 
 def check_distance(d1,d2):
