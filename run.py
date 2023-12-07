@@ -16,7 +16,6 @@ d1 = None
 
 msg_socket = socket.socket()
 msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-host_ip = socket.gethostbyname(socket.gethostname())
 msg_socket.bind((MCU_host, cmd_port))
 msg_socket.listen(5)
 
