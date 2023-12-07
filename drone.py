@@ -21,9 +21,9 @@ local_host
 d1 = None
 d2 = None
 selected_drone = None
-MCU_host = '192.168.170.122'
-CD1_host = '192.168.170.43'
-CD2_host = '192.168.170.124'
+MCU_host = '192.168.207.122'
+CD1_host = '192.168.207.43'
+CD2_host = '192.168.207.124'
 cmd_port = 12345
 ctrl_port = 54321
 drone_list = []
@@ -424,12 +424,12 @@ def chat(string):
     except Exception as e:
         log(f"Error in chat function: {e}")
 
-def log(msg, pc_host='192.168.170.101', port=61234):
+def log(msg):
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as cli:
             cli.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             try:
-                cli.connect(('192.168.170.101', 61234))
+                cli.connect(('192.168.207.101', 61234))
                 msg = str(msg)
                 cli.send(msg.encode())
             except Exception as e:
