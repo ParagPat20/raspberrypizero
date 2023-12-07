@@ -29,10 +29,11 @@ def drone_list_update(cmd):
     except Exception as e:
         print(f"MCU_Host: Error in drone_list_update: {e}")
 
-def execute_command(immediate_command_str):
+def execute_command(immediate_command_str,conn):
     try:
         print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
         exec(immediate_command_str)
+        conn.close()
     except Exception as e:
         print(f"MCU_Host: Error in execute_command: {e}")
 
@@ -70,7 +71,7 @@ while True:
         immediate_command_str = client_connection.recv(1024).decode()
 
         # Use threading to run command execution in the background
-        command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
+        command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,client_connection,))
         command_thread.start()
 
     except Exception as e:
