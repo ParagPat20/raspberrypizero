@@ -425,13 +425,14 @@ def chat(string):
         print(f"Error in chat function: {e}")
 
 def log_thread(immediate_command_str):
-    
+    print('thread starting')
     client_socket = socket.socket()
     client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    
+    print('connecting')
     client_socket.connect(('192.168.207.101',12345))
+    print('connected,sending')
     client_socket.send(immediate_command_str.encode())
-
+    print('sent,close')
     client_socket.close()
 
 def log(cmd):
