@@ -429,7 +429,7 @@ def log(msg):
         cli = socket.socket()
         cli.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            cli.connect(('192.168.207.101',60012))
+            cli.connect(('192.168.207.101',61234))
             msg = str(msg)
             cli.send(msg.encode())
         except Exception as e:
