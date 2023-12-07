@@ -27,14 +27,14 @@ def drone_list_update(cmd):
         drone_list = cmd
         print(drone_list)
     except Exception as e:
-        log(f"CD2_Host: Error in drone_list_update: {e}")
+        print(f"CD2_Host: Error in drone_list_update: {e}")
 
 def execute_command(immediate_command_str):
     try:
         print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
         exec(immediate_command_str)
     except Exception as e:
-        log(f"CD2_Host: Error in execute_command: {e}")
+        print(f"CD2_Host: Error in execute_command: {e}")
 
 ##########################################################################################################################
 
@@ -48,16 +48,16 @@ def initialize_CD2():
             print("CD2 Connected")
             threading.Thread(target=CD2.send_status, args=(CD2_host, 60003,)).start()
             CD2_initialized=True
-        log("CD2 getting ready for the params...")
+        print("CD2 getting ready for the params...")
         time.sleep(2) #getting ready for params
         CD2.get_vehicle_state()
     except Exception as e:
-        log(f"CD2_Host: Error in initialize_CD2: {e}")
+        print(f"CD2_Host: Error in initialize_CD2: {e}")
 
 ##########################################################################################################################
 print("Sending IP to Computer, please start the computer")
 try:
-    log("Starting CD2_host at {}".format(socket.gethostbyname(socket.gethostname())))
+    print("Starting CD2_host at {}".format(socket.gethostbyname(socket.gethostname())))
 except Exception as e:
     print(f"Error: {e}")
 print("Cheers! Server is already going on!")

@@ -28,14 +28,14 @@ def drone_list_update(cmd):
         drone_list = cmd
         print(drone_list)
     except Exception as e:
-        log(f"MCU_Host: Error in drone_list_update: {e}")
+        print(f"MCU_Host: Error in drone_list_update: {e}")
 
 def execute_command(immediate_command_str):
     try:
         print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
         exec(immediate_command_str)
     except Exception as e:
-        log(f"MCU_Host: Error in execute_command: {e}")
+        print(f"MCU_Host: Error in execute_command: {e}")
 
 ##########################################################################################################################
 
@@ -49,11 +49,11 @@ def initialize_MCU():
             print("MCU Connected")
             threading.Thread(target=MCU.send_status, args=(MCU_host,60001,)).start()
             MCU_initialized=True
-        log("MCU getting ready for the params...")
+        print("MCU getting ready for the params...")
         time.sleep(2) #getting ready for params
         MCU.get_vehicle_state()
     except Exception as e:
-        log(f"MCU_Host: Error in initialize_MCU: {e}")
+        print(f"MCU_Host: Error in initialize_MCU: {e}")
 
 ##########################################################################################################################
 print("Sending IP to Computer, please start the computer")
