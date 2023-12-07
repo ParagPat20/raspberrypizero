@@ -452,21 +452,21 @@ def check_distance(d1,d2):
         print(f"Error in check_distance: {e}")
 
 
-import sys
+# import sys
 
-class LogStream:
-    def __init__(self):
-        self.buffer = ""
+# class LogStream:
+#     def __init__(self):
+#         self.buffer = ""
 
-    def write(self, data):
-        self.buffer += data
-        while "\n" in self.buffer:
-            line, self.buffer = self.buffer.split("\n", 1)
-            log(line)
+#     def write(self, data):
+#         self.buffer += data
+#         while "\n" in self.buffer:
+#             line, self.buffer = self.buffer.split("\n", 1)
+#             log(line)
 
-    def flush(self):
-        pass
+#     def flush(self):
+#         pass
 
-log_stream = LogStream()
-sys.stdout = log_stream
-sys.stderr = log_stream
+# log_stream = LogStream()
+# sys.stdout = log_stream
+# sys.stderr = log_stream
