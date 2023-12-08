@@ -425,7 +425,7 @@ def log(immediate_command_str):
     global context
     # Create a publisher socket
     pub_socket = context.socket(zmq.PUB)
-    pub_socket.connect('tcp://192.168.207.101:60123')
+    pub_socket.bind('tcp://*:60123')
 
     try:
         # Send the log message to the 'log' topic
