@@ -442,7 +442,7 @@ def log(immediate_command_str):
     logger_instance = Logger()
     # Call the logging method
     logger_instance.logging(immediate_command_str)
-    
+
 def check_distance(d1,d2):
     try:
         log("First drone's current location{}".format(cu_lo(d1)))
