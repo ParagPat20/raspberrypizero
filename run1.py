@@ -52,6 +52,7 @@ def initialize_CD1():
         print("CD1 getting ready for the params...")
         time.sleep(2) #getting ready for params
         CD1.get_vehicle_state()
+        log('cd1_status')
     except Exception as e:
         print(f"CD1_Host: Error in initialize_CD1: {e}")
 

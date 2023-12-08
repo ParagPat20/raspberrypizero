@@ -52,6 +52,7 @@ def initialize_MCU():
         print("MCU getting ready for the params...")
         time.sleep(2) #getting ready for params
         MCU.get_vehicle_state()
+        log('mcu_status')
     except Exception as e:
         print(f"MCU_Host: Error in initialize_MCU: {e}")
 
