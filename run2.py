@@ -65,7 +65,8 @@ while True:
         immediate_command_str = msg_socket.recv_string()
 
         print('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
-        execute_command(immediate_command_str)
+        command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
+        command_thread.start()
         msg_socket.send_string("OK!")
 
     except zmq.ZMQError as zmq_error:

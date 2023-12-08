@@ -334,9 +334,7 @@ def send(remote_host, immediate_command_str):
         log(f'PC: {time.ctime()} - Caught exception : {error_msg}')
         log(f'PC: {time.ctime()} - CLIENT_send_immediate_command({remote_host}, {immediate_command_str}) is not executed!')
     
-    finally:
-        if client_socket:
-            client_socket.close()
+
     
 # def camera_stream_server(host):
 #     def handle_client(client_socket):
