@@ -428,16 +428,12 @@ def log(immediate_command_str):
     pub_socket.connect('tcp://192.168.207.101:60123')
 
     try:
-        print('thread starting')
         # Send the log message to the 'log' topic
         pub_socket.send_string('log ' + immediate_command_str)
         print('Log message sent: {}'.format(immediate_command_str))
 
     except Exception as e:
         print(f"Error in log function: {e}")
-    finally:
-        # Close the publisher socket
-        pub_socket.close()
 
 
 def check_distance(d1,d2):
