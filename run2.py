@@ -1,7 +1,7 @@
 from drone import Drone
 from drone import *
 
-
+print("Starting the script...")
 cmd_port = 12345
 ctrl_port = 54321
 status_port = 60003
