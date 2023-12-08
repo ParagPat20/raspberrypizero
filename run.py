@@ -14,10 +14,9 @@ MCU = None
 MCU_initialized = False
 d1 = None
 
-msg_socket = socket.socket()
-msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-msg_socket.bind((MCU_host, cmd_port))
-msg_socket.listen(5)
+context = zmq.Context()
+msg_socket = context.socket(zmq.REP)
+msg_socket.bind("tcp://{}:{}".format(MCU_host, cmd_port))
 
 print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
 
@@ -29,11 +28,10 @@ def drone_list_update(cmd):
     except Exception as e:
         print(f"MCU_Host: Error in drone_list_update: {e}")
 
-def execute_command(immediate_command_str,conn):
+def execute_command(immediate_command_str):
     try:
         print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
         exec(immediate_command_str)
-        conn.close()
     except Exception as e:
         print(f"MCU_Host: Error in execute_command: {e}")
 
@@ -57,22 +55,18 @@ def initialize_MCU():
         print(f"MCU_Host: Error in initialize_MCU: {e}")
 
 ##########################################################################################################################
-print("Sending IP to Computer, please start the computer")
-try:
-    print("Starting MCU_host at {}".format(socket.gethostbyname(socket.gethostname())))
-except Exception as e:
-    print(f"Error: {e}")
-print("Cheers! Server is already going on!")
+print("Server started, have fun!")
 ##########################################################################################################################
 
 while True:
     try:
-        client_connection, client_address = msg_socket.accept()
-        print('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
-        immediate_command_str = client_connection.recv(1024).decode()
+        # Use zmq to receive messages
+        immediate_command_str = msg_socket.recv_string()
+
+        print('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
 
         # Use threading to run command execution in the background
-        command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,client_connection,))
+        command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
         command_thread.start()
 
     except Exception as e:

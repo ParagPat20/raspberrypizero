@@ -7,11 +7,10 @@ import geopy.distance
 from geopy.distance import great_circle
 import math
 import threading
-import zmq
+import socket
 # import io
 # import picamera
 # import struct
-context = zmq.Context()  # Create a ZeroMQ context
 
 '''
 global variables
@@ -37,39 +36,6 @@ class Drone:
         self.vehicle = connect(connection_string, baud = baud)
         self.drone_user = connection_string
         self.drone_baud = baud
-
-    # def send_status(self, local_host, status_port):
-    #     def handle_clients(client_connection, client_address):
-    #         print('{} - Received follower status request from {}.'.format(time.ctime(), client_address))
-            
-    #         battery = str(self.vehicle.battery.voltage)
-    #         groundspeed = str(self.vehicle.groundspeed)
-    #         lat = "{:.7f}".format(self.vehicle.location.global_relative_frame.lat)
-    #         lon = "{:.7f}".format(self.vehicle.location.global_relative_frame.lon)
-    #         alt = "{:.7f}".format(self.vehicle.location.global_relative_frame.alt)
-    #         heading = str(self.vehicle.heading)
-
-    #         status_str = battery+','+groundspeed+','+lat+','+lon+','+alt+','+heading
-
-    #         client_connection.send(status_str.encode('utf-8'))
-    #         client_connection.close()
-
-
-    #     status_socket = socket.socket()
-    #     status_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    #     status_socket.bind((local_host, status_port))
-    #     status_socket.listen(10)
-    #     print('{} -send_status() is started!'.format(time.ctime()))
-
-    #     while True:
-    #         try:
-    #             client_connection, client_address = status_socket.accept() # Establish connection with client.
-
-    #             handle = threading.Thread(target=handle_clients, args=(client_connection, client_address,))
-    #             handle.start()
-
-    #         except Exception as e:
-    #             print("Error: sending battery...")
 
         
     def reconnect(self):
@@ -323,17 +289,19 @@ def cu_lo(drone):
 
 def send(remote_host, immediate_command_str):
     global cmd_port
-    # Create a ZeroMQ socket (REQ pattern for sending commands)
-    client_socket = context.socket(zmq.REQ)
+    # Create a socket object
+    client_socket = socket.socket()
+    client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     
     try:
-        client_socket.connect(f"tcp://{remote_host}:{cmd_port}")
-        client_socket.send_string(immediate_command_str)
-    
-    except zmq.error.ZMQError as error_msg:
-        log(f'PC: {time.ctime()} - Caught exception : {error_msg}')
-        log(f'PC: {time.ctime()} - CLIENT_send_immediate_command({remote_host}, {immediate_command_str}) is not executed!')
-    
+        client_socket.connect((remote_host, cmd_port))
+        client_socket.send(immediate_command_str.encode())
+        print('{} - CLIENT_send_immediate_command({}, {}) is executed!'.format(time.ctime(), remote_host, immediate_command_str))
+
+    except socket.error as error_msg:
+        print('{} - Caught exception : {}'.format(time.ctime(), error_msg))
+        print('{} - CLIENT_send_immediate_command({}, {}) is not executed!'.format(time.ctime(), remote_host, immediate_command_str))
+        return
     finally:
         if client_socket:
             client_socket.close()
@@ -398,23 +366,23 @@ def remove_drone(string):
         print(f"Error removing drone: {e}")
 
 
-# def recv_status(remote_host,status_port):
+def recv_status(remote_host,status_port):
         
-#         client_socket = socket.socket()
-#         client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-#         try:
-#             client_socket.connect((remote_host, status_port))
-#             status_msg_str = client_socket.recv(1024).decode('utf-8')
-#             battery ,gs, lat, lon, alt, heading = status_msg_str.split(',')
-#             lat = float(lat)
-#             lon = float(lon)
-#             alt = float(alt)
-#             heading = float(heading)
+        client_socket = socket.socket()
+        client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            client_socket.connect((remote_host, status_port))
+            status_msg_str = client_socket.recv(1024).decode('utf-8')
+            battery ,gs, lat, lon, alt, heading = status_msg_str.split(',')
+            lat = float(lat)
+            lon = float(lon)
+            alt = float(alt)
+            heading = float(heading)
 
-#             return (lat,lon),alt,heading
-#         except socket.error as error_msg:
-#             print('{} - Caught exception : {}'.format(time.ctime(), error_msg))
-#             print('{} - CLIENT_request_status({}) is not executed!'.format(time.ctime(), remote_host))
+            return (lat,lon),alt,heading
+        except socket.error as error_msg:
+            print('{} - Caught exception : {}'.format(time.ctime(), error_msg))
+            print('{} - CLIENT_request_status({}) is not executed!'.format(time.ctime(), remote_host))
             
 def chat(string):
     try:
@@ -424,23 +392,13 @@ def chat(string):
         print(f"Error in chat function: {e}")
 
 def log(immediate_command_str):
-    global context
-    # Create a publisher socket
-    pub_socket = context.socket(zmq.PUB)
-    pub_socket.bind('tcp://192.168.207.101:60123')
-
-    try:
-        print('thread starting')
-        # Send the log message to the 'log' topic
-        pub_socket.send_string('log ' + immediate_command_str)
-        print('Log message sent: {}'.format(immediate_command_str))
-
-    except Exception as e:
-        print(f"Error in log function: {e}")
-    finally:
-        # Close the publisher socket
-        pub_socket.close()
-
+    print('thread starting')
+    client_socket = socket.socket()
+    client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    print('connecting')
+    client_socket.connect(('192.168.207.101',60123))
+    print('connected,sending')
+    client_socket.send(immediate_command_str.encode())
 
 def check_distance(d1,d2):
     try:
@@ -453,20 +411,20 @@ def check_distance(d1,d2):
         print(f"Error in check_distance: {e}")
 
 
-import sys
+# import sys
 
-class LogStream:
-    def __init__(self):
-        self.buffer = ""
+# class LogStream:
+#     def __init__(self):
+#         self.buffer = ""
 
-    def write(self, data):
-        self.buffer += data
-        while "\n" in self.buffer:
-            line, self.buffer = self.buffer.split("\n", 1)
-            log(line)
+#     def write(self, data):
+#         self.buffer += data
+#         while "\n" in self.buffer:
+#             line, self.buffer = self.buffer.split("\n", 1)
+#             log(line)
 
-    def flush(self):
-        pass
+#     def flush(self):
+#         pass
 
-log_stream = LogStream()
-sys.stdout = log_stream
+# log_stream = LogStream()
+# sys.stdout = log_stream

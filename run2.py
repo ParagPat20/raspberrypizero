@@ -1,7 +1,7 @@
 from drone import Drone
 from drone import *
 
-print("Starting the script...")
+
 cmd_port = 12345
 ctrl_port = 54321
 status_port = 60003
@@ -14,11 +14,10 @@ CD2 = None
 CD2_initialized = False
 d1 = None
 
-msg_socket = socket.socket()
-msg_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-host_ip = socket.gethostbyname(socket.gethostname())
-msg_socket.bind((CD2_host, cmd_port))
-msg_socket.listen(10)
+context = zmq.Context()
+msg_socket = context.socket(zmq.REP)
+msg_socket.bind("tcp://{}:{}".format(CD2_host, cmd_port))
+
 print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
 
 def drone_list_update(cmd):
@@ -29,11 +28,10 @@ def drone_list_update(cmd):
     except Exception as e:
         print(f"CD2_Host: Error in drone_list_update: {e}")
 
-def execute_command(immediate_command_str,conn):
+def execute_command(immediate_command_str):
     try:
         print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
         exec(immediate_command_str)
-        conn.close()
     except Exception as e:
         print(f"CD2_Host: Error in execute_command: {e}")
 
@@ -47,32 +45,28 @@ def initialize_CD2():
             d1 = CD2
             d1_str = 'CD2'
             print("CD2 Connected")
-            threading.Thread(target=CD2.send_status, args=(CD2_host, 60003,)).start()
+            # threading.Thread(target=CD2.send_status, args=(CD2_host,60003,)).start()
             CD2_initialized=True
         print("CD2 getting ready for the params...")
         time.sleep(2) #getting ready for params
         CD2.get_vehicle_state()
-        log('cd2_status')
+        log('CD2_status')
     except Exception as e:
         print(f"CD2_Host: Error in initialize_CD2: {e}")
 
 ##########################################################################################################################
-print("Sending IP to Computer, please start the computer")
-try:
-    print("Starting CD2_host at {}".format(socket.gethostbyname(socket.gethostname())))
-except Exception as e:
-    print(f"Error: {e}")
-print("Cheers! Server is already going on!")
+print("Server started, have fun!")
 ##########################################################################################################################
 
 while True:
     try:
-        client_connection, client_address = msg_socket.accept()
-        print('\n{} - Received immediate command from {}.'.format(time.ctime(), client_address))
-        immediate_command_str = client_connection.recv(1024).decode()
+        # Use zmq to receive messages
+        immediate_command_str = msg_socket.recv_string()
+
+        print('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
 
         # Use threading to run command execution in the background
-        command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,client_connection,))
+        command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
         command_thread.start()
 
     except Exception as e:
