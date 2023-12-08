@@ -443,7 +443,7 @@ class logger:
 
 def log(immediate_command_str):
     a = logger
-    a.logging(a,immediate_command_str)
+    a.logging(immediate_command_str)
 
 def check_distance(d1,d2):
     try:
