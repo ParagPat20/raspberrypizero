@@ -441,8 +441,9 @@ class logger:
             print(f"Error in log function: {e}")
 
 
-log = logger.logging()
-
+def log(immediate_command_str):
+    a = logger
+    a.logging(immediate_command_str)
 
 def check_distance(d1,d2):
     try:
