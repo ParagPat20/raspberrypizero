@@ -64,10 +64,7 @@ while True:
         immediate_command_str = msg_socket.recv_string()
 
         print('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
-
-        # Use threading to run command execution in the background
-        command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
-        command_thread.start()
+        execute_command(immediate_command_str)
 
     except Exception as e:
         print(f"Error: {e}")
