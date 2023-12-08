@@ -423,7 +423,7 @@ def chat(string):
 
 class logger:
 
-    def _init_(self):
+    def __init__(self):
 
         context = zmq.Context()
         # Create a publisher socket
