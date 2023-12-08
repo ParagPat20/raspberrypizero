@@ -424,17 +424,20 @@ def chat(string):
 def log(immediate_command_str):
     context = zmq.Context()
     # Create a publisher socket
-    pub_socket = context.socket(zmq.REQ)
+    pub_socket = context.socket(zmq.DEALER)
     pub_socket.connect('tcp://192.168.207.101:60123')
 
     try:
         # Send the log message to the 'log' topic
         pub_socket.send_string('log ' + immediate_command_str)
         log('Log message sent: {}'.format(immediate_command_str))
-        pub_socket.recv_string()
 
     except Exception as e:
         log(f"Error in log function: {e}")
+    
+    finally:
+        pub_socket.close()
+        context.term()
 
 
 def check_distance(d1,d2):
