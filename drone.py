@@ -427,7 +427,7 @@ def log(immediate_command_str):
     global context
     # Create a publisher socket
     pub_socket = context.socket(zmq.PUB)
-    pub_socket.conenct('tcp://192.168.207.101:60123')
+    pub_socket.connect('tcp://192.168.207.101:60123')
 
     try:
         print('thread starting')
@@ -453,20 +453,20 @@ def check_distance(d1,d2):
         print(f"Error in check_distance: {e}")
 
 
-import sys
+# import sys
 
-class LogStream:
-    def __init__(self):
-        self.buffer = ""
+# class LogStream:
+#     def __init__(self):
+#         self.buffer = ""
 
-    def write(self, data):
-        self.buffer += data
-        while "\n" in self.buffer:
-            line, self.buffer = self.buffer.split("\n", 1)
-            log(line)
+#     def write(self, data):
+#         self.buffer += data
+#         while "\n" in self.buffer:
+#             line, self.buffer = self.buffer.split("\n", 1)
+#             log(line)
 
-    def flush(self):
-        pass
+#     def flush(self):
+#         pass
 
-log_stream = LogStream()
-sys.stdout = log_stream
+# log_stream = LogStream()
+# sys.stdout = log_stream
