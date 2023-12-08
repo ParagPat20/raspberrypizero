@@ -429,7 +429,7 @@ class logger:
         # Create a publisher socket
         self.pub_socket = context.socket(zmq.DEALER)
         self.pub_socket.setsockopt_string(zmq.IDENTITY, '1')
-        self.pub_socket.connect('tcp://192.168.207.101:60122')
+        self.pub_socket.connect('tcp://192.168.207.101:60121')
 
     def logging(self,immediate_command_str):
         try:
