@@ -421,24 +421,27 @@ def chat(string):
     except Exception as e:
         log(f"Error in chat function: {e}")
 
-def log(immediate_command_str):
-    context = zmq.Context()
-    # Create a publisher socket
-    pub_socket = context.socket(zmq.DEALER)
-    pub_socket.setsockopt_string(zmq.IDENTITY, '1')
-    pub_socket.connect('tcp://192.168.207.101:60122')
+class logger:
 
-    try:
-        # Send the log message to the 'log' topic
-        pub_socket.send_string('log ' + immediate_command_str)
-        log('Log message sent: {}'.format(immediate_command_str))
+    def _init_(self):
 
-    except Exception as e:
-        log(f"Error in log function: {e}")
-    
-    finally:
-        pub_socket.close()
-        context.term()
+        context = zmq.Context()
+        # Create a publisher socket
+        self.pub_socket = context.socket(zmq.DEALER)
+        self.pub_socket.setsockopt_string(zmq.IDENTITY, '1')
+        self.pub_socket.connect('tcp://192.168.207.101:60122')
+
+    def logging(self,immediate_command_str):
+        try:
+            # Send the log message to the 'log' topic
+            self.pub_socket.send_string('log ' + immediate_command_str)
+            print('Log message sent: {}'.format(immediate_command_str))
+
+        except Exception as e:
+            print(f"Error in log function: {e}")
+
+
+log = logger.logging()
 
 
 def check_distance(d1,d2):
