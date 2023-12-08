@@ -427,7 +427,7 @@ def log(immediate_command_str):
     global context
     # Create a publisher socket
     pub_socket = context.socket(zmq.PUB)
-    pub_socket.bind('tcp://0.0.0.0:60123')
+    pub_socket.conenct('tcp://192.168.207.101:60123')
 
     try:
         print('thread starting')
