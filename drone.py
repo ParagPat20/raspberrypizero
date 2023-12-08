@@ -421,30 +421,28 @@ def chat(string):
     except Exception as e:
         log(f"Error in chat function: {e}")
 
-class logger:
-
+class Logger:
     def __init__(self):
-
         context = zmq.Context()
-        # Create a publisher socket
+        # Create a dealer socket
         self.pub_socket = context.socket(zmq.DEALER)
         self.pub_socket.setsockopt_string(zmq.IDENTITY, '1')
         self.pub_socket.connect('tcp://192.168.207.101:60121')
 
-    def logging(self,immediate_command_str):
+    def logging(self, immediate_command_str):
         try:
-            # Send the log message to the 'log' topic
+            # Send the log message
             self.pub_socket.send_string('log ' + immediate_command_str)
             print('Log message sent: {}'.format(immediate_command_str))
-
         except Exception as e:
             print(f"Error in log function: {e}")
 
-
 def log(immediate_command_str):
-    a = logger
-    a.logging(immediate_command_str)
-
+    # Create an instance of the Logger class
+    logger_instance = Logger()
+    # Call the logging method
+    logger_instance.logging(immediate_command_str)
+    
 def check_distance(d1,d2):
     try:
         log("First drone's current location{}".format(cu_lo(d1)))
