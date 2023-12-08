@@ -32,6 +32,7 @@ def execute_command(immediate_command_str):
     try:
         print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
         exec(immediate_command_str)
+
     except Exception as e:
         print(f"CD2_Host: Error in execute_command: {e}")
 
@@ -65,6 +66,7 @@ while True:
 
         print('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
         execute_command(immediate_command_str)
+        msg_socket.send_string("OK!")
 
     except zmq.ZMQError as zmq_error:
         print(f"ZMQ Error: {zmq_error}")
