@@ -425,6 +425,7 @@ def log(immediate_command_str):
     context = zmq.Context()
     # Create a publisher socket
     pub_socket = context.socket(zmq.DEALER)
+    pub_socket.setsockopt_string(zmq.IDENTITY, '1')
     pub_socket.connect('tcp://192.168.207.101:60123')
 
     try:
