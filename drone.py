@@ -422,10 +422,10 @@ def chat(string):
         print(f"Error in chat function: {e}")
 
 def log(immediate_command_str):
-    global context
+    context = zmq.Context()
     # Create a publisher socket
     pub_socket = context.socket(zmq.PUB)
-    pub_socket.connect('tcp://192.168.207.101:5002')
+    pub_socket.connect("tcp://192.168.207.101:5002")
 
     try:
         # Send the log message to the 'log' topic
