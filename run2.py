@@ -66,7 +66,10 @@ while True:
         print('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
         execute_command(immediate_command_str)
 
+    except zmq.ZMQError as zmq_error:
+        print(f"ZMQ Error: {zmq_error}")
     except Exception as e:
         print(f"Error: {e}")
+
 
 ##########################################################################################################################
