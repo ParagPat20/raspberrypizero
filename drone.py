@@ -40,7 +40,7 @@ class Drone:
 
     # def send_status(self, local_host, status_port):
     #     def handle_clients(client_connection, client_address):
-    #         print('{} - Received follower status request from {}.'.format(time.ctime(), client_address))
+    #         log('{} - Received follower status request from {}.'.format(time.ctime(), client_address))
             
     #         battery = str(self.vehicle.battery.voltage)
     #         groundspeed = str(self.vehicle.groundspeed)
@@ -59,7 +59,7 @@ class Drone:
     #     status_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     #     status_socket.bind((local_host, status_port))
     #     status_socket.listen(10)
-    #     print('{} -send_status() is started!'.format(time.ctime()))
+    #     log('{} -send_status() is started!'.format(time.ctime()))
 
     #     while True:
     #         try:
@@ -69,7 +69,7 @@ class Drone:
     #             handle.start()
 
     #         except Exception as e:
-    #             print("Error: sending battery...")
+    #             log("Error: sending battery...")
 
         
     def reconnect(self):
@@ -77,49 +77,49 @@ class Drone:
             self.vehicle.close()
             self = None
             time.sleep(2)
-            print("Reconnected Successfully")
+            log("Reconnected Successfully")
         except Exception as e:
-            print(f"Error during reconnection: {e}")
+            log(f"Error during reconnection: {e}")
 
     def arm(self, mode='GUIDED'):
         try:
-            print("Arming motors")
+            log("Arming motors")
             self.vehicle.mode = VehicleMode(mode)
             self.vehicle.armed = True
             TIMEOUT_SECONDS = 10
             start_time = time.time()
             while not self.vehicle.armed:
-                print("Waiting for Arming")
+                log("Waiting for Arming")
                 self.vehicle.armed = True
                 if time.time() - start_time > TIMEOUT_SECONDS:
                     break
                 time.sleep(1)
 
-            print("Vehicle Armed")
+            log("Vehicle Armed")
         except Exception as e:
-            print(f"Error during arming: {e}")
+            log(f"Error during arming: {e}")
 
     def takeoff(self, alt=2):
         try:
             self.arm()
-            print("Taking off!")
+            log("Taking off!")
             self.vehicle.simple_takeoff(alt)
             start_time = time.time()
             TIMEOUT_SECONDS = 15
             while True:
                 current_altitude = self.vehicle.location.global_relative_frame.alt
                 if current_altitude is not None:
-                    print(" Altitude: {}".format(current_altitude))
+                    log(" Altitude: {}".format(current_altitude))
                     if current_altitude >= 1 * 0.9:
-                        print("Reached target altitude")
+                        log("Reached target altitude")
                         break
                 else:
-                    print("Waiting for altitude information...")
+                    log("Waiting for altitude information...")
                 if time.time() - start_time > TIMEOUT_SECONDS:
                     break
                 time.sleep(1)
         except Exception as e:
-            print(f"Error during takeoff: {e}")
+            log(f"Error during takeoff: {e}")
 
     def send_ned_velocity_drone(self, velocity_x, velocity_y, velocity_z):
         try:
@@ -136,19 +136,19 @@ class Drone:
                 velocity_x, velocity_y, velocity_z,  # x, y, z velocity in m/s
                 0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
                 0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
-            print(f"Drone Velocity Commands{velocity_x},{velocity_y},{velocity_z}")
+            log(f"Drone Velocity Commands{velocity_x},{velocity_y},{velocity_z}")
 
             self.vehicle.send_mavlink(msg)
 
 
         except Exception as e:
-            print(f"Error sending velocity commands: {e}")
+            log(f"Error sending velocity commands: {e}")
 
     def send_ned_velocity(self, x, y, z, duration = None):
         if duration:
             for i in range(0,duration):
                 self.send_ned_velocity_drone(x,y,z)
-                print(i)
+                log(i)
                 time.sleep(1)
 
             self.send_ned_velocity_drone(0,0,0)
@@ -161,7 +161,7 @@ class Drone:
     def yaw(self, heading):
         try:
             current_heading = self.vehicle.heading
-            print("Current Heading : {}".format(current_heading))
+            log("Current Heading : {}".format(current_heading))
             if heading - current_heading <= 0:
                 rotation = 1
             else:
@@ -183,88 +183,88 @@ class Drone:
             # Wait sort of time for the command to be fully executed.
             for t in range(0, int(math.ceil(estimatedTime))):
                 time.sleep(1)
-                print('{} - Executed yaw(heading={}) for {} seconds.'.format(time.ctime(), heading, t + 1))
+                log('{} - Executed yaw(heading={}) for {} seconds.'.format(time.ctime(), heading, t + 1))
                 self.get_vehicle_state()
-                print('\n')
+                log('\n')
         except Exception as e:
-            print(f"Error during yaw command: {e}")
+            log(f"Error during yaw command: {e}")
 
     def disarm(self):
         try:
-            print("Disarming motors")
+            log("Disarming motors")
             self.vehicle.armed = False
 
             while self.vehicle.armed:
-                print("Waiting for disarming...")
+                log("Waiting for disarming...")
                 self.vehicle.armed = False
                 time.sleep(1)
 
-            print("Vehicle Disarmed")
+            log("Vehicle Disarmed")
         except Exception as e:
-            print(f"Error during disarming: {e}")
+            log(f"Error during disarming: {e}")
 
     def land(self):
         try:
             self.vehicle.mode = VehicleMode("LAND")
-            print("Landing")
+            log("Landing")
         except Exception as e:
-            print(f"Error during landing: {e}")
+            log(f"Error during landing: {e}")
 
     def poshold(self):
         try:
             self.vehicle.mode = VehicleMode("POSHOLD")
-            print("Drone currently in POSHOLD")
+            log("Drone currently in POSHOLD")
         except Exception as e:
-            print(f"Error during POSHOLD mode setting: {e}")
+            log(f"Error during POSHOLD mode setting: {e}")
 
     def rtl(self):
         try:
             self.vehicle.mode = VehicleMode("RTL")
-            print("Drone currently in RTL")
+            log("Drone currently in RTL")
         except Exception as e:
-            print(f"Error during RTL mode setting: {e}")
+            log(f"Error during RTL mode setting: {e}")
 
     def exit(self):
         try:
             self.vehicle.close()
         except Exception as e:
-            print(f"Error during vehicle exit: {e}")
+            log(f"Error during vehicle exit: {e}")
 
     def get_vehicle_state(self):
         try:
-            print('{} - Checking current Vehicle Status:'.format(time.ctime()))
+            log('{} - Checking current Vehicle Status:'.format(time.ctime()))
             self.vehicle.battery
 
-            print('     Global Location: lat={}, lon={}, alt(above sea leavel)={}'.format(
+            log('     Global Location: lat={}, lon={}, alt(above sea leavel)={}'.format(
                 self.vehicle.location.global_frame.lat, self.vehicle.location.global_frame.lon,
                 self.vehicle.location.global_frame.alt))
-            print('     Global Location (relative altitude): lat={}, lon={}, alt(relative)={}'.format(
+            log('     Global Location (relative altitude): lat={}, lon={}, alt(relative)={}'.format(
                 self.vehicle.location.global_relative_frame.lat, self.vehicle.location.global_relative_frame.lon,
                 self.vehicle.location.global_relative_frame.alt))
-            print('     Local Location(NED coordinate): north={}, east={}, down={}'.format(
+            log('     Local Location(NED coordinate): north={}, east={}, down={}'.format(
                 self.vehicle.location.local_frame.north, self.vehicle.location.local_frame.east,
                 self.vehicle.location.local_frame.down))
-            print('     Velocity: Vx={}, Vy={}, Vz={}'.format(self.vehicle.velocity[0], self.vehicle.velocity[1],
+            log('     Velocity: Vx={}, Vy={}, Vz={}'.format(self.vehicle.velocity[0], self.vehicle.velocity[1],
                                                             self.vehicle.velocity[2]))
-            print('     GPS Info: fix_type={}, num_sat={}'.format(self.vehicle.gps_0.fix_type,
+            log('     GPS Info: fix_type={}, num_sat={}'.format(self.vehicle.gps_0.fix_type,
                                                                 self.vehicle.gps_0.satellites_visible))
-            print('     Battery: voltage={}V, current={}A, level={}%'.format(self.vehicle.battery.voltage,
+            log('     Battery: voltage={}V, current={}A, level={}%'.format(self.vehicle.battery.voltage,
                                                                            self.vehicle.battery.current,
                                                                            self.vehicle.battery.level))
-            print('     Heading: {} (degrees from North)'.format(self.vehicle.heading))
-            print('     Groundspeed: {} m/s'.format(self.vehicle.groundspeed))
-            print('     Airspeed: {} m/s'.format(self.vehicle.airspeed))
+            log('     Heading: {} (degrees from North)'.format(self.vehicle.heading))
+            log('     Groundspeed: {} m/s'.format(self.vehicle.groundspeed))
+            log('     Airspeed: {} m/s'.format(self.vehicle.airspeed))
 
         except Exception as e:
-            print(f"Error getting vehicle state: {e}")
+            log(f"Error getting vehicle state: {e}")
 
     def goto(self, l, alt, groundspeed=0.7):
         try:
-            print('\n')
-            print('{} - Calling goto_gps_location_relative(lat={}, lon={}, alt={}, groundspeed={}).'.format(
+            log('\n')
+            log('{} - Calling goto_gps_location_relative(lat={}, lon={}, alt={}, groundspeed={}).'.format(
                 time.ctime(), l[0], l[1], alt, groundspeed))
             destination = LocationGlobalRelative(l[0], l[1], alt)
-            print('{} - Before calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
+            log('{} - Before calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
             self.get_vehicle_state()
             current_lat = self.vehicle.location.global_relative_frame.lat
             current_lon = self.vehicle.location.global_relative_frame.lon
@@ -276,22 +276,22 @@ class Drone:
                 current_lat = self.vehicle.location.global_relative_frame.lat
                 current_lon = self.vehicle.location.global_relative_frame.lon
                 current_alt = self.vehicle.location.global_relative_frame.alt
-                print('{} - Horizontal distance to destination: {} m.'.format(time.ctime(),
+                log('{} - Horizontal distance to destination: {} m.'.format(time.ctime(),
                                                                              self.distance_between_two_gps_coord(
                                                                                  (current_lat, current_lon), l)))
-                print('{} - Perpendicular distance to destination: {} m.'.format(time.ctime(),
+                log('{} - Perpendicular distance to destination: {} m.'.format(time.ctime(),
                                                                                  current_alt - alt))
-            print('{} - After calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
+            log('{} - After calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
             self.get_vehicle_state()
         except Exception as e:
-            print(f"Error during goto command: {e}")
+            log(f"Error during goto command: {e}")
 
     def distance_between_two_gps_coord(self, point1, point2):
         try:
             distance = great_circle(point1, point2).meters
             return distance
         except Exception as e:
-            print(f"Error calculating distance between two GPS coordinates: {e}")
+            log(f"Error calculating distance between two GPS coordinates: {e}")
 
 
 #=============================================================================================================
@@ -306,7 +306,7 @@ def new_coords(original_gps_coord, displacement, rotation_degree_relative):
 
         return round(new_gps_lat, 7), round(new_gps_lon, 7)
     except Exception as e:
-        print(f"Error in calculating new coordinates: {e}")
+        log(f"Error in calculating new coordinates: {e}")
 
 def cu_lo(drone):
     try:
@@ -315,7 +315,7 @@ def cu_lo(drone):
         heading = drone.vehicle.heading
         return (lat, lon), heading
     except Exception as e:
-        print(f"Error in getting current location: {e}")
+        log(f"Error in getting current location: {e}")
         return (0.0, 0.0), 0.0  # Returning default values in case of an error
 
 
@@ -361,7 +361,7 @@ def send(remote_host, immediate_command_str):
 #                     stream.seek(0)
 #                     stream.truncate()
 #         except Exception as e:
-#             print("Error: ", e)
+#             log("Error: ", e)
 
 #         finally:
 #             connection.close()
@@ -372,7 +372,7 @@ def send(remote_host, immediate_command_str):
 #     server_socket.bind((host, 8000))
 #     server_socket.listen(2)
 
-#     print("Server is listening on {}:{}".format(host, 8000))
+#     log("Server is listening on {}:{}".format(host, 8000))
 
 #     while True:
 #         client_socket, _ = server_socket.accept()
@@ -386,14 +386,14 @@ def add_drone(string):
         global drone_list
         drone_list.append(string)
     except Exception as e:
-        print(f"Error adding drone: {e}")
+        log(f"Error adding drone: {e}")
 
 def remove_drone(string):
     try:
         global drone_list
         drone_list.remove(string)
     except Exception as e:
-        print(f"Error removing drone: {e}")
+        log(f"Error removing drone: {e}")
 
 
 # def recv_status(remote_host,status_port):
@@ -411,15 +411,15 @@ def remove_drone(string):
 
 #             return (lat,lon),alt,heading
 #         except socket.error as error_msg:
-#             print('{} - Caught exception : {}'.format(time.ctime(), error_msg))
-#             print('{} - CLIENT_request_status({}) is not executed!'.format(time.ctime(), remote_host))
+#             log('{} - Caught exception : {}'.format(time.ctime(), error_msg))
+#             log('{} - CLIENT_request_status({}) is not executed!'.format(time.ctime(), remote_host))
             
 def chat(string):
     try:
-        print(string)
+        log(string)
 
     except Exception as e:
-        print(f"Error in chat function: {e}")
+        log(f"Error in chat function: {e}")
 
 def log(immediate_command_str):
     context = zmq.Context()
@@ -430,22 +430,22 @@ def log(immediate_command_str):
     try:
         # Send the log message to the 'log' topic
         pub_socket.send_string('log ' + immediate_command_str)
-        print('Log message sent: {}'.format(immediate_command_str))
+        log('Log message sent: {}'.format(immediate_command_str))
         pub_socket.recv_string()
 
     except Exception as e:
-        print(f"Error in log function: {e}")
+        log(f"Error in log function: {e}")
 
 
 def check_distance(d1,d2):
     try:
-        print("First drone's current location{}".format(cu_lo(d1)))
-        print("Second drone's current location{}".format(cu_lo(d2)))
+        log("First drone's current location{}".format(cu_lo(d1)))
+        log("Second drone's current location{}".format(cu_lo(d2)))
         distance = d1.distance_between_two_gps_coord(cu_lo(d1)[0],cu_lo(d2)[0])
-        print("Distance between those drones is {} meters".format(distance))
+        log("Distance between those drones is {} meters".format(distance))
         
     except Exception as e:
-        print(f"Error in check_distance: {e}")
+        log(f"Error in check_distance: {e}")
 
 
 # import sys
