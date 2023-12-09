@@ -432,8 +432,7 @@ class Logger:
     def logging(self, immediate_command_str):
         try:
             # Send the log message
-            self.pub_socket.send_string('log ' + immediate_command_str)
-            print('Log message sent: {}'.format(immediate_command_str))
+            self.pub_socket.send_string(immediate_command_str)
         except Exception as e:
             print(f"Error in log function: {e}")
 

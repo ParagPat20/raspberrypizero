@@ -4,7 +4,7 @@ from drone import *
 
 cmd_port = 12345
 ctrl_port = 54321
-status_port = 60001
+status_port = 60003
 local_host = MCU_host
 
 MCU = None
@@ -18,22 +18,23 @@ context = zmq.Context()
 msg_socket = context.socket(zmq.REP)
 msg_socket.bind("tcp://{}:{}".format(MCU_host, cmd_port))
 
-print('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
+log('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
 
 def drone_list_update(cmd):
     try:
         global drone_list
         drone_list = cmd
-        print(drone_list)
+        log(drone_list)
     except Exception as e:
-        print(f"MCU_Host: Error in drone_list_update: {e}")
+        log(f"MCU_Host: Error in drone_list_update: {e}")
 
 def execute_command(immediate_command_str):
     try:
-        print('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
+        log('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
         exec(immediate_command_str)
+
     except Exception as e:
-        print(f"MCU_Host: Error in execute_command: {e}")
+        log(f"MCU_Host: Error in execute_command: {e}")
 
 ##########################################################################################################################
 
@@ -44,18 +45,18 @@ def initialize_MCU():
             MCU = Drone('/dev/serial0', 115200)
             d1 = MCU
             d1_str = 'MCU'
-            print("MCU Connected")
-            threading.Thread(target=MCU.send_status, args=(MCU_host,60001,)).start()
+            log("MCU Connected")
+            # threading.Thread(target=MCU.send_status, args=(MCU_host,60003,)).start()
             MCU_initialized=True
-        print("MCU getting ready for the params...")
+        log("MCU getting ready for the params...")
         time.sleep(2) #getting ready for params
         MCU.get_vehicle_state()
-        log('mcu_status')
+        log('MCU_status')
     except Exception as e:
-        print(f"MCU_Host: Error in initialize_MCU: {e}")
+        log(f"MCU_Host: Error in initialize_MCU: {e}")
 
 ##########################################################################################################################
-print("Server started, have fun!")
+log("Server started, have fun!")
 ##########################################################################################################################
 
 while True:
@@ -63,13 +64,15 @@ while True:
         # Use zmq to receive messages
         immediate_command_str = msg_socket.recv_string()
 
-        print('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
-
-        # Use threading to run command execution in the background
+        log('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
         command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
         command_thread.start()
+        msg_socket.send_string("OK!")
 
+    except zmq.ZMQError as zmq_error:
+        log(f"ZMQ Error: {zmq_error}")
     except Exception as e:
-        print(f"Error: {e}")
+        log(f"Error: {e}")
+
 
 ##########################################################################################################################
