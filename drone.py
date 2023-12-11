@@ -227,9 +227,18 @@ class Drone:
         except Exception as e:
             log(f"Error during yaw command: {e}")
 
-    def servo(self,pwm):
+    def servo(self,cmd):
+        delay_period = 0.01
         try:
-            wiringpi.pwmWrite(18,pwm)
+            if cmd == 'close':
+                for pulse in range(50, 250, 1):
+                    wiringpi.pwmWrite(18, pulse)
+                    time.sleep(delay_period)
+            if cmd == 'open':
+                for pulse in range(250, 50, -1):
+                    wiringpi.pwmWrite(18, pulse)
+                    time.sleep(delay_period)
+            log('setting servo to {}'.format(cmd))
         except Exception as e:
             log(f"Error during servo command: {e}")
 
