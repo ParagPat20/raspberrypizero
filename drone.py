@@ -214,7 +214,7 @@ class Drone:
 
     def servo(self,pwm):
         try:
-            msg = self.vehicle.message_factory.command_long_encode(0,0,183,0,8,1200,0,0,0,0,0)
+            msg = self.vehicle.message_factory.command_long_encode(0,0,183,0,9,pwm,0,0,0,0,0)
             self.vehicle.send_mavlink(msg)
         except Exception as e:
             log(f"Error during servo command: {e}")
