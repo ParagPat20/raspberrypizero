@@ -229,12 +229,14 @@ class Drone:
 
     def servo(self,cmd):
         delay_period = 0.01
+        close = 'close'
+        open = 'open'
         try:
-            if cmd == 'close':
+            if cmd == 'close' or cmd == close:
                 for pulse in range(50, 250, 1):
                     wiringpi.pwmWrite(18, pulse)
                     time.sleep(delay_period)
-            if cmd == 'open':
+            if cmd == 'open' or cmd == open:
                 for pulse in range(250, 50, -1):
                     wiringpi.pwmWrite(18, pulse)
                     time.sleep(delay_period)
