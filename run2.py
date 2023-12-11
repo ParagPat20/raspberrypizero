@@ -15,8 +15,8 @@ CD2_initialized = False
 d1 = None
 
 context = zmq.Context()
-msg_socket = context.socket(zmq.REP)
-msg_socket.bind("tcp://{}:{}".format(CD2_host, cmd_port))
+msg_socket = context.socket(zmq.PULL)
+msg_socket.bind("tcp://*:12345")
 
 log('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
 
@@ -56,7 +56,7 @@ def initialize_CD2():
         log(f"CD2_Host: Error in initialize_CD2: {e}")
 
 ##########################################################################################################################
-log("Server started, have fun!")
+log("CD2 Server started, have fun!")
 ##########################################################################################################################
 
 while True:
@@ -67,7 +67,6 @@ while True:
         log('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
         command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
         command_thread.start()
-        msg_socket.send_string("OK!")
 
     except zmq.ZMQError as zmq_error:
         log(f"ZMQ Error: {zmq_error}")

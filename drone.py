@@ -8,17 +8,12 @@ from geopy.distance import great_circle
 import math
 import threading
 import zmq
+import subprocess
 # import io
 # import picamera
 # import struct
 context = zmq.Context()  # Create a ZeroMQ context
 
-'''
-global variables
-status_port = 60001,60002
-cmd_port
-local_host
-'''
 d1 = None
 d2 = None
 selected_drone = None
@@ -31,12 +26,43 @@ drone_list = []
 wait_for_command = True
 immediate_command_str = None
 
+
 class Drone:
     
     def __init__(self,connection_string, baud=None):
         self.vehicle = connect(connection_string, baud = baud)
         self.drone_user = connection_string
         self.drone_baud = baud
+
+    def is_wifi_connected(self):
+        try:
+            subprocess.check_output(['ping', '192.0.0.2'])
+            time.sleep(4)
+            return True
+        except subprocess.CalledProcessError:
+            return False
+
+    def security(self):
+        self.altitude = self.vehicle.location.global_relative_frame.alt
+        self.battery = self.vehicle.battery.voltage
+        log("Security checkup started!")
+        while True:
+            self.altitude = self.vehicle.location.global_relative_frame.alt
+            self.battery = self.vehicle.battery.voltage
+            log('Current altitude : {}m\nCurrent Battery {}V'.format(self.altitude,self.battery))
+            if not self.is_wifi_connected():
+                log("Wi-Fi connection lost! Initiating landing.")
+                self.land()
+                self.disarm()
+                break
+            # if self.altitude > 5:
+            #     log("Altitude greater than 5 meters! Initiating landing.")
+            #     self.land()
+            #     break 
+            # if self.battery < 10.5:
+            #     log("Battery LOW, Landing")
+            #     self.land()
+            time.sleep(5)
 
     # def send_status(self, local_host, status_port):
     #     def handle_clients(client_connection, client_address):
@@ -155,8 +181,6 @@ class Drone:
             
         else:
             self.send_ned_velocity_drone(x,y,z)
-            time.sleep(0.5)
-            self.send_ned_velocity_drone(0,0,0)
 
     def yaw(self, heading):
         try:
@@ -185,7 +209,6 @@ class Drone:
                 time.sleep(1)
                 log('{} - Executed yaw(heading={}) for {} seconds.'.format(time.ctime(), heading, t + 1))
                 self.get_vehicle_state()
-                log('\n')
         except Exception as e:
             log(f"Error during yaw command: {e}")
 
@@ -232,28 +255,33 @@ class Drone:
 
     def get_vehicle_state(self):
         try:
-            log('{} - Checking current Vehicle Status:'.format(time.ctime()))
-            self.vehicle.battery
-
-            log('     Global Location: lat={}, lon={}, alt(above sea leavel)={}'.format(
+            log_msg = (
+                '{} - Checking current Vehicle Status:\n'
+                '     Global Location: lat={}, lon={}, alt(above sea level)={}\n'
+                '     Global Location (relative altitude): lat={}, lon={}, alt(relative)={}\n'
+                '     Local Location(NED coordinate): north={}, east={}, down={}\n'
+                '     Velocity: Vx={}, Vy={}, Vz={}\n'
+                '     GPS Info: fix_type={}, num_sat={}\n'
+                '     Battery: voltage={}V, current={}A, level={}%\n'
+                '     Heading: {} (degrees from North)\n'
+                '     Groundspeed: {} m/s\n'
+                '     Airspeed: {} m/s'
+            ).format(
+                time.ctime(),
                 self.vehicle.location.global_frame.lat, self.vehicle.location.global_frame.lon,
-                self.vehicle.location.global_frame.alt))
-            log('     Global Location (relative altitude): lat={}, lon={}, alt(relative)={}'.format(
+                self.vehicle.location.global_frame.alt,
                 self.vehicle.location.global_relative_frame.lat, self.vehicle.location.global_relative_frame.lon,
-                self.vehicle.location.global_relative_frame.alt))
-            log('     Local Location(NED coordinate): north={}, east={}, down={}'.format(
+                self.vehicle.location.global_relative_frame.alt,
                 self.vehicle.location.local_frame.north, self.vehicle.location.local_frame.east,
-                self.vehicle.location.local_frame.down))
-            log('     Velocity: Vx={}, Vy={}, Vz={}'.format(self.vehicle.velocity[0], self.vehicle.velocity[1],
-                                                            self.vehicle.velocity[2]))
-            log('     GPS Info: fix_type={}, num_sat={}'.format(self.vehicle.gps_0.fix_type,
-                                                                self.vehicle.gps_0.satellites_visible))
-            log('     Battery: voltage={}V, current={}A, level={}%'.format(self.vehicle.battery.voltage,
-                                                                           self.vehicle.battery.current,
-                                                                           self.vehicle.battery.level))
-            log('     Heading: {} (degrees from North)'.format(self.vehicle.heading))
-            log('     Groundspeed: {} m/s'.format(self.vehicle.groundspeed))
-            log('     Airspeed: {} m/s'.format(self.vehicle.airspeed))
+                self.vehicle.location.local_frame.down,
+                self.vehicle.velocity[0], self.vehicle.velocity[1], self.vehicle.velocity[2],
+                self.vehicle.gps_0.fix_type, self.vehicle.gps_0.satellites_visible,
+                self.vehicle.battery.voltage, self.vehicle.battery.current, self.vehicle.battery.level,
+                self.vehicle.heading, self.vehicle.groundspeed, self.vehicle.airspeed
+            )
+
+            log(log_msg)
+
 
         except Exception as e:
             log(f"Error getting vehicle state: {e}")
@@ -317,25 +345,45 @@ def cu_lo(drone):
     except Exception as e:
         log(f"Error in getting current location: {e}")
         return (0.0, 0.0), 0.0  # Returning default values in case of an error
+    
+def check_distance(d1,d2):
+    try:
+        log("First drone's current location{}".format(cu_lo(d1)))
+        log("Second drone's current location{}".format(cu_lo(d2)))
+        distance = d1.distance_between_two_gps_coord(cu_lo(d1)[0],cu_lo(d2)[0])
+        log("Distance between those drones is {} meters".format(distance))
+        
+    except Exception as e:
+        log(f"Error in check_distance: {e}")
+
 
 
 #==============================================================================================================
 
-def send(remote_host, immediate_command_str):
-    global cmd_port
-    # Create a ZeroMQ socket (REQ pattern for sending commands)
-    client_socket = context.socket(zmq.REQ)
-    
-    try:
-        client_socket.connect(f"tcp://{remote_host}:{cmd_port}")
-        client_socket.send_string(immediate_command_str)
-    
-    except zmq.error.ZMQError as error_msg:
-        log(f'PC: {time.ctime()} - Caught exception : {error_msg}')
-        log(f'PC: {time.ctime()} - CLIENT_send_immediate_command({remote_host}, {immediate_command_str}) is not executed!')
-    
+connected_hosts = set()
+clients = {}
+pc = '192.168.207.101'
 
-    
+import random
+
+def send(host, immediate_command_str):
+    global connected_hosts
+    global clients
+
+    if host not in connected_hosts:
+        context = zmq.Context()
+        socket1 = context.socket(zmq.PUSH)
+        socket1.connect(f"tcp://{host}:12345")
+        socket2 = context.socket(zmq.PUSH)
+        socket2.connect(f"tcp://{host}:12345")
+        socket3 = context.socket(zmq.PUSH)
+        socket3.connect(f"tcp://{host}:12345")
+        clients[host] = [socket1,socket2,socket3]
+        connected_hosts.add(host)
+    immediate_command_str = str(immediate_command_str)
+    random_socket = random.choice(clients[host])
+    random_socket.send_string(immediate_command_str)
+
 # def camera_stream_server(host):
 #     def handle_client(client_socket):
 #         connection = client_socket.makefile('wb')
@@ -416,41 +464,39 @@ def remove_drone(string):
             
 def chat(string):
     try:
-        log(string)
+        print(string)
 
     except Exception as e:
         log(f"Error in chat function: {e}")
 
-class Logger:
-    def __init__(self):
-        context = zmq.Context()
-        # Create a dealer socket
-        self.pub_socket = context.socket(zmq.DEALER)
-        self.pub_socket.setsockopt_string(zmq.IDENTITY, '1')
-        self.pub_socket.connect('tcp://192.168.207.101:60121')
 
-    def logging(self, immediate_command_str):
-        try:
-            # Send the log message
-            self.pub_socket.send_string(immediate_command_str)
-        except Exception as e:
-            print(f"Error in log function: {e}")
+import random
 
 def log(immediate_command_str):
-    # Create an instance of the Logger class
-    logger_instance = Logger()
-    # Call the logging method
-    logger_instance.logging(immediate_command_str)
+    global connected_hosts
+    global clients
+    host = pc
 
-def check_distance(d1,d2):
-    try:
-        log("First drone's current location{}".format(cu_lo(d1)))
-        log("Second drone's current location{}".format(cu_lo(d2)))
-        distance = d1.distance_between_two_gps_coord(cu_lo(d1)[0],cu_lo(d2)[0])
-        log("Distance between those drones is {} meters".format(distance))
-        
-    except Exception as e:
-        log(f"Error in check_distance: {e}")
+    if host not in connected_hosts:
+        context = zmq.Context()
+        socket1 = context.socket(zmq.PUSH)
+        socket1.connect(f"tcp://{host}:5556")
+        socket2 = context.socket(zmq.PUSH)
+        socket2.connect(f"tcp://{host}:5556")
+        socket3 = context.socket(zmq.PUSH)
+        socket3.connect(f"tcp://{host}:5556")
+        socket4 = context.socket(zmq.PUSH)
+        socket4.connect(f"tcp://{host}:5556")
+        socket5 = context.socket(zmq.PUSH)
+        socket5.connect(f"tcp://{host}:5556")
+        socket6 = context.socket(zmq.PUSH)
+        socket6.connect(f"tcp://{host}:5556")
+        clients[host] = [socket1,socket2,socket3,socket4,socket5,socket6]
+        connected_hosts.add(host)
+
+    random_socket = random.choice(clients[host])
+    immediate_command_str = str(immediate_command_str)
+    random_socket.send_string(immediate_command_str)
 
 
 # import sys
