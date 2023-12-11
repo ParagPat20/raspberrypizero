@@ -55,13 +55,13 @@ class Drone:
                 self.land()
                 self.disarm()
                 break
-            # if self.altitude > 5:
-            #     log("Altitude greater than 5 meters! Initiating landing.")
-            #     self.land()
-            #     break 
-            # if self.battery < 10.5:
-            #     log("Battery LOW, Landing")
-            #     self.land()
+            if self.altitude > 5:
+                log("Altitude greater than 5 meters! Initiating landing.")
+                self.land()
+                break 
+            if self.battery < 10.5:
+                log("Battery LOW, Landing")
+                self.land()
             time.sleep(5)
 
     # def send_status(self, local_host, status_port):
@@ -211,6 +211,13 @@ class Drone:
                 self.get_vehicle_state()
         except Exception as e:
             log(f"Error during yaw command: {e}")
+
+    def servo(self,pwm):
+        try:
+            msg = self.vehicle.message_factory.command_long_encode(0,0,183,0,8,1200,0,0,0,0,0)
+            self.vehicle.send_mavlink(msg)
+        except Exception as e:
+            log(f"Error during servo command: {e}")
 
     def disarm(self):
         try:
