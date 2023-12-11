@@ -13,6 +13,21 @@ import subprocess
 # import picamera
 # import struct
 context = zmq.Context()  # Create a ZeroMQ context
+import time
+import wiringpi
+
+# use 'GPIO naming'
+wiringpi.wiringPiSetupGpio()
+
+# set #18 to be a PWM output
+wiringpi.pinMode(18, wiringpi.GPIO.PWM_OUTPUT)
+
+# set the PWM mode to milliseconds stype
+wiringpi.pwmSetMode(wiringpi.GPIO.PWM_MODE_MS)
+
+# divide down clock
+wiringpi.pwmSetClock(192)
+wiringpi.pwmSetRange(2000)
 
 d1 = None
 d2 = None
@@ -214,8 +229,7 @@ class Drone:
 
     def servo(self,pwm):
         try:
-            msg = self.vehicle.message_factory.command_long_encode(0,0,183,0,9,pwm,0,0,0,0,0)
-            self.vehicle.send_mavlink(msg)
+            wiringpi.pwmWrite(18,pwm)
         except Exception as e:
             log(f"Error during servo command: {e}")
 
