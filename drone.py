@@ -54,6 +54,7 @@ class Drone:
     def is_wifi_connected(self):
         try:
             subprocess.check_output(['ping', '-c', '1', '-W', '1', '192.0.0.2'])
+            time.sleep(2)
             return True
         except subprocess.CalledProcessError:
             return False
@@ -67,20 +68,21 @@ class Drone:
             try:
                 self.altitude = self.vehicle.location.global_relative_frame.alt
                 self.battery = self.vehicle.battery.voltage
-                print('{}Current altitude : {}m\nCurrent Battery {}V\n Alt Difference {}'.format(self.name, self.altitude, self.battery, self.altitude - self.posalt))
-                print("Wifi Connection : {}".format(str(self.is_wifi_connected())))
+                self.wifi_status = self.is_wifi_connected()
+                print('{} Current altitude : {}m\nCurrent Battery {}V\nAlt Difference {}'.format(self.name, self.altitude, self.battery, self.altitude - self.posalt))
+                print("Wifi Connection : {}".format(str(self.wifi_status)))
 
                 if not self.is_wifi_connected():
-                    print("{}Wi-Fi connection lost! Initiating landing.".format(self.name))
+                    print("{} Wi-Fi connection lost! Initiating landing.".format(self.name))
                     self.land()
                     self.disarm()
                     break
                 if self.altitude > 5:
-                    print("{}Altitude greater than 5 meters! Initiating landing.".format(self.name))
+                    print("{} Altitude greater than 5 meters! Initiating landing.".format(self.name))
                     self.land()
                     break 
                 if self.battery < 10.5:
-                    print("{}Battery LOW, Landing".format(self.name))
+                    print("{} Battery LOW, Landing".format(self.name))
                     self.land()
                 if self.altitude > self.posalt+0.2:
                     velocity_z = self.altitude-self.posalt
