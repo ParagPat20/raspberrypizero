@@ -51,10 +51,10 @@ class Drone:
         self.drone_baud = baud
         self.name = name
         self.posalt = 2
+        self.in_air = False
 
     def is_wifi_connected(self):
         try:
-            print("Wifi Checking")    
             wifi.send_string("check")  # Sending a message to the server
             poller = zmq.Poller()
             poller.register(wifi, zmq.POLLIN)
@@ -93,16 +93,11 @@ class Drone:
                 if self.battery < 10.5:
                     print("{} Battery LOW, Landing".format(self.name))
                     self.land()
-                if self.altitude > self.posalt+0.2:
-                    velocity_z = self.altitude-self.posalt
-                    velocity_z = 0.3*velocity_z
-                    self.send_ned_velocity_drone(0,0,velocity_z)
-                if self.altitude < self.posalt-0.2:
-                    velocity_z = self.altitude-self.posalt
-                    velocity_z = 0.3*velocity_z
-                    self.send_ned_velocity_drone(0,0,velocity_z)
+                if abs(self.altitude - self.posalt) > 0.2 and self.in_air:
+                    velocity_z = (self.altitude - self.posalt) * 0.3
+                    self.send_ned_velocity_drone(0, 0, velocity_z)
 
-                time.sleep(2)
+                time.sleep(8)
             except Exception as e:
                 log("{} Security Error : {}".format(self.name,e))
 
@@ -187,6 +182,7 @@ class Drone:
                 if time.time() - start_time > TIMEOUT_SECONDS:
                     break
                 time.sleep(1)
+            self.in_air = True
         except Exception as e:
             log(f"Error during takeoff: {e}")
 
@@ -292,6 +288,7 @@ class Drone:
         try:
             self.vehicle.mode = VehicleMode("LAND")
             log("Landing")
+            self.in_air = False
         except Exception as e:
             log(f"Error during landing: {e}")
 
@@ -306,6 +303,7 @@ class Drone:
         try:
             self.vehicle.mode = VehicleMode("RTL")
             log("Drone currently in RTL")
+            self.in_air = False
         except Exception as e:
             log(f"Error during RTL mode setting: {e}")
 
