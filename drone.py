@@ -40,8 +40,6 @@ ctrl_port = 54321
 drone_list = []
 wait_for_command = True
 immediate_command_str = None
-wifi = context.socket(zmq.REQ)
-wifi.connect('tcp://192.168.207.101:8888')
 
 class Drone:
     
@@ -56,6 +54,8 @@ class Drone:
 
     def is_wifi_connected(self):
         try:
+            wifi = context.socket(zmq.REQ)
+            wifi.connect('tcp://192.168.207.101:8888')
             wifi.send_string("check")  # Sending a message to the server
             poller = zmq.Poller()
             poller.register(wifi, zmq.POLLIN)
@@ -68,6 +68,9 @@ class Drone:
         except Exception as e:
             print(f"Error checking Wi-Fi: {e}")
             return False
+        finally:
+            if wifi:
+                wifi.close()
 
     def security(self):
         self.altitude = self.vehicle.location.global_relative_frame.alt
