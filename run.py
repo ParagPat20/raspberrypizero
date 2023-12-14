@@ -75,6 +75,7 @@ while True:
         log(f"Error: {e}")
     except KeyboardInterrupt:
         log("KeyboardInterrupt")
+        msg_socket.close()
 
 
 
