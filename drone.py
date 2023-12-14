@@ -79,7 +79,7 @@ class Drone:
                 self.battery = self.vehicle.battery.voltage
                 self.wifi_status = self.is_wifi_connected()
                 self.mode = self.vehicle.mode()
-                print('{} Current altitude : {}m\nCurrent Battery {}V\nAlt Difference {}\nWifi Status {}\n{}'.format(self.name, self.altitude, self.battery, self.altitude - self.posalt, str(self.wifi_status), self.mode))
+                log('{} Current altitude : {}m\nCurrent Battery {}V\nAlt Difference {}\nWifi Status {}\n{}'.format(self.name, self.altitude, self.battery, self.altitude - self.posalt, str(self.wifi_status), self.mode))
                 if not self.is_wifi_connected():
                     print("{} Wi-Fi connection lost! Initiating landing.".format(self.name))
                     self.land()
