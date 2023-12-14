@@ -62,7 +62,7 @@ log("CD2 Server started, have fun!")
 
 while True:
     try:
-        # Use zmq to receive messages
+        print("CD2 waiting for commands")
         immediate_command_str = msg_socket.recv_string()
 
         print('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
