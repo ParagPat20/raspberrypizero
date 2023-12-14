@@ -510,7 +510,9 @@ def log(immediate_command_str):
     host = pc
 
     if host not in connected_hosts:
+        print(" New PC Host Found")
         context = zmq.Context()
+        print("Creating PC Host CLients")
         socket1 = context.socket(zmq.PUSH)
         socket1.connect(f"tcp://{host}:5556")
         socket2 = context.socket(zmq.PUSH)
@@ -524,11 +526,13 @@ def log(immediate_command_str):
         socket6 = context.socket(zmq.PUSH)
         socket6.connect(f"tcp://{host}:5556")
         clients[host] = [socket1,socket2,socket3,socket4,socket5,socket6]
+        print(f"PC Host Clients are {clients}")
         connected_hosts.add(host)
 
     random_socket = random.choice(clients[host])
     immediate_command_str = str(immediate_command_str)
     random_socket.send_string(immediate_command_str)
+    print(f"{immediate_command_str} sent using {random_socket} client")
 
 
 # import sys

@@ -65,7 +65,7 @@ while True:
         # Use zmq to receive messages
         immediate_command_str = msg_socket.recv_string()
 
-        log('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
+        print('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
         command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
         command_thread.start()
 
