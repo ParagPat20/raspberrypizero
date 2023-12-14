@@ -40,7 +40,8 @@ ctrl_port = 54321
 drone_list = []
 wait_for_command = True
 immediate_command_str = None
-
+wifi = context.socket(zmq.REQ)
+wifi.connect('tcp://192.168.207.101:8888')
 
 class Drone:
     
@@ -53,10 +54,18 @@ class Drone:
 
     def is_wifi_connected(self):
         try:
-            subprocess.check_output(['ping', '-c', '1', '-W', '1', '192.0.0.2'])
-            time.sleep(2)
-            return True
-        except subprocess.CalledProcessError:
+            print("Wifi Checking")    
+            wifi.send_string("check")  # Sending a message to the server
+            poller = zmq.Poller()
+            poller.register(wifi, zmq.POLLIN)
+            socks = dict(poller.poll(3000))
+
+            if wifi in socks and socks[wifi] == zmq.POLLIN:
+                response = wifi.recv_string()  # Waiting for a response from the server
+            return response == "Connected"
+
+        except Exception as e:
+            print(f"Error checking Wi-Fi: {e}")
             return False
 
     def security(self):
