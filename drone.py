@@ -78,9 +78,8 @@ class Drone:
                 self.altitude = self.vehicle.location.global_relative_frame.alt
                 self.battery = self.vehicle.battery.voltage
                 self.wifi_status = self.is_wifi_connected()
-                print('{} Current altitude : {}m\nCurrent Battery {}V\nAlt Difference {}'.format(self.name, self.altitude, self.battery, self.altitude - self.posalt))
-                print("Wifi Connection : {}".format(str(self.wifi_status)))
-
+                self.mode = self.vehicle.mode()
+                print('{} Current altitude : {}m\nCurrent Battery {}V\nAlt Difference {}\nWifi Status {}\n{}'.format(self.name, self.altitude, self.battery, self.altitude - self.posalt, str(self.wifi_status), self.mode))
                 if not self.is_wifi_connected():
                     print("{} Wi-Fi connection lost! Initiating landing.".format(self.name))
                     self.land()
@@ -94,7 +93,6 @@ class Drone:
                     print("{} Battery LOW, Landing".format(self.name))
                     self.land()
                 if abs(self.altitude - self.posalt) > 0.2 and self.in_air:
-                    print("Drone Flying ",self.in_air)
                     velocity_z = (self.altitude - self.posalt) * 0.3
                     self.send_ned_velocity_drone(0, 0, velocity_z)
 
