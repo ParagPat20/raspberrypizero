@@ -44,10 +44,12 @@ immediate_command_str = None
 
 class Drone:
     
-    def __init__(self,connection_string, baud=None):
+    def __init__(self,name,connection_string, baud=None):
         self.vehicle = connect(connection_string, baud = baud)
         self.drone_user = connection_string
         self.drone_baud = baud
+        self.name = name
+        self.posalt = 2
 
     def is_wifi_connected(self):
         try:
@@ -60,24 +62,33 @@ class Drone:
     def security(self):
         self.altitude = self.vehicle.location.global_relative_frame.alt
         self.battery = self.vehicle.battery.voltage
-        log("Security checkup started!")
+        log(f"{self.name}'s Security checkup started!")
         while True:
             self.altitude = self.vehicle.location.global_relative_frame.alt
             self.battery = self.vehicle.battery.voltage
-            log('Current altitude : {}m\nCurrent Battery {}V'.format(self.altitude,self.battery))
+            log('{}Current altitude : {}m\nCurrent Battery {}V'.format(self.name,self.altitude,self.battery))
             if not self.is_wifi_connected():
-                log("Wi-Fi connection lost! Initiating landing.")
+                log(f"{self.name}Wi-Fi connection lost! Initiating landing.")
                 self.land()
                 self.disarm()
                 break
             if self.altitude > 5:
-                log("Altitude greater than 5 meters! Initiating landing.")
+                log(f"{self.name}Altitude greater than 5 meters! Initiating landing.")
                 self.land()
                 break 
             if self.battery < 10.5:
-                log("Battery LOW, Landing")
+                log(f"{self.name}Battery LOW, Landing")
                 self.land()
-            time.sleep(5)
+            if self.altitude > self.posalt+0.2:
+                velocity_z = self.altitude-self.posalt
+                velocity_z = 0.3*velocity_z
+                self.send_ned_velocity_drone(0,0,velocity_z)
+            if self.altitude < self.posalt-0.2:
+                velocity_z = self.altitude-self.posalt
+                velocity_z = 0.3*velocity_z
+                self.send_ned_velocity_drone(0,0,velocity_z)
+            log(f"{self.name} Alt Difference {self.altitude - self.posalt}")
+            time.sleep(2)
 
     # def send_status(self, local_host, status_port):
     #     def handle_clients(client_connection, client_address):
@@ -147,6 +158,7 @@ class Drone:
             self.vehicle.simple_takeoff(alt)
             start_time = time.time()
             TIMEOUT_SECONDS = 15
+            self.posalt = alt
             while True:
                 current_altitude = self.vehicle.location.global_relative_frame.alt
                 if current_altitude is not None:
@@ -182,6 +194,7 @@ class Drone:
             self.vehicle.send_mavlink(msg)
 
 
+
         except Exception as e:
             log(f"Error sending velocity commands: {e}")
 
@@ -195,7 +208,8 @@ class Drone:
             self.send_ned_velocity_drone(0,0,0)
             
         else:
-            self.send_ned_velocity_drone(x,y,z)
+            self.send_ned_velocity_drone(x,y,0)
+            self.poshold -= z
 
     def yaw(self, heading):
         try:

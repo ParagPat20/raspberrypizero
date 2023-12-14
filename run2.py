@@ -73,6 +73,11 @@ while True:
         log(f"ZMQ Error: {zmq_error}")
     except Exception as e:
         log(f"Error: {e}")
+    except KeyboardInterrupt:
+        log("KeyboardInterrupt")
+    finally:
+        msg_socket.close()
+        context.term()
 
 
 ##########################################################################################################################
