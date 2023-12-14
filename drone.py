@@ -88,7 +88,8 @@ class Drone:
                 velocity_z = self.altitude-self.posalt
                 velocity_z = 0.3*velocity_z
                 self.send_ned_velocity_drone(0,0,velocity_z)
-            log("{} Alt Difference {self.altitude - self.posalt}".format(self.name))
+            log("{} Alt Difference {}".format(self.name, self.altitude - self.posalt))
+
             time.sleep(2)
 
     # def send_status(self, local_host, status_port):
