@@ -210,7 +210,7 @@ class Drone:
             
         else:
             self.send_ned_velocity_drone(x,y,0)
-            self.poshold -= float(z)
+            self.posalt = float(self.posalt) - float(z)
 
     def yaw(self, heading):
         try:
