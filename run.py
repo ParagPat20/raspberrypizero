@@ -31,8 +31,8 @@ def drone_list_update(cmd):
 
 def execute_command(immediate_command_str):
     try:
-        log('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
         exec(immediate_command_str)
+        log('{} - command {} executed successfully'.format(time.ctime(), immediate_command_str))
 
     except Exception as e:
         log(f"MCU_Host: Error in execute_command: {e}")
@@ -64,7 +64,6 @@ while True:
     try:
         # Use zmq to receive messages
         immediate_command_str = msg_socket.recv_string()
-
         log('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
         command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
         command_thread.start()
