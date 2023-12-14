@@ -87,11 +87,9 @@ class Drone:
                     print("{} Wi-Fi connection lost! Initiating landing.".format(self.name))
                     self.land()
                     self.disarm()
-                    break
                 if self.altitude > 5:
                     log("{} Altitude greater than 5 meters! Initiating landing.".format(self.name))
                     self.land()
-                    break 
                 if self.battery < 10.5:
                     log("{} Battery LOW, Landing".format(self.name))
                     self.land()
@@ -100,9 +98,10 @@ class Drone:
                     self.send_ned_velocity_drone(0, 0, velocity_z)
                 if self.no_vel_cmds:
                     self.send_ned_velocity_drone(-velx,-vely,0)
-                time.sleep(1)
+                time.sleep(3)
             except Exception as e:
                 log("{} Security Error : {}".format(self.name,e))
+                pass
 
     # def send_status(self, local_host, status_port):
     #     def handle_clients(client_connection, client_address):
