@@ -69,6 +69,7 @@ class Drone:
                 self.altitude = self.vehicle.location.global_relative_frame.alt
                 self.battery = self.vehicle.battery.voltage
                 log('{}Current altitude : {}m\nCurrent Battery {}V\n Alt Difference {}'.format(self.name, self.altitude, self.battery, self.altitude - self.posalt))
+                log("Wifi Connection : {}".format(str(self.is_wifi_connected())))
 
                 if not self.is_wifi_connected():
                     log("{}Wi-Fi connection lost! Initiating landing.".format(self.name))
