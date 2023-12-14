@@ -53,7 +53,7 @@ class Drone:
 
     def is_wifi_connected(self):
         try:
-            subprocess.check_output(['ping', '192.0.0.2'])
+            subprocess.check_output(['ping', '-c', '1', '-W', '1', '192.0.0.2'])
             return True
         except subprocess.CalledProcessError:
             return False
