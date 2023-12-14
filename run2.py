@@ -43,9 +43,9 @@ def initialize_CD2():
     try:
         global d1, CD2, CD2_initialized
         if not CD2 and not CD2_initialized:
-            CD2 = Drone('/dev/serial0', 115200)
-            d1 = CD2
             d1_str = 'CD2'
+            CD2 = Drone(d1_str,'/dev/serial0', 115200)
+            d1 = CD2
             log("CD2 Connected")
             # threading.Thread(target=CD2.send_status, args=(CD2_host,60003,)).start()
             threading.Thread(target=CD2.security).start()
