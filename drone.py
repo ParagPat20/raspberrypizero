@@ -94,6 +94,7 @@ class Drone:
                     print("{} Battery LOW, Landing".format(self.name))
                     self.land()
                 if abs(self.altitude - self.posalt) > 0.2 and self.in_air:
+                    print("Drone Flying ",self.in_air)
                     velocity_z = (self.altitude - self.posalt) * 0.3
                     self.send_ned_velocity_drone(0, 0, velocity_z)
 
