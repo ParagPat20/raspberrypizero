@@ -1,12 +1,13 @@
 from drone import Drone
+import zmq
+import time
+import threading
 from drone import *
-
-
 
 cmd_port = 12345
 ctrl_port = 54321
 status_port = 60003
-local_host = CD2_host
+local_host = 'CD2_host'  # Make sure CD2_host is defined somewhere
 
 CD2 = None
 
@@ -62,22 +63,19 @@ def initialize_CD2():
 log("CD2 Server started, have fun!")
 ##########################################################################################################################
 
-while True:
-    try:
+try:
+    while True:
         immediate_command_str = msg_socket.recv_string()
         print('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
         command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
         command_thread.start()
 
-    except zmq.ZMQError as zmq_error:
-        log(f"ZMQ Error: {zmq_error}")
-    except Exception as e:
-        log(f"Error: {e}")
-    except KeyboardInterrupt:
-        log("KeyboardInterrupt")
-    finally:
-        msg_socket.close()
-        context.term()
-
-
-##########################################################################################################################
+except zmq.ZMQError as zmq_error:
+    log(f"ZMQ Error: {zmq_error}")
+except Exception as e:
+    log(f"Error: {e}")
+except KeyboardInterrupt:
+    log("KeyboardInterrupt")
+finally:
+    msg_socket.close()
+    context.term()
