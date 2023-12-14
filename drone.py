@@ -69,16 +69,16 @@ class Drone:
             self.battery = self.vehicle.battery.voltage
             log('{}Current altitude : {}m\nCurrent Battery {}V\n{self.name} Alt Difference {}'.format(self.name,self.altitude,self.battery,self.altitude - self.posalt))
             if not self.is_wifi_connected():
-                log(f"{self.name}Wi-Fi connection lost! Initiating landing.")
+                log("{}Wi-Fi connection lost! Initiating landing.".format(self.name))
                 self.land()
                 self.disarm()
                 break
             if self.altitude > 5:
-                log(f"{self.name}Altitude greater than 5 meters! Initiating landing.")
+                log("{}Altitude greater than 5 meters! Initiating landing.".format(self.name))
                 self.land()
                 break 
             if self.battery < 10.5:
-                log(f"{self.name}Battery LOW, Landing")
+                log("{}Battery LOW, Landing".format(self.name))
                 self.land()
             if self.altitude > self.posalt+0.2:
                 velocity_z = self.altitude-self.posalt
@@ -88,7 +88,7 @@ class Drone:
                 velocity_z = self.altitude-self.posalt
                 velocity_z = 0.3*velocity_z
                 self.send_ned_velocity_drone(0,0,velocity_z)
-            log(f"{self.name} Alt Difference {self.altitude - self.posalt}")
+            log("{} Alt Difference {self.altitude - self.posalt}".format(self.name))
             time.sleep(2)
 
     # def send_status(self, local_host, status_port):
