@@ -65,32 +65,34 @@ class Drone:
         log(f"{self.name}'s Security checkup started!")
 
         while True:
-            self.altitude = self.vehicle.location.global_relative_frame.alt
-            self.battery = self.vehicle.battery.voltage
-            log('{}Current altitude : {}m\nCurrent Battery {}V\n{self.name} Alt Difference {}'.format(self.name,self.altitude,self.battery,self.altitude - self.posalt))
-            if not self.is_wifi_connected():
-                log("{}Wi-Fi connection lost! Initiating landing.".format(self.name))
-                self.land()
-                self.disarm()
-                break
-            if self.altitude > 5:
-                log("{}Altitude greater than 5 meters! Initiating landing.".format(self.name))
-                self.land()
-                break 
-            if self.battery < 10.5:
-                log("{}Battery LOW, Landing".format(self.name))
-                self.land()
-            if self.altitude > self.posalt+0.2:
-                velocity_z = self.altitude-self.posalt
-                velocity_z = 0.3*velocity_z
-                self.send_ned_velocity_drone(0,0,velocity_z)
-            if self.altitude < self.posalt-0.2:
-                velocity_z = self.altitude-self.posalt
-                velocity_z = 0.3*velocity_z
-                self.send_ned_velocity_drone(0,0,velocity_z)
-            log("{} Alt Difference {}".format(self.name, self.altitude - self.posalt))
+            try:
+                self.altitude = self.vehicle.location.global_relative_frame.alt
+                self.battery = self.vehicle.battery.voltage
+                log('{}Current altitude : {}m\nCurrent Battery {}V\n Alt Difference {}'.format(self.name,self.altitude,self.battery,self.altitude - self.posalt))
+                if not self.is_wifi_connected():
+                    log("{}Wi-Fi connection lost! Initiating landing.".format(self.name))
+                    self.land()
+                    self.disarm()
+                    break
+                if self.altitude > 5:
+                    log("{}Altitude greater than 5 meters! Initiating landing.".format(self.name))
+                    self.land()
+                    break 
+                if self.battery < 10.5:
+                    log("{}Battery LOW, Landing".format(self.name))
+                    self.land()
+                if self.altitude > self.posalt+0.2:
+                    velocity_z = self.altitude-self.posalt
+                    velocity_z = 0.3*velocity_z
+                    self.send_ned_velocity_drone(0,0,velocity_z)
+                if self.altitude < self.posalt-0.2:
+                    velocity_z = self.altitude-self.posalt
+                    velocity_z = 0.3*velocity_z
+                    self.send_ned_velocity_drone(0,0,velocity_z)
 
-            time.sleep(2)
+                time.sleep(2)
+            except Exception as e:
+                log("{} Security Error : {}".format(self.name,e))
 
     # def send_status(self, local_host, status_port):
     #     def handle_clients(client_connection, client_address):
