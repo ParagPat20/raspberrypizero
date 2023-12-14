@@ -52,7 +52,7 @@ class Drone:
         self.name = name
         self.posalt = 2
         self.in_air = False
-        self.no_vel_cmds = False
+        self.no_vel_cmds = True
 
     def is_wifi_connected(self):
         try:
@@ -100,7 +100,7 @@ class Drone:
                     self.send_ned_velocity_drone(0, 0, velocity_z)
                 if self.no_vel_cmds:
                     self.send_ned_velocity_drone(-velx,-vely,0)
-                time.sleep(8)
+                time.sleep(1)
             except Exception as e:
                 log("{} Security Error : {}".format(self.name,e))
 
@@ -208,12 +208,11 @@ class Drone:
 
             self.vehicle.send_mavlink(msg)
 
-
-
         except Exception as e:
             log(f"Error sending velocity commands: {e}")
 
     def send_ned_velocity(self, x, y, z, duration = None):
+        self.no_vel_cmds = False
         if duration:
             for i in range(0,duration):
                 self.send_ned_velocity_drone(x,y,z)
@@ -221,10 +220,13 @@ class Drone:
                 time.sleep(1)
 
             self.send_ned_velocity_drone(0,0,0)
+            self.no_vel_cmds = True
             
         else:
             self.send_ned_velocity_drone(x,y,0)
             self.posalt = float(self.posalt) - float(z)
+            time.sleep(0.5)
+            self.no_vel_cmds = True
 
     def yaw(self, heading):
         try:
