@@ -7,7 +7,7 @@ from drone import *
 cmd_port = 12345
 ctrl_port = 54321
 status_port = 60003
-local_host = 'CD2_host'  # Make sure CD2_host is defined somewhere
+local_host = CD2_host  # Make sure CD2_host is defined somewhere
 
 CD2 = None
 
