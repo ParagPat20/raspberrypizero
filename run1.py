@@ -5,7 +5,7 @@ from drone import *
 
 cmd_port = 12345
 ctrl_port = 54321
-status_port = 60002
+status_port = 60001
 local_host = CD1_host
 
 CD1 = None
@@ -31,8 +31,8 @@ def drone_list_update(cmd):
 
 def execute_command(immediate_command_str):
     try:
-        log('{} - Immediate command is: {}'.format(time.ctime(), immediate_command_str))
         exec(immediate_command_str)
+        log('{} - command {} executed successfully'.format(time.ctime(), immediate_command_str))
 
     except Exception as e:
         log(f"CD1_Host: Error in execute_command: {e}")
@@ -43,12 +43,14 @@ def initialize_CD1():
     try:
         global d1, CD1, CD1_initialized
         if not CD1 and not CD1_initialized:
-            CD1 = Drone('/dev/serial0', 115200)
-            d1 = CD1
             d1_str = 'CD1'
+            CD1 = Drone(d1_str,'/dev/serial0', 115200)
+            d1 = CD1
             log("CD1 Connected")
             # threading.Thread(target=CD1.send_status, args=(CD1_host,60003,)).start()
+            threading.Thread(target=CD1.security).start()
             CD1_initialized=True
+            
         log("CD1 getting ready for the params...")
         time.sleep(2) #getting ready for params
         CD1.get_vehicle_state()
@@ -62,10 +64,8 @@ log("CD1 Server started, have fun!")
 
 while True:
     try:
-        # Use zmq to receive messages
         immediate_command_str = msg_socket.recv_string()
-
-        log('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
+        print('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
         command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
         command_thread.start()
 
@@ -73,6 +73,10 @@ while True:
         log(f"ZMQ Error: {zmq_error}")
     except Exception as e:
         log(f"Error: {e}")
+    except KeyboardInterrupt:
+        log("KeyboardInterrupt")
+        msg_socket.close()
+
 
 
 ##########################################################################################################################
