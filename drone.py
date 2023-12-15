@@ -80,32 +80,32 @@ class Drone:
     
 
     def poshold_guided(self):
-        while self.in_air:
+        while True:
             self.altitude = self.vehicle.location.global_relative_frame.alt
             velx = self.vehicle.velocity[0]
             vely = self.vehicle.velocity[1]
             log("Current Altitude {}".format(self.altitude))
+            if self.in_air:
+                if abs(self.altitude - self.posalt) > 0.2:
+                    velocity_z = (self.altitude - self.posalt) * 0.7
+                    self.send_ned_velocity_drone(0, 0, velocity_z)
 
-            if abs(self.altitude - self.posalt) > 0.2:
-                velocity_z = (self.altitude - self.posalt) * 0.7
-                self.send_ned_velocity_drone(0, 0, velocity_z)
+                if self.no_vel_cmds:
+                    # Use PID controllers for velx and vely
+                    pid_output_velx = self.calculate_pid_output(velx, self.pid_velx, 'velx')
+                    pid_output_vely = self.calculate_pid_output(vely, self.pid_vely, 'vely')
 
-            if self.no_vel_cmds:
-                # Use PID controllers for velx and vely
-                pid_output_velx = self.calculate_pid_output(velx, self.pid_velx, 'velx')
-                pid_output_vely = self.calculate_pid_output(vely, self.pid_vely, 'vely')
+                    if pid_output_velx > 2:
+                        pid_output_velx = 2
+                    if pid_output_vely > 2:
+                        pid_output_vely = 2
+                    if pid_output_velx < -2:
+                        pid_output_velx = -2
+                    if pid_output_vely < -2:
+                        pid_output_vely = -2
 
-                if pid_output_velx > 2:
-                    pid_output_velx = 2
-                if pid_output_vely > 2:
-                    pid_output_vely = 2
-                if pid_output_velx < -2:
-                    pid_output_velx = -2
-                if pid_output_vely < -2:
-                    pid_output_vely = -2
-
-                self.send_ned_velocity_drone(pid_output_velx, pid_output_vely, 0)
-                time.sleep(0.1)
+                    self.send_ned_velocity_drone(pid_output_velx, pid_output_vely, 0)
+            time.sleep(0.1)
 
     def calculate_pid_output(self, current_value, pid_params, axis):
         # Proportional term
