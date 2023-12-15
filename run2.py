@@ -5,7 +5,7 @@ from drone import *
 
 cmd_port = 12345
 ctrl_port = 54321
-status_port = 60001
+status_port = 60003
 local_host = CD2_host
 
 CD2 = None
@@ -47,6 +47,7 @@ def initialize_CD2():
             CD2 = Drone(d1_str,'/dev/serial0', 115200)
             d1 = CD2
             log("CD2 Connected")
+            time.sleep(2)
             CD2.get_vehicle_state()
             # threading.Thread(target=CD2.send_status, args=(CD2_host,60003,)).start()
             threading.Thread(target=CD2.security).start()
