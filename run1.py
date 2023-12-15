@@ -47,6 +47,7 @@ def initialize_CD1():
             CD1 = Drone(d1_str,'/dev/serial0', 115200)
             d1 = CD1
             log("CD1 Connected")
+            time.sleep(2)
             CD1.get_vehicle_state()
             # threading.Thread(target=CD1.send_status, args=(CD1_host,60003,)).start()
             threading.Thread(target=CD1.security).start()
