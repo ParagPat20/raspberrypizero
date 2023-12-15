@@ -101,7 +101,7 @@ class Drone:
                     self.send_ned_velocity_drone(0, 0, velocity_z)
                 if self.no_vel_cmds:
                     self.send_ned_velocity_drone(-velx,-vely,0)
-                time.sleep(3)
+                time.sleep(1)
             except Exception as e:
                 log("sec {} Security Error : {}".format(self.name,e))
                 pass
