@@ -51,8 +51,8 @@ class Drone:
         self.posalt = 2
         self.in_air = False
         self.no_vel_cmds = True
-        self.pid_velx = {'P': 1, 'I': 0, 'D': 0.1}
-        self.pid_vely = {'P': 1, 'I': 0, 'D': 0.1}
+        self.pid_velx = {'P': 1, 'I': 0.1, 'D': 0.1}
+        self.pid_vely = {'P': 1, 'I': 0.1, 'D': 0.1}
         self.prev_error_velx = 0.0
         self.prev_error_vely = 0.0
         self.integral_velx = 0.0
@@ -85,11 +85,8 @@ class Drone:
             velx = self.vehicle.velocity[0]
             vely = self.vehicle.velocity[1]
             log("Current Altitude {}".format(self.altitude))
+            velocity_z = 0
             if self.in_air:
-                if abs(self.altitude - self.posalt) > 0.2:
-                    velocity_z = (self.altitude - self.posalt) * 0.7
-                    self.send_ned_velocity_drone(0, 0, velocity_z)
-
                 if self.no_vel_cmds:
                     # Use PID controllers for velx and vely
                     pid_output_velx = self.calculate_pid_output(velx, self.pid_velx, 'velx')
@@ -104,8 +101,12 @@ class Drone:
                     if pid_output_vely < -2:
                         pid_output_vely = -2
 
-                    self.send_ned_velocity_drone(pid_output_velx, pid_output_vely, 0)
-            time.sleep(0.1)
+                    if abs(self.altitude - self.posalt) > 0.1 and self.no_vel_cmds:
+                        velocity_z = (self.altitude - self.posalt) * 0.9
+                    
+                    self.send_ned_velocity_drone(pid_output_velx, pid_output_vely, velocity_z)
+
+            time.sleep(1)
 
     def calculate_pid_output(self, current_value, pid_params, axis):
         # Proportional term
