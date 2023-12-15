@@ -97,7 +97,7 @@ class Drone:
                 velx = self.vehicle.velocity[0]
                 vely = self.vehicle.velocity[1]
                 log('sec {} Current altitude : {}m\n      Current Battery {}V\n      Alt Difference {}\n      Wifi Status {}\n{}'.format(self.name, self.altitude, self.battery, self.altitude - self.posalt, str(self.wifi_status), str(self.mode)))
-                if not self.is_wifi_connected():
+                if not self.wifi_status:
                     print("{} Wi-Fi connection lost! Initiating landing.".format(self.name))
                     self.land()
                     self.disarm()
