@@ -84,6 +84,7 @@ class Drone:
             self.altitude = self.vehicle.location.global_relative_frame.alt
             velx = self.vehicle.velocity[0]
             vely = self.vehicle.velocity[1]
+            log("Current Altitude {}".format(self.altitude))
 
             if abs(self.altitude - self.posalt) > 0.2:
                 velocity_z = (self.altitude - self.posalt) * 0.7
