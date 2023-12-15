@@ -85,16 +85,16 @@ class Drone:
                 self.mode = self.vehicle.mode
                 velx = self.vehicle.velocity[0]
                 vely = self.vehicle.velocity[1]
-                log('{} Current altitude : {}m\nCurrent Battery {}V\nAlt Difference {}\nWifi Status {}\n{}'.format(self.name, self.altitude, self.battery, self.altitude - self.posalt, str(self.wifi_status), str(self.mode)))
+                log('sec {} Current altitude : {}m\nCurrent Battery {}V\nAlt Difference {}\nWifi Status {}\n{}'.format(self.name, self.altitude, self.battery, self.altitude - self.posalt, str(self.wifi_status), str(self.mode)))
                 if not self.is_wifi_connected():
                     print("{} Wi-Fi connection lost! Initiating landing.".format(self.name))
                     self.land()
                     self.disarm()
                 if self.altitude > 5:
-                    log("{} Altitude greater than 5 meters! Initiating landing.".format(self.name))
+                    log("sec {} Altitude greater than 5 meters! Initiating landing.".format(self.name))
                     self.land()
                 if self.battery < 10.5:
-                    log("{} Battery LOW, Landing".format(self.name))
+                    log("sec {} Battery LOW, Landing".format(self.name))
                     self.land()
                 if abs(self.altitude - self.posalt) > 0.2 and self.in_air:
                     velocity_z = (self.altitude - self.posalt) * 0.7
@@ -103,7 +103,7 @@ class Drone:
                     self.send_ned_velocity_drone(-velx,-vely,0)
                 time.sleep(3)
             except Exception as e:
-                log("{} Security Error : {}".format(self.name,e))
+                log("sec {} Security Error : {}".format(self.name,e))
                 pass
 
     # def send_status(self, local_host, status_port):
