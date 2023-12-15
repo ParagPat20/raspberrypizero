@@ -47,6 +47,7 @@ def initialize_MCU():
             MCU = Drone(d1_str,'/dev/serial0', 115200)
             d1 = MCU
             log("MCU Connected")
+            time.sleep(2)
             MCU.get_vehicle_state()
             # threading.Thread(target=MCU.send_status, args=(MCU_host,60003,)).start()
             threading.Thread(target=MCU.security).start()

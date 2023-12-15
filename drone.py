@@ -56,14 +56,13 @@ class Drone:
         try:
             wifi = context.socket(zmq.REQ)
             wifi.connect('tcp://192.168.207.101:8888')
-            wifi.send_string("check")  # Sending a message to the server
-            poller = zmq.Poller()
-            poller.register(wifi, zmq.POLLIN)
-            socks = dict(poller.poll(3000))
-
-            if wifi in socks and socks[wifi] == zmq.POLLIN:
-                response = wifi.recv_string()  # Waiting for a response from the server
-            return response == "Connected"
+            wifi.send_string("check")
+            response1 = wifi.recv_string()
+            wifi.send_string("check")
+            response2 = wifi.recv_string()
+            wifi.send_string("check")
+            response3 = wifi.recv_string()
+            return response1 == "Connected" or response2 == "Connected" or response3 == "Connected"
 
         except Exception as e:
             print(f"Error checking Wi-Fi: {e}")
@@ -72,11 +71,7 @@ class Drone:
             if wifi:
                 wifi.close()
 
-    def security(self):
-        self.altitude = self.vehicle.location.global_relative_frame.alt
-        self.battery = self.vehicle.battery.voltage
-        log(f"{self.name}'s Security checkup started!")
-        def poshold_guided():
+    def poshold_guided(self):
             self.altitude = self.vehicle.location.global_relative_frame.alt
             velx = self.vehicle.velocity[0]
             vely = self.vehicle.velocity[1]
@@ -86,7 +81,12 @@ class Drone:
             if self.no_vel_cmds:
                 self.send_ned_velocity_drone(-velx,-vely,0)
                 time.sleep(1)
-        threading.Thread(target=poshold_guided).start()
+
+    def security(self):
+        self.altitude = self.vehicle.location.global_relative_frame.alt
+        self.battery = self.vehicle.battery.voltage
+        log(f"{self.name}'s Security checkup started!")
+        threading.Thread(target=self.poshold_guided).start()
 
         while True:
             try:
