@@ -51,6 +51,12 @@ class Drone:
         self.posalt = 2
         self.in_air = False
         self.no_vel_cmds = True
+        self.pid_velx = {'P': 1.0, 'I': 0.1, 'D': 0.05}
+        self.pid_vely = {'P': 1.0, 'I': 0.1, 'D': 0.05}
+        self.prev_error_velx = 0.0
+        self.prev_error_vely = 0.0
+        self.integral_velx = 0.0
+        self.integral_vely = 0.0
 
     def is_wifi_connected(self):
         try:
@@ -71,17 +77,43 @@ class Drone:
             if wifi:
                 wifi.close()
 
+    
+
     def poshold_guided(self):
-            while self.in_air:
-                self.altitude = self.vehicle.location.global_relative_frame.alt
-                velx = self.vehicle.velocity[0]
-                vely = self.vehicle.velocity[1]
-                if abs(self.altitude - self.posalt) > 0.2:
-                    velocity_z = (self.altitude - self.posalt) * 0.7
-                    self.send_ned_velocity_drone(0, 0, velocity_z)
-                if self.no_vel_cmds:
-                    self.send_ned_velocity_drone(-velx,-vely,0)
-                    time.sleep(0.5)
+        while self.in_air:
+            self.altitude = self.vehicle.location.global_relative_frame.alt
+            velx = self.vehicle.velocity[0]
+            vely = self.vehicle.velocity[1]
+
+            if abs(self.altitude - self.posalt) > 0.2:
+                velocity_z = (self.altitude - self.posalt) * 0.7
+                self.send_ned_velocity_drone(0, 0, velocity_z)
+
+            if self.no_vel_cmds:
+                # Use PID controllers for velx and vely
+                pid_output_velx = self.calculate_pid_output(velx, self.pid_velx, 'velx')
+                pid_output_vely = self.calculate_pid_output(vely, self.pid_vely, 'vely')
+
+                self.send_ned_velocity_drone(-pid_output_velx, -pid_output_vely, 0)
+                time.sleep(0.1)
+
+    def calculate_pid_output(self, current_value, pid_params, axis):
+        # Proportional term
+        error = 0.0 - current_value
+        proportional = pid_params['P'] * error
+
+        # Integral term
+        self.integral_velx += error
+        integral = pid_params['I'] * self.integral_velx
+
+        # Derivative term
+        derivative = pid_params['D'] * (error - self.prev_error_velx)
+        self.prev_error_velx = error
+
+        # Summing up all terms
+        pid_output = proportional + integral + derivative
+
+        return pid_output
 
     def security(self):
         self.altitude = self.vehicle.location.global_relative_frame.alt
