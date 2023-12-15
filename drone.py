@@ -93,8 +93,17 @@ class Drone:
                 # Use PID controllers for velx and vely
                 pid_output_velx = self.calculate_pid_output(velx, self.pid_velx, 'velx')
                 pid_output_vely = self.calculate_pid_output(vely, self.pid_vely, 'vely')
+                
+                if pid_output_velx > 2:
+                    pid_output_velx = 2
+                if pid_output_vely > 2:
+                    pid_output_vely = 2
+                if pid_output_velx < -2:
+                    pid_output_velx = -2
+                if pid_output_vely < -2:
+                    pid_output_vely = -2
 
-                self.send_ned_velocity_drone(-pid_output_velx, -pid_output_vely, 0)
+                self.send_ned_velocity_drone(pid_output_velx, pid_output_vely, 0)
                 time.sleep(0.1)
 
     def calculate_pid_output(self, current_value, pid_params, axis):
