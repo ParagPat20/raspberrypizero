@@ -80,7 +80,7 @@ class Drone:
                     velocity_z = (self.altitude - self.posalt) * 0.7
                     self.send_ned_velocity_drone(0, 0, velocity_z)
                 if self.no_vel_cmds:
-                    self.send_ned_velocity_drone(-velx*0.8,-vely*0.8,0)
+                    self.send_ned_velocity_drone(-velx,-vely,0)
                     time.sleep(1)
 
     def security(self):
