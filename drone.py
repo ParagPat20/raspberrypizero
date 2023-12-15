@@ -99,7 +99,7 @@ class Drone:
                 if abs(self.altitude - self.posalt) > 0.2 and self.in_air:
                     velocity_z = (self.altitude - self.posalt) * 0.7
                     self.send_ned_velocity_drone(0, 0, velocity_z)
-                if self.no_vel_cmds:
+                if self.no_vel_cmds and self.in_air:
                     self.send_ned_velocity_drone(-velx,-vely,0)
                 time.sleep(1)
             except Exception as e:
