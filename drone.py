@@ -81,7 +81,7 @@ class Drone:
                     self.send_ned_velocity_drone(0, 0, velocity_z)
                 if self.no_vel_cmds:
                     self.send_ned_velocity_drone(-velx,-vely,0)
-                    time.sleep(1)
+                    time.sleep(0.5)
 
     def security(self):
         self.altitude = self.vehicle.location.global_relative_frame.alt
