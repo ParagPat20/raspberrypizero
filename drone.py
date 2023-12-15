@@ -51,8 +51,8 @@ class Drone:
         self.posalt = 2
         self.in_air = False
         self.no_vel_cmds = True
-        self.pid_velx = {'P': 1, 'I': 0, 'D': 10}
-        self.pid_vely = {'P': 1, 'I': 0, 'D': 10}
+        self.pid_velx = {'P': 1, 'I': 0, 'D': 0.1}
+        self.pid_vely = {'P': 1, 'I': 0, 'D': 0.1}
         self.prev_error_velx = 0.0
         self.prev_error_vely = 0.0
         self.integral_velx = 0.0
