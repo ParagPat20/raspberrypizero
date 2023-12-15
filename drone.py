@@ -76,6 +76,17 @@ class Drone:
         self.altitude = self.vehicle.location.global_relative_frame.alt
         self.battery = self.vehicle.battery.voltage
         log(f"{self.name}'s Security checkup started!")
+        def poshold_guided():
+            self.altitude = self.vehicle.location.global_relative_frame.alt
+            velx = self.vehicle.velocity[0]
+            vely = self.vehicle.velocity[1]
+            if abs(self.altitude - self.posalt) > 0.2 and self.in_air:
+                velocity_z = (self.altitude - self.posalt) * 0.7
+                self.send_ned_velocity_drone(0, 0, velocity_z)
+            if self.no_vel_cmds and self.in_air:
+                self.send_ned_velocity_drone(-velx,-vely,0)
+                time.sleep(1)
+        threading.Thread(target=poshold_guided).start()
 
         while True:
             try:
@@ -96,12 +107,7 @@ class Drone:
                 if self.battery < 10.5:
                     log("sec {} Battery LOW, Landing".format(self.name))
                     self.land()
-                if abs(self.altitude - self.posalt) > 0.2 and self.in_air:
-                    velocity_z = (self.altitude - self.posalt) * 0.7
-                    self.send_ned_velocity_drone(0, 0, velocity_z)
-                if self.no_vel_cmds and self.in_air:
-                    self.send_ned_velocity_drone(-velx,-vely,0)
-                time.sleep(1)
+                time.sleep(4)
             except Exception as e:
                 log("sec {} Security Error : {}".format(self.name,e))
                 pass
