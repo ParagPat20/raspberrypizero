@@ -111,7 +111,7 @@ class Drone:
                 break
 
 
-            time.sleep(1)
+            time.sleep(0.1)
 
     def calculate_pid_output(self, current_value, pid_params, axis):
         # Proportional term
