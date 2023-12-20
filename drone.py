@@ -111,7 +111,7 @@ class Drone:
                 break
 
 
-            time.sleep(0.1)
+            time.sleep(1)
 
     def calculate_pid_output(self, current_value, pid_params, axis):
         # Proportional term
@@ -302,11 +302,12 @@ class Drone:
                 time.sleep(1)
 
             self.send_ned_velocity_drone(0,0,0)
+            time.sleep(1)
             self.no_vel_cmds = True
             
         else:
             self.send_ned_velocity_drone(x,y,z)
-            time.sleep(0.5)
+            time.sleep(1)
             self.no_vel_cmds = True
 
     def yaw(self, heading):
