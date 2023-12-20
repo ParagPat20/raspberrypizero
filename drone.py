@@ -116,7 +116,7 @@ class Drone:
             if abs(self.altitude - self.posalt) < 0.1:
                 self.alt_ach = True
 
-            time.sleep(1)
+            time.sleep(0.1)
 
     def calculate_pid_output(self, current_value, pid_params, axis):
         # Proportional term
