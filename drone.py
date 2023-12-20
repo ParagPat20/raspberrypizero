@@ -82,6 +82,17 @@ class Drone:
 
     def poshold_guided(self):
         while True:
+
+            if not self.alt_ach:
+                if abs(self.altitude - self.posalt) > 0.1 and self.no_vel_cmds:
+                    velocity_z = (self.altitude - self.posalt) * 0.9
+                    self.send_ned_velocity_drone(0,0, velocity_z)
+
+            if abs(self.altitude - self.posalt) < 0.1:
+                self.alt_ach = True
+            if abs(self.altitude - self.posalt) > 0.1 and self.no_vel_cmds:
+                self.alt_ach = False
+                
             self.altitude = self.vehicle.location.global_relative_frame.alt
             velx = self.vehicle.velocity[0]
             vely = self.vehicle.velocity[1]
@@ -109,15 +120,6 @@ class Drone:
 
                     self.send_ned_velocity_drone(pid_output_velx, pid_output_vely, pid_output_velz)
 
-            if not self.alt_ach:
-                if abs(self.altitude - self.posalt) > 0.1 and self.no_vel_cmds:
-                    velocity_z = (self.altitude - self.posalt) * 0.9
-                    self.send_ned_velocity_drone(0,0, velocity_z)
-
-            if abs(self.altitude - self.posalt) < 0.1:
-                self.alt_ach = True
-            if abs(self.altitude - self.posalt) > 0.1 and self.no_vel_cmds:
-                self.alt_ach = False
 
             time.sleep(0.1)
 
