@@ -92,7 +92,7 @@ class Drone:
                 self.alt_ach = True
             if abs(self.altitude - self.posalt) > 0.1 and self.no_vel_cmds:
                 self.alt_ach = False
-                
+
             self.altitude = self.vehicle.location.global_relative_frame.alt
             velx = self.vehicle.velocity[0]
             vely = self.vehicle.velocity[1]
@@ -166,7 +166,7 @@ class Drone:
         self.altitude = self.vehicle.location.global_relative_frame.alt
         self.battery = self.vehicle.battery.voltage
         log(f"{self.name}'s Security checkup started!")
-        threading.Thread(target=self.poshold_guided).start()
+        # threading.Thread(target=self.poshold_guided).start()
 
         while True:
             try:
