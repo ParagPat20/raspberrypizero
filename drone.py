@@ -50,9 +50,9 @@ class Drone:
         self.posalt = 2
         self.in_air = False
         self.no_vel_cmds = True
-        self.pid_velx = {'P': 0.8, 'I': 0.0, 'D': 0.1}
-        self.pid_vely = {'P': 0.8, 'I': 0.0, 'D': 0.1}
-        self.pid_velz = {'P': 0.8, 'I': 0.0, 'D': 0.1}
+        self.pid_velx = {'P': 1, 'I': 0.1, 'D': 0.1}
+        self.pid_vely = {'P': 1, 'I': 0.1, 'D': 0.1}
+        self.pid_velz = {'P': 1, 'I': 0.1, 'D': 0.1}
         self.prev_error_velx = 0.0
         self.prev_error_vely = 0.0
         self.prev_error_velz = 0.0
@@ -104,7 +104,6 @@ class Drone:
                         pid_output_velz = 2
                     if pid_output_velz > 2:
                         pid_output_velz = 2
-                    log("VelocityZ PID Output : {}".format(pid_output_velz))
 
                     self.send_ned_velocity_drone(pid_output_velx, pid_output_vely, pid_output_velz)
 
