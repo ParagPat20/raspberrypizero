@@ -86,8 +86,7 @@ class Drone:
             velx = self.vehicle.velocity[0]
             vely = self.vehicle.velocity[1]
             velz = self.vehicle.velocity[2]
-            velocity_z = 0
-            if self.in_air and self.alt_ach:
+            if self.in_air:
                 if self.no_vel_cmds:
                     # Use PID controllers for velx and vely
                     pid_output_velx = self.calculate_pid_output(velx, self.pid_velx, 'velx')
