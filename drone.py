@@ -50,9 +50,9 @@ class Drone:
         self.posalt = 2
         self.in_air = False
         self.no_vel_cmds = True
-        self.pid_velx = {'P': 1, 'I': 0.0, 'D': 0.1}
-        self.pid_vely = {'P': 1, 'I': 0.0, 'D': 0.1}
-        self.pid_velz = {'P': 1.1, 'I': 0.0, 'D': 0.1}
+        self.pid_velx = {'P': 1, 'I': 0.1, 'D': 0.01}
+        self.pid_vely = {'P': 1, 'I': 0.1, 'D': 0.01}
+        self.pid_velz = {'P': 1.2, 'I': 0.1, 'D': 0.01}
         self.prev_error_velx = 0.0
         self.prev_error_vely = 0.0
         self.prev_error_velz = 0.0
@@ -116,6 +116,8 @@ class Drone:
 
             if abs(self.altitude - self.posalt) < 0.1:
                 self.alt_ach = True
+            if abs(self.altitude - self.posalt) > 0.1 and self.no_vel_cmds:
+                self.alt_ach = False
 
             time.sleep(0.1)
 
