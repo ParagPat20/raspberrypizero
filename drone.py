@@ -120,6 +120,9 @@ class Drone:
 
                     self.send_ned_velocity_drone(pid_output_velx, pid_output_vely, pid_output_velz)
 
+            if not self.in_air:
+                break
+
 
             time.sleep(0.1)
 
