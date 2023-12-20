@@ -319,7 +319,7 @@ class Drone:
                 0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
 
             self.vehicle.send_mavlink(msg)
-            threading.Thread(target=log,args=("Drone Velocity : {}, {}, {}".format(velocity_x,velocity_y,velocity_z))).start()
+            threading.Thread(target=log,args=("Drone Velocity : {}, {}, {}".format(velocity_x,velocity_y,velocity_z,))).start()
 
         except Exception as e:
             log(f"Error sending velocity commands: {e}")
