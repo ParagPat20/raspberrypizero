@@ -139,7 +139,7 @@ class Drone:
                 if not self.in_air:
                     break
 
-                time.sleep(0.5)
+                time.sleep(0.1)
             except Exception as e:
                 log("Poshold_Guided Error: {}".format(e))
 
