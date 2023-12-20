@@ -52,10 +52,14 @@ class Drone:
         self.no_vel_cmds = True
         self.pid_velx = {'P': 1, 'I': 0.1, 'D': 0.1}
         self.pid_vely = {'P': 1, 'I': 0.1, 'D': 0.1}
+        self.pid_velz = {'P': 1, 'I': 0.1, 'D': 0.1}
         self.prev_error_velx = 0.0
         self.prev_error_vely = 0.0
+        self.prev_error_velz = 0.0
         self.integral_velx = 0.0
         self.integral_vely = 0.0
+        self.integral_velz = 0.0
+        self.alt_ach = False
 
     def is_wifi_connected(self):
         try:
@@ -76,21 +80,19 @@ class Drone:
             if wifi:
                 wifi.close()
 
-    
-
     def poshold_guided(self):
         while True:
             self.altitude = self.vehicle.location.global_relative_frame.alt
             velx = self.vehicle.velocity[0]
             vely = self.vehicle.velocity[1]
-            log("Current Altitude {}".format(self.altitude))
+            velz = self.vehicle.velocity[2]
             velocity_z = 0
-            if self.in_air:
+            if self.in_air and self.alt_ach:
                 if self.no_vel_cmds:
                     # Use PID controllers for velx and vely
                     pid_output_velx = self.calculate_pid_output(velx, self.pid_velx, 'velx')
                     pid_output_vely = self.calculate_pid_output(vely, self.pid_vely, 'vely')
-
+                    pid_output_velz = self.calculate_pid_output(velz, self.pid_velz, 'velz')
                     if pid_output_velx > 2:
                         pid_output_velx = 2
                     if pid_output_vely > 2:
@@ -99,11 +101,20 @@ class Drone:
                         pid_output_velx = -2
                     if pid_output_vely < -2:
                         pid_output_vely = -2
+                    if pid_output_velz > 2:
+                        pid_output_velz = 2
+                    if pid_output_velz > 2:
+                        pid_output_velz = 2
 
-                    if abs(self.altitude - self.posalt) > 0.1 and self.no_vel_cmds:
-                        velocity_z = (self.altitude - self.posalt) * 0.9
-                    
-                    self.send_ned_velocity_drone(pid_output_velx, pid_output_vely, velocity_z)
+                    self.send_ned_velocity_drone(pid_output_velx, pid_output_vely, pid_output_velz)
+
+            if not self.alt_ach:
+                if abs(self.altitude - self.posalt) > 0.1 and self.no_vel_cmds:
+                    velocity_z = (self.altitude - self.posalt) * 0.9
+                    self.send_ned_velocity_drone(0,0, velocity_z)
+
+            if abs(self.altitude - self.posalt) < 0.1:
+                self.alt_ach = True
 
             time.sleep(1)
 
@@ -113,12 +124,33 @@ class Drone:
         proportional = pid_params['P'] * error
 
         # Integral term
-        self.integral_velx += error
-        integral = pid_params['I'] * self.integral_velx
+        if axis == 'velx':
+            self.integral_velx += error
+            integral = pid_params['I'] * self.integral_velx
+            self.prev_error_velx = error
+        elif axis == 'vely':
+            self.integral_vely += error
+            integral = pid_params['I'] * self.integral_vely
+            self.prev_error_vely = error
+        elif axis == 'velz':
+            self.integral_velz += error
+            integral = pid_params['I'] * self.integral_velz
+            self.prev_error_velz = error
+        else:
+            integral = 0.0
 
         # Derivative term
-        derivative = pid_params['D'] * (error - self.prev_error_velx)
-        self.prev_error_velx = error
+        if axis == 'velx':
+            derivative = pid_params['D'] * (error - self.prev_error_velx)
+            self.prev_error_velx = error
+        elif axis == 'vely':
+            derivative = pid_params['D'] * (error - self.prev_error_vely)
+            self.prev_error_vely = error
+        elif axis == 'velz':
+            derivative = pid_params['D'] * (error - self.prev_error_velz)
+            self.prev_error_velz = error
+        else:
+            derivative = 0.0
 
         # Summing up all terms
         pid_output = proportional + integral + derivative
@@ -140,6 +172,10 @@ class Drone:
                 velx = self.vehicle.velocity[0]
                 vely = self.vehicle.velocity[1]
                 log('sec {} PosAlt: {}m \n      Current altitude : {}m\n      Current Battery {}V\n      Alt Difference {}\n      Wifi Status {}\n{}'.format(self.name,self.posalt, self.altitude, self.battery, self.altitude - self.posalt, str(self.wifi_status), str(self.mode)))
+                coordlat = str(self.vehicle.location.global_relative_frame.lat)
+                coordlon = str(self.vehicle.location.global_relative_frame.lon)
+                log("lat {}".format(coordlat))
+                log("lon {}".format(coordlon))
                 if not self.wifi_status:
                     print("{} Wi-Fi connection lost! Initiating landing.".format(self.name))
                     self.land()
@@ -237,6 +273,7 @@ class Drone:
                     break
                 time.sleep(1)
             self.in_air = True
+            self.alt_ach = False
         except Exception as e:
             log(f"Error during takeoff: {e}")
 
