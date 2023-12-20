@@ -8,7 +8,6 @@ from geopy.distance import great_circle
 import math
 import threading
 import zmq
-import subprocess
 # import io
 # import picamera
 # import struct
@@ -256,7 +255,6 @@ class Drone:
                 velocity_x, velocity_y, velocity_z,  # x, y, z velocity in m/s
                 0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
                 0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
-            log(f"Drone Velocity Commands{velocity_x},{velocity_y},{velocity_z}")
 
             self.vehicle.send_mavlink(msg)
 
@@ -306,7 +304,6 @@ class Drone:
             for t in range(0, int(math.ceil(estimatedTime))):
                 time.sleep(1)
                 log('{} - Executed yaw(heading={}) for {} seconds.'.format(time.ctime(), heading, t + 1))
-                self.get_vehicle_state()
         except Exception as e:
             log(f"Error during yaw command: {e}")
 
@@ -614,22 +611,3 @@ def log(immediate_command_str):
     random_socket = random.choice(clients[host])
     immediate_command_str = str(immediate_command_str)
     random_socket.send_string(immediate_command_str)
-
-
-# import sys
-
-# class LogStream:
-#     def __init__(self):
-#         self.buffer = ""
-
-#     def write(self, data):
-#         self.buffer += data
-#         while "\n" in self.buffer:
-#             line, self.buffer = self.buffer.split("\n", 1)
-#             log(line)
-
-#     def flush(self):
-#         pass
-
-# log_stream = LogStream()
-# sys.stdout = log_stream
