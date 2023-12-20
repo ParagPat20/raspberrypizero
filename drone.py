@@ -52,7 +52,7 @@ class Drone:
         self.no_vel_cmds = True
         self.pid_velx = {'P': 1, 'I': 0.0, 'D': 0.1}
         self.pid_vely = {'P': 1, 'I': 0.0, 'D': 0.1}
-        self.pid_velz = {'P': 0.4, 'I': 0.0, 'D': 0.1}
+        self.pid_velz = {'P': 1, 'I': 0.0, 'D': 0.1}
         self.prev_error_velx = 0.0
         self.prev_error_vely = 0.0
         self.prev_error_velz = 0.0
