@@ -109,36 +109,39 @@ class Drone:
 
     def poshold_guided(self):
         while True:
-            self.altitude = self.vehicle.location.global_relative_frame.alt
-            velx = self.vehicle.velocity[0]
-            vely = self.vehicle.velocity[1]
-            velz = self.vehicle.velocity[2]
-            if self.in_air:
-                if self.no_vel_cmds:
-                    # Use PID controllers for velx and vely
-                    pid_output_velx = self.calculate_pid_output(velx, self.pid_velx, 'velx')
-                    pid_output_vely = self.calculate_pid_output(vely, self.pid_vely, 'vely')
-                    pid_output_velz = self.calculate_pid_output(velz, self.pid_velz, 'velz')
-                    if pid_output_velx > 2:
-                        pid_output_velx = 2
-                    if pid_output_vely > 2:
-                        pid_output_vely = 2
-                    if pid_output_velx < -2:
-                        pid_output_velx = -2
-                    if pid_output_vely < -2:
-                        pid_output_vely = -2
-                    if pid_output_velz > 2:
-                        pid_output_velz = 2
-                    if pid_output_velz > 2:
-                        pid_output_velz = 2
-                    self.publish_errors(time.time(), 0-velx, 0-vely, 0-velz, pid_output_velx, pid_output_vely, pid_output_velz)
+            try:
+                self.altitude = self.vehicle.location.global_relative_frame.alt
+                velx = self.vehicle.velocity[0]
+                vely = self.vehicle.velocity[1]
+                velz = self.vehicle.velocity[2]
+                if self.in_air:
+                    if self.no_vel_cmds:
+                        # Use PID controllers for velx and vely
+                        pid_output_velx = self.calculate_pid_output(velx, self.pid_velx, 'velx')
+                        pid_output_vely = self.calculate_pid_output(vely, self.pid_vely, 'vely')
+                        pid_output_velz = self.calculate_pid_output(velz, self.pid_velz, 'velz')
+                        if pid_output_velx > 2:
+                            pid_output_velx = 2
+                        if pid_output_vely > 2:
+                            pid_output_vely = 2
+                        if pid_output_velx < -2:
+                            pid_output_velx = -2
+                        if pid_output_vely < -2:
+                            pid_output_vely = -2
+                        if pid_output_velz > 2:
+                            pid_output_velz = 2
+                        if pid_output_velz > 2:
+                            pid_output_velz = 2
+                        self.publish_errors(time.time(), 0-velx, 0-vely, 0-velz, pid_output_velx, pid_output_vely, pid_output_velz)
 
-                    self.send_ned_velocity_drone(pid_output_velx, pid_output_vely, pid_output_velz)
+                        self.send_ned_velocity_drone(pid_output_velx, pid_output_vely, pid_output_velz)
 
-            if not self.in_air:
-                break
+                if not self.in_air:
+                    break
 
-            time.sleep(0.5)
+                time.sleep(0.5)
+            except Exception as e:
+                log("Poshold_Guided Error: {}".format(e))
 
     def calculate_pid_output(self, current_value, pid_params, axis):
         # Proportional term
