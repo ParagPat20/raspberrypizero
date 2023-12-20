@@ -105,6 +105,7 @@ class Drone:
                         pid_output_velz = 2
                     if pid_output_velz > 2:
                         pid_output_velz = 2
+                    log("VelocityZ PID Output : {}".format(pid_output_velz))
 
                     self.send_ned_velocity_drone(pid_output_velx, pid_output_vely, pid_output_velz)
 
