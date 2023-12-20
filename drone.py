@@ -13,6 +13,7 @@ import zmq
 # import struct
 context = zmq.Context()  # Create a ZeroMQ context
 import time
+import json
 import wiringpi
 
 # use 'GPIO naming'
@@ -61,6 +62,12 @@ class Drone:
         self.integral_velz = 0.0
         self.alt_ach = False
 
+        # Create PUB socket
+        self.pub_context = zmq.Context()
+        self.pub_socket = self.pub_context.socket(zmq.PUB)
+        self.pub_socket.bind("tcp://*:5555")  # Update with your desired PUB socket address
+
+
     def is_wifi_connected(self):
         try:
             wifi = context.socket(zmq.REQ)
@@ -79,6 +86,26 @@ class Drone:
         finally:
             if wifi:
                 wifi.close()
+
+    def publish_errors(self, timestamp, error_velx, error_vely, error_velz,
+                       pid_output_velx, pid_output_vely, pid_output_velz):
+        try:
+            error_data = {
+                "drone_name": self.name,
+                "timestamp": timestamp,
+                "error_velx": error_velx,
+                "error_vely": error_vely,
+                "error_velz": error_velz,
+                "pid_output_velx": pid_output_velx,
+                "pid_output_vely": pid_output_vely,
+                "pid_output_velz": pid_output_velz
+            }
+
+            error_json = json.dumps(error_data)
+            self.pub_socket.send_string(error_json)
+
+        except Exception as e:
+            log(f"Error publishing errors: {e}")
 
     def poshold_guided(self):
         while True:
@@ -104,12 +131,12 @@ class Drone:
                         pid_output_velz = 2
                     if pid_output_velz > 2:
                         pid_output_velz = 2
+                    self.publish_errors(time.time(), 0-velx, 0-vely, 0-velz, pid_output_velx, pid_output_vely, pid_output_velz)
 
                     self.send_ned_velocity_drone(pid_output_velx, pid_output_vely, pid_output_velz)
 
             if not self.in_air:
                 break
-
 
             time.sleep(0.1)
 
