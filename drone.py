@@ -139,7 +139,7 @@ class Drone:
                         self.publish_errors(time.time(), 0-velx, 0-vely, 0-velz, pid_output_velx, pid_output_vely, pid_output_velz)
 
                         self.send_ned_velocity_drone(pid_output_velx, pid_output_vely, pid_output_velz)
-                        time.sleep(0.2)
+                        time.sleep(1)
                 if not self.in_air:
                     break
 
