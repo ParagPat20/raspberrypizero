@@ -169,6 +169,7 @@ class Drone:
             integral = 0.0
 
         # Derivative term
+        log(self.prev_error_velx)
 
         if axis == 'velx':
             derivative = pid_params['D'] * ((error - self.prev_error_velx) / dt)  # dt: time difference
@@ -183,7 +184,6 @@ class Drone:
             derivative = 0.0
 
         log('error {}'.format(error))
-        log(self.prev_error_velx)
 
         # Summing up all terms
         pid_output = proportional + integral + derivative
