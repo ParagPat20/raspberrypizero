@@ -117,10 +117,14 @@ class Drone:
                 velz = self.vehicle.velocity[2]
                 if self.in_air:
                     if self.no_vel_cmds:
+                        current_timestamp = time.time()
+                        dt = current_timestamp - self.prev_timestamp
+                        self.prev_timestamp = current_timestamp
+                        log('dt = {}'.format(dt))
                         # Use PID controllers for velx and vely
-                        pid_output_velx = self.calculate_pid_output(velx, self.pid_velx, 'velx')
-                        pid_output_vely = self.calculate_pid_output(vely, self.pid_vely, 'vely')
-                        pid_output_velz = self.calculate_pid_output(velz, self.pid_velz, 'velz')
+                        pid_output_velx = self.calculate_pid_output(velx, self.pid_velx, 'velx',dt)
+                        pid_output_vely = self.calculate_pid_output(vely, self.pid_vely, 'vely',dt)
+                        pid_output_velz = self.calculate_pid_output(velz, self.pid_velz, 'velz',dt)
                         if pid_output_velx > 2:
                             pid_output_velx = 2
                         if pid_output_vely > 2:
@@ -144,15 +148,11 @@ class Drone:
             except Exception as e:
                 log("Poshold_Guided Error: {}".format(e))
 
-    def calculate_pid_output(self, current_value, pid_params, axis):
+    def calculate_pid_output(self, current_value, pid_params, axis, dt):
         # Proportional term
         error = 0.0 - current_value
         proportional = pid_params['P'] * error
-        current_timestamp = time.time()
-        dt = current_timestamp - self.prev_timestamp
-        self.prev_timestamp = current_timestamp
-        log('dt = {}'.format(dt))
-
+        
         # Integral term
         if axis == 'velx':
             self.integral_velx += error * dt  # Accumulate error over time
