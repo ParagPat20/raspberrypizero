@@ -156,15 +156,12 @@ class Drone:
         if axis == 'velx':
             self.integral_velx += error * dt  # Accumulate error over time
             integral = pid_params['I'] * self.integral_velx
-            self.prev_error_velx = error
         elif axis == 'vely':
             self.integral_vely += error * dt
             integral = pid_params['I'] * self.integral_vely
-            self.prev_error_vely = error
         elif axis == 'velz':
             self.integral_velz += error * dt
             integral = pid_params['I'] * self.integral_velz
-            self.prev_error_velz = error
         else:
             integral = 0.0
 
@@ -186,8 +183,6 @@ class Drone:
             derivative = 0.0
 
         log('derivative {}'.format(derivative))
-        log('PID param {}'.format(pid_params['D']))
-        log('der error {}'.format(error-self.prev_error_velx))
 
         # Summing up all terms
         pid_output = proportional + integral + derivative
