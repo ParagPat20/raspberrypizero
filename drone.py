@@ -186,7 +186,7 @@ class Drone:
             derivative = 0.0
 
         log('derivative {}'.format(derivative))
-        log(pid_params['D'] * ((error - self.prev_error_velx) / dt))
+        log(pid_params['D'] * ((error - self.prev_error_velx)))
 
         # Summing up all terms
         pid_output = proportional + integral + derivative
