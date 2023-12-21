@@ -148,6 +148,9 @@ class Drone:
         # Proportional term
         error = 0.0 - current_value
         proportional = pid_params['P'] * error
+        current_timestamp = time.time()
+        dt = current_timestamp - self.prev_timestamp
+        self.prev_timestamp = current_timestamp
 
         # Integral term
         if axis == 'velx':
@@ -169,9 +172,6 @@ class Drone:
             integral = 0.0
 
         # Derivative term
-        current_timestamp = time.time()
-        dt = current_timestamp - self.prev_timestamp
-        self.prev_timestamp = current_timestamp
 
         if axis == 'velx':
             derivative = pid_params['D'] * ((error - self.prev_error_velx) / dt)  # dt: time difference
