@@ -187,8 +187,7 @@ class Drone:
 
         # Summing up all terms
         pid_output = proportional + integral + derivative
-        log(error-self.prev_error_velx)
-        log(pid_params['D'])
+        log(pid_params['D'] * ((error - self.prev_error_velx) / dt))
 
 
         return pid_output
