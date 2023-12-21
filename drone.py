@@ -122,8 +122,8 @@ class Drone:
                         self.prev_timestamp = current_timestamp
                         # Use PID controllers for velx and vely
                         pid_output_velx = self.calculate_pid_output(velx, self.pid_velx, 'velx',dt)
-                        pid_output_vely = 0#self.calculate_pid_output(vely, self.pid_vely, 'vely',dt)
-                        pid_output_velz = 0#self.calculate_pid_output(velz, self.pid_velz, 'velz',dt)
+                        pid_output_vely = self.calculate_pid_output(vely, self.pid_vely, 'vely',dt)
+                        pid_output_velz = self.calculate_pid_output(velz, self.pid_velz, 'velz',dt)
                         if pid_output_velx > 2:
                             pid_output_velx = 2
                         if pid_output_vely > 2:
