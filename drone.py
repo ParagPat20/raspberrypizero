@@ -61,6 +61,7 @@ class Drone:
         self.integral_vely = 0.0
         self.integral_velz = 0.0
         self.alt_ach = False
+        self.prev_timestamp = time.time()
 
         # Create PUB socket
         self.pub_context = zmq.Context()
@@ -150,29 +151,36 @@ class Drone:
 
         # Integral term
         if axis == 'velx':
-            self.integral_velx += error
+            self.integral_velx += error * dt  # Accumulate error over time
             integral = pid_params['I'] * self.integral_velx
             self.prev_error_velx = error
         elif axis == 'vely':
-            self.integral_vely += error
+            self.integral_vely += error * dt
             integral = pid_params['I'] * self.integral_vely
             self.prev_error_vely = error
         elif axis == 'velz':
-            self.integral_velz += error
+            self.integral_velz += error * dt
             integral = pid_params['I'] * self.integral_velz
             self.prev_error_velz = error
         else:
             integral = 0.0
 
+        if not self.no_vel_cmds:
+            integral = 0.0
+
         # Derivative term
+        current_timestamp = time.time()
+        dt = current_timestamp - self.prev_timestamp
+        self.prev_timestamp = current_timestamp
+
         if axis == 'velx':
-            derivative = pid_params['D'] * (error - self.prev_error_velx)
+            derivative = pid_params['D'] * ((error - self.prev_error_velx) / dt)  # dt: time difference
             self.prev_error_velx = error
         elif axis == 'vely':
-            derivative = pid_params['D'] * (error - self.prev_error_vely)
+            derivative = pid_params['D'] * ((error - self.prev_error_vely) / dt)
             self.prev_error_vely = error
         elif axis == 'velz':
-            derivative = pid_params['D'] * (error - self.prev_error_velz)
+            derivative = pid_params['D'] * ((error - self.prev_error_velz) / dt)
             self.prev_error_velz = error
         else:
             derivative = 0.0
