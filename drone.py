@@ -187,6 +187,7 @@ class Drone:
 
         # Summing up all terms
         pid_output = proportional + integral + derivative
+        log(derivative)
 
         return pid_output
 
