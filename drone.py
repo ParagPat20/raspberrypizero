@@ -151,6 +151,7 @@ class Drone:
         current_timestamp = time.time()
         dt = current_timestamp - self.prev_timestamp
         self.prev_timestamp = current_timestamp
+        log('dt = {}'.format(dt))
 
         # Integral term
         if axis == 'velx':
