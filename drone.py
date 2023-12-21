@@ -120,7 +120,6 @@ class Drone:
                         current_timestamp = time.time()
                         dt = current_timestamp - self.prev_timestamp
                         self.prev_timestamp = current_timestamp
-                        log('dt = {}'.format(dt))
                         # Use PID controllers for velx and vely
                         pid_output_velx = self.calculate_pid_output(velx, self.pid_velx, 'velx',dt)
                         pid_output_vely = self.calculate_pid_output(vely, self.pid_vely, 'vely',dt)
