@@ -683,25 +683,28 @@ def log(immediate_command_str):
 
 
 def file_server():
-    context = zmq.Context()
-    socket = context.socket(zmq.REP)
+    try:
+        context = zmq.Context()
+        socket = context.socket(zmq.REP)
 
-    # Change 'your_port' to the actual port you want to use
-    socket.bind(f"tcp://{MCU_host}5577")
-    log("File_recieve server Started in MCU!")
+        # Change 'your_port' to the actual port you want to use
+        socket.bind(f"tcp://{MCU_host}5577")
+        log("File_recieve server Started in MCU!")
 
-    while True:
-        file_name = socket.recv_string()
-        socket.send_string("Completed")
-        log("File Name Recieved")
-        file_data = socket.recv()
+        while True:
+            file_name = socket.recv_string()
+            socket.send_string("Completed")
+            log("File Name Recieved")
+            file_data = socket.recv()
 
-        
-        with open(f"{file_name}.txt", 'wb') as file:
-            file.write(file_data)
+            
+            with open(f"{file_name}.txt", 'wb') as file:
+                file.write(file_data)
 
-        # Send a response back to the client (EDIT application)
-        socket.send_string("File received successfully")
-        time.sleep(1)
-        socket.close()
-        context.term()
+            # Send a response back to the client (EDIT application)
+            socket.send_string("File received successfully")
+            time.sleep(1)
+            socket.close()
+            context.term()
+    except Exception as e:
+        log("File_Server Error in MCU : {}".format(e))
