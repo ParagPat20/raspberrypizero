@@ -688,7 +688,7 @@ def file_server():
         socket = context.socket(zmq.REP)
 
         # Change 'your_port' to the actual port you want to use
-        socket.bind(f"tcp://{MCU_host}5577")
+        socket.bind(f"tcp://{MCU_host}:5577")
         print("File_recieve server Started in MCU!")
 
         while True:
