@@ -6,14 +6,16 @@ from drone import *
 cmd_port = 12345
 ctrl_port = 54321
 status_port = 60003
-local_host = CD2_host
 
 CD2 = None
+CD3 = None
 
 ##################################################### Initialization #####################################################
 
 CD2_initialized = False
 d1 = None
+CD3_initialized = False
+d2 = None
 
 context = zmq.Context()
 msg_socket = context.socket(zmq.PULL)
@@ -44,8 +46,7 @@ def initialize_CD2():
         global d1, CD2, CD2_initialized
         if not CD2 and not CD2_initialized:
             d1_str = 'CD2'
-            # CD2 = Drone(d1_str,'/dev/serial0', 115200)
-            CD2 = Drone(d1_str,'0.0.0.0:14553')
+            CD2 = Drone(d1_str,'/dev/serial0', 115200)
             d1 = CD2
             log("CD2 Connected")
             time.sleep(2)
@@ -60,6 +61,28 @@ def initialize_CD2():
         log('CD2_status')
     except Exception as e:
         log(f"CD2_Host: Error in initialize_CD2: {e}")
+
+
+def initialize_CD3():
+    try:
+        global d2, CD3, CD3_initialized
+        if not CD3 and not CD3_initialized:
+            d2_str = 'CD3'
+            CD3 = Drone(d2_str,'0.0.0.0:14553')
+            d2 = CD3
+            log("CD3 Connected")
+            time.sleep(2)
+            CD3.get_vehicle_state()
+            # threading.Thread(target=CD3.send_status, args=(CD3_host,60003,)).start()
+            threading.Thread(target=CD3.security).start()
+            CD3_initialized=True
+            
+        log("CD3 getting ready for the params...")
+        time.sleep(2) #getting ready for params
+        CD3.get_vehicle_state()
+        log('CD3_status')
+    except Exception as e:
+        log(f"CD3_Host: Error in initialize_CD3: {e}")
 
 ##########################################################################################################################
 log("CD2 Server started, have fun!")

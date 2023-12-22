@@ -35,6 +35,7 @@ selected_drone = None
 MCU_host = '192.168.207.122'
 CD1_host = '192.168.207.43'
 CD2_host = '192.168.207.225'
+CD3_host = CD2_host
 cmd_port = 12345
 ctrl_port = 54321
 drone_list = []
