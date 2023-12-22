@@ -51,8 +51,8 @@ class Drone:
         self.posalt = 2
         self.in_air = False
         self.no_vel_cmds = True
-        self.pid_velx = {'P': 1, 'I': 0.0, 'D': 0.1}
-        self.pid_vely = {'P': 1, 'I': 0.0, 'D': 0.1}
+        self.pid_velx = {'P': 0.8, 'I': 0.0, 'D': 0.1}
+        self.pid_vely = {'P': 0.8, 'I': 0.0, 'D': 0.1}
         self.pid_velz = {'P': 0.5, 'I': 0.0, 'D': 0.1}
         self.prev_error_velx = 0.0
         self.prev_error_vely = 0.0
@@ -680,3 +680,26 @@ def log(immediate_command_str):
     random_socket = random.choice(clients[host])
     immediate_command_str = str(immediate_command_str)
     random_socket.send_string(immediate_command_str)
+
+
+def file_server():
+    context = zmq.Context()
+    socket = context.socket(zmq.REP)
+
+    # Change 'your_port' to the actual port you want to use
+    socket.bind(f"tcp://{MCU_host}5577")
+
+    while True:
+        file_name = socket.recv_string()
+        socket.send_string("Completed")
+        file_data = socket.recv()
+
+        
+        with open(f"{file_name}.txt", 'wb') as file:
+            file.write(file_data)
+
+        # Send a response back to the client (EDIT application)
+        socket.send_string("File received successfully")
+        time.sleep(1)
+        socket.close()
+        context.term()
