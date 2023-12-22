@@ -688,10 +688,12 @@ def file_server():
 
     # Change 'your_port' to the actual port you want to use
     socket.bind(f"tcp://{MCU_host}5577")
+    log("File_recieve server Started in MCU!")
 
     while True:
         file_name = socket.recv_string()
         socket.send_string("Completed")
+        log("File Name Recieved")
         file_data = socket.recv()
 
         
