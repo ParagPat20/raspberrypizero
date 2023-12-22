@@ -65,50 +65,32 @@ class Drone:
         self.alt_ach = False
         self.prev_timestamp = time.time()
 
-        # Create PUB socket
-        self.pub_context = zmq.Context()
-        self.pub_socket = self.pub_context.socket(zmq.PUB)
-        self.pub_socket.bind("tcp://*:5555")  # Update with your desired PUB socket address
-
 
     def is_wifi_connected(self):
         try:
             wifi = context.socket(zmq.REQ)
             wifi.connect('tcp://192.168.207.101:8888')
-            wifi.send_string("check")
-            response1 = wifi.recv_string()
-            wifi.send_string("check")
-            response2 = wifi.recv_string()
-            wifi.send_string("check")
-            response3 = wifi.recv_string()
-            return response1 == "Connected" or response2 == "Connected" or response3 == "Connected"
+
+            # Perform the check twice
+            for _ in range(2):  # Try 2 times
+                poller = zmq.Poller()
+                poller.register(wifi, zmq.POLLIN)
+                wifi.send_string("check")
+
+                if poller.poll(2000):
+                    response = wifi.recv_string()
+                    if response == "Connected":
+                        return True
+
+            return False
 
         except Exception as e:
             print(f"Error checking Wi-Fi: {e}")
             return False
+
         finally:
             if wifi:
                 wifi.close()
-
-    def publish_errors(self, timestamp, error_velx, error_vely, error_velz,
-                       pid_output_velx, pid_output_vely, pid_output_velz):
-        try:
-            error_data = {
-                "drone_name": self.name,
-                "timestamp": timestamp,
-                "error_velx": error_velx,
-                "error_vely": error_vely,
-                "error_velz": error_velz,
-                "pid_output_velx": pid_output_velx,
-                "pid_output_vely": pid_output_vely,
-                "pid_output_velz": pid_output_velz
-            }
-
-            error_json = json.dumps(error_data)
-            self.pub_socket.send_string(error_json)
-
-        except Exception as e:
-            log(f"Error publishing errors: {e}")
 
     def poshold_guided(self):
         while True:
@@ -138,7 +120,6 @@ class Drone:
                             pid_output_velz = 2
                         if pid_output_velz > 2:
                             pid_output_velz = 2
-                        self.publish_errors(time.time(), 0-velx, 0-vely, 0-velz, pid_output_velx, pid_output_vely, pid_output_velz)
 
                         self.send_ned_velocity_drone(pid_output_velx, pid_output_vely, pid_output_velz)
                         time.sleep(0.2)
@@ -148,47 +129,6 @@ class Drone:
                 
             except Exception as e:
                 log("Poshold_Guided Error: {}".format(e))
-
-    def calculate_pid_output(self, current_value, pid_params, axis, dt):
-        # Proportional term
-        error = 0.0 - current_value
-        proportional = pid_params['P'] * error
-        
-        # Integral term
-        if axis == 'velx':
-            self.integral_velx += error * dt  # Accumulate error over time
-            integral = pid_params['I'] * self.integral_velx
-        elif axis == 'vely':
-            self.integral_vely += error * dt
-            integral = pid_params['I'] * self.integral_vely
-        elif axis == 'velz':
-            self.integral_velz += error * dt
-            integral = pid_params['I'] * self.integral_velz
-        else:
-            integral = 0.0
-
-        if not self.no_vel_cmds:
-            integral = 0.0
-
-        # Derivative term
-
-        if axis == 'velx':
-            derivative = pid_params['D'] * ((error - self.prev_error_velx) / dt)  # dt: time difference
-            self.prev_error_velx = error
-        elif axis == 'vely':
-            derivative = pid_params['D'] * ((error - self.prev_error_vely) / dt)
-            self.prev_error_vely = error
-        elif axis == 'velz':
-            derivative = pid_params['D'] * ((error - self.prev_error_velz) / dt)
-            self.prev_error_velz = error
-        else:
-            derivative = 0.0
-
-
-        # Summing up all terms
-        pid_output = proportional + integral + derivative
-
-        return pid_output
 
     def security(self):
         self.altitude = self.vehicle.location.global_relative_frame.alt
