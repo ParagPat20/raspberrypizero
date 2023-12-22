@@ -8,9 +8,9 @@ from geopy.distance import great_circle
 import math
 import threading
 import zmq
-# import io
-# import picamera
-# import struct
+import io
+import picamera
+import struct
 context = zmq.Context()  # Create a ZeroMQ context
 import time
 import json
@@ -163,40 +163,6 @@ class Drone:
             except Exception as e:
                 log("sec {} Security Error : {}".format(self.name,e))
                 pass
-
-    # def send_status(self, local_host, status_port):
-    #     def handle_clients(client_connection, client_address):
-    #         log('{} - Received follower status request from {}.'.format(time.ctime(), client_address))
-            
-    #         battery = str(self.vehicle.battery.voltage)
-    #         groundspeed = str(self.vehicle.groundspeed)
-    #         lat = "{:.7f}".format(self.vehicle.location.global_relative_frame.lat)
-    #         lon = "{:.7f}".format(self.vehicle.location.global_relative_frame.lon)
-    #         alt = "{:.7f}".format(self.vehicle.location.global_relative_frame.alt)
-    #         heading = str(self.vehicle.heading)
-
-    #         status_str = battery+','+groundspeed+','+lat+','+lon+','+alt+','+heading
-
-    #         client_connection.send(status_str.encode('utf-8'))
-    #         client_connection.close()
-
-
-    #     status_socket = socket.socket()
-    #     status_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    #     status_socket.bind((local_host, status_port))
-    #     status_socket.listen(10)
-    #     log('{} -send_status() is started!'.format(time.ctime()))
-
-    #     while True:
-    #         try:
-    #             client_connection, client_address = status_socket.accept() # Establish connection with client.
-
-    #             handle = threading.Thread(target=handle_clients, args=(client_connection, client_address,))
-    #             handle.start()
-
-    #         except Exception as e:
-    #             log("Error: sending battery...")
-
         
     def reconnect(self):
         try:
@@ -509,49 +475,38 @@ def send(host, immediate_command_str):
     random_socket = random.choice(clients[host])
     random_socket.send_string(immediate_command_str)
 
-# def camera_stream_server(host):
-#     def handle_client(client_socket):
-#         connection = client_socket.makefile('wb')
+def camera_stream_server(host, port):
+    try:
+        context = zmq.Context()
+        socket = context.socket(zmq.PUSH)
+        socket.bind(f"tcp://{host}:{port}")
+        print(f"Camera Stream Server Started on {host}:{port}")
 
-#         try:
-#             with picamera.PiCamera() as camera:
-#                 camera.resolution = (640, 480)  # Adjust resolution as needed
-#                 camera.framerate = 30  # Adjust frame rate as needed
+        with picamera() as camera:
+            camera.resolution = (640, 480)  # Adjust resolution as needed
+            camera.framerate = 30  # Adjust frame rate as needed
 
-#                 # Start capturing and sending the video feed
-#                 time.sleep(2)  # Give the camera some time to warm up
-#                 stream = io.BytesIO()
-#                 for _ in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
-#                     stream.seek(0)
-#                     image_data = stream.read()
+            # Start capturing and sending the video feed
+            time.sleep(2)  # Give the camera some time to warm up
+            stream = io.BytesIO()
+            for _ in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
+                stream.seek(0)
+                image_data = stream.read()
 
-#                     # Send the image size to the client
-#                     connection.write(struct.pack('<L', len(image_data)))
-#                     connection.flush()
+                # Send the image size to the client
+                socket.send(struct.pack('<L', len(image_data)))
 
-#                     # Send the image data to the client
-#                     connection.write(image_data)
-#                     stream.seek(0)
-#                     stream.truncate()
-#         except Exception as e:
-#             log("Error: ", e)
+                # Send the image data to the client
+                socket.send(image_data)
+                stream.seek(0)
+                stream.truncate()
 
-#         finally:
-#             connection.close()
-#             client_socket.close()
+    except Exception as e:
+        print("Error: ", e)
 
-#     # Create a socket server
-#     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#     server_socket.bind((host, 8000))
-#     server_socket.listen(2)
-
-#     log("Server is listening on {}:{}".format(host, 8000))
-
-#     while True:
-#         client_socket, _ = server_socket.accept()
-#         client_thread = threading.Thread(target=handle_client, args=(client_socket,))
-#         client_thread.start()
-
+    finally:
+        socket.close()
+        context.term()
 #==============================================================================================================
 
 def add_drone(string):
