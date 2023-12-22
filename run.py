@@ -48,9 +48,10 @@ def run_mis(filename):
                 # Skip empty lines
                 if not line.strip():
                     continue
+                line=str(line)
 
                 # Execute the command
-                exec(line.strip())  # Assuming each line is a command
+                exec(line)  # Assuming each line is a command
 
     except Exception as e:
         log(f"Error in run_mis: {e}")
