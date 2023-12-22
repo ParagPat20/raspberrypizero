@@ -44,15 +44,16 @@ def run_mis(filename):
         # Open the mission file
         with open(f"{filename}.txt", 'r') as file:
             # Read each line from the file
-            for line_number, line in enumerate(file, start=1):
-                try:
-                    # Execute the command
-                    execute_command(line.strip())  # Assuming each line is a command
-                except Exception as inner_e:
-                    log('{} - Error in line {}: {}'.format(time.ctime(), line_number, inner_e))
+            for line in file:
+                # Skip empty lines
+                if not line.strip():
+                    continue
+
+                # Execute the command
+                execute_command(line.strip())  # Assuming each line is a command
 
     except Exception as e:
-        log('{} - Error in run_mis: {}'.format(time.ctime(), e))
+        log(f"Error in run_mis: {e}")
 
 
 ##########################################################################################################################
