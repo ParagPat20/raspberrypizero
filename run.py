@@ -31,23 +31,29 @@ def drone_list_update(cmd):
 
 def execute_command(immediate_command_str):
     try:
+        print("Executing command:", repr(immediate_command_str))  # Add this line
         exec(immediate_command_str)
-        log('{} - command {} executed successfully'.format(time.ctime(), immediate_command_str))
+        log('{} - Command executed successfully'.format(time.ctime()))
 
     except Exception as e:
-        log(f"MCU_Host: Error in execute_command: {e}")
+        log('{} - Error in execute_command: {}'.format(time.ctime(), e))
+
 
 def run_mis(filename):
     try:
         # Open the mission file
         with open(f"{filename}.txt", 'r') as file:
             # Read each line from the file
-            for line in file:
-                # Execute the command
-                execute_command(line.strip())  # Assuming each line is a command
+            for line_number, line in enumerate(file, start=1):
+                try:
+                    # Execute the command
+                    execute_command(line.strip())  # Assuming each line is a command
+                except Exception as inner_e:
+                    log('{} - Error in line {}: {}'.format(time.ctime(), line_number, inner_e))
 
     except Exception as e:
-        log(f"Error in run_mis: {e}")
+        log('{} - Error in run_mis: {}'.format(time.ctime(), e))
+
 
 ##########################################################################################################################
 
