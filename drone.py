@@ -8,9 +8,9 @@ from geopy.distance import great_circle
 import math
 import threading
 import zmq
-import io
-import picamera
-import struct
+# import io
+# import picamera
+# import struct
 context = zmq.Context()  # Create a ZeroMQ context
 import time
 import json
@@ -96,6 +96,7 @@ class Drone:
             if wifi:
                 wifi.close()
 
+
     def poshold_guided(self):
         while True:
             try:
@@ -134,6 +135,47 @@ class Drone:
             except Exception as e:
                 log("Poshold_Guided Error: {}".format(e))
 
+    def calculate_pid_output(self, current_value, pid_params, axis, dt):
+        # Proportional term
+        error = 0.0 - current_value
+        proportional = pid_params['P'] * error
+        
+        # Integral term
+        if axis == 'velx':
+            self.integral_velx += error * dt  # Accumulate error over time
+            integral = pid_params['I'] * self.integral_velx
+        elif axis == 'vely':
+            self.integral_vely += error * dt
+            integral = pid_params['I'] * self.integral_vely
+        elif axis == 'velz':
+            self.integral_velz += error * dt
+            integral = pid_params['I'] * self.integral_velz
+        else:
+            integral = 0.0
+
+        if not self.no_vel_cmds:
+            integral = 0.0
+
+        # Derivative term
+
+        if axis == 'velx':
+            derivative = pid_params['D'] * ((error - self.prev_error_velx) / dt)  # dt: time difference
+            self.prev_error_velx = error
+        elif axis == 'vely':
+            derivative = pid_params['D'] * ((error - self.prev_error_vely) / dt)
+            self.prev_error_vely = error
+        elif axis == 'velz':
+            derivative = pid_params['D'] * ((error - self.prev_error_velz) / dt)
+            self.prev_error_velz = error
+        else:
+            derivative = 0.0
+
+
+        # Summing up all terms
+        pid_output = proportional + integral + derivative
+
+        return pid_output
+
     def security(self):
         self.altitude = self.vehicle.location.global_relative_frame.alt
         self.battery = self.vehicle.battery.voltage
@@ -167,7 +209,7 @@ class Drone:
             except Exception as e:
                 log("sec {} Security Error : {}".format(self.name,e))
                 pass
-        
+
     def reconnect(self):
         try:
             self.vehicle.close()
@@ -479,38 +521,49 @@ def send(host, immediate_command_str):
     random_socket = random.choice(clients[host])
     random_socket.send_string(immediate_command_str)
 
-def camera_stream_server(host, port):
-    try:
-        context = zmq.Context()
-        socket = context.socket(zmq.PUSH)
-        socket.bind(f"tcp://{host}:{port}")
-        print(f"Camera Stream Server Started on {host}:{port}")
+# def camera_stream_server(host):
+#     def handle_client(client_socket):
+#         connection = client_socket.makefile('wb')
 
-        with picamera() as camera:
-            camera.resolution = (640, 480)  # Adjust resolution as needed
-            camera.framerate = 30  # Adjust frame rate as needed
+#         try:
+#             with picamera.PiCamera() as camera:
+#                 camera.resolution = (640, 480)  # Adjust resolution as needed
+#                 camera.framerate = 30  # Adjust frame rate as needed
 
-            # Start capturing and sending the video feed
-            time.sleep(2)  # Give the camera some time to warm up
-            stream = io.BytesIO()
-            for _ in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
-                stream.seek(0)
-                image_data = stream.read()
+#                 # Start capturing and sending the video feed
+#                 time.sleep(2)  # Give the camera some time to warm up
+#                 stream = io.BytesIO()
+#                 for _ in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
+#                     stream.seek(0)
+#                     image_data = stream.read()
 
-                # Send the image size to the client
-                socket.send(struct.pack('<L', len(image_data)))
+#                     # Send the image size to the client
+#                     connection.write(struct.pack('<L', len(image_data)))
+#                     connection.flush()
 
-                # Send the image data to the client
-                socket.send(image_data)
-                stream.seek(0)
-                stream.truncate()
+#                     # Send the image data to the client
+#                     connection.write(image_data)
+#                     stream.seek(0)
+#                     stream.truncate()
+#         except Exception as e:
+#             log("Error: ", e)
 
-    except Exception as e:
-        print("Error: ", e)
+#         finally:
+#             connection.close()
+#             client_socket.close()
 
-    finally:
-        socket.close()
-        context.term()
+#     # Create a socket server
+#     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#     server_socket.bind((host, 8000))
+#     server_socket.listen(2)
+
+#     log("Server is listening on {}:{}".format(host, 8000))
+
+#     while True:
+#         client_socket, _ = server_socket.accept()
+#         client_thread = threading.Thread(target=handle_client, args=(client_socket,))
+#         client_thread.start()
+
 #==============================================================================================================
 
 def add_drone(string):
