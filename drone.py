@@ -40,6 +40,7 @@ ctrl_port = 54321
 drone_list = []
 wait_for_command = True
 immediate_command_str = None
+missions = {}
 
 class Drone:
     
@@ -691,22 +692,23 @@ def file_server():
         socket.bind(f"tcp://{MCU_host}:5577")
         print("File_recieve server Started in MCU!")
 
-        while True:
-            print("Waiting for file_name")
-            file_name = socket.recv_string()
-            socket.send_string("Completed")
-            print("File Name Recieved")
-            print("waiting for data")
-            file_data = socket.recv()
+        print("Waiting for file_name")
+        file_name = socket.recv_string()
+        socket.send_string("Completed")
+        print("File Name Recieved")
+        print("waiting for data")
+        file_data = socket.recv()
 
-            
-            with open(f"{file_name}.txt", 'wb') as file:
-                file.write(file_data)
+        
+        with open(f"{file_name}.txt", 'wb') as file:
+            file.write(file_data)
 
-            # Send a response back to the client (EDIT application)
-            socket.send_string("File received successfully")
-            time.sleep(1)
-            socket.close()
-            context.term()
+        # Send a response back to the client (EDIT application)
+        socket.send_string("File received successfully")
+        time.sleep(1)
+        socket.close()
+        context.term()
+        missions[file_name] = file
+        log("MCU has {} Missons".format(str(missions)))
     except Exception as e:
         log("File_Server Error in MCU : {}".format(e))
