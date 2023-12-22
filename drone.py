@@ -712,15 +712,3 @@ def file_server():
         log("MCU has {} Missons".format(str(missions)))
     except Exception as e:
         log("File_Server Error in MCU : {}".format(e))
-
-def run_mis(filename):
-    try:
-        # Open the mission file
-        with open(f"{filename}.txt", 'r') as file:
-            # Read each line from the file
-            for line in file:
-                # Execute the command
-                exec(line.strip())  # Assuming each line is a command
-
-    except Exception as e:
-        log(f"Error in run_mis: {e}")

@@ -37,6 +37,18 @@ def execute_command(immediate_command_str):
     except Exception as e:
         log(f"MCU_Host: Error in execute_command: {e}")
 
+def run_mis(filename):
+    try:
+        # Open the mission file
+        with open(f"{filename}.txt", 'r') as file:
+            # Read each line from the file
+            for line in file:
+                # Execute the command
+                execute_command(line.strip())  # Assuming each line is a command
+
+    except Exception as e:
+        log(f"Error in run_mis: {e}")
+
 ##########################################################################################################################
 
 def initialize_MCU():
