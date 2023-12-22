@@ -78,12 +78,14 @@ class Drone:
 
             if poller.poll(3000):
                 response1 = wifi.recv_string()
-            wifi.send_string("check")
+                wifi.send_string("check")
+                if poller.poll(3000):
+                    response2 = wifi.recv_string()
+                    wifi.send_string("check")
+                    if poller.poll(3000):
+                        response3 = wifi.recv_string()
 
-            if poller.poll(3000):
-                response2 = wifi.recv_string()
-
-            if response1 == "Connected" or response2 == "Connected":
+            if response1 == "Connected" or response2 == "Connected" or response3 == "Connected":
                 return True
             else:
                 return False
