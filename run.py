@@ -50,7 +50,7 @@ def run_mis(filename):
                     continue
 
                 # Execute the command
-                execute_command(line.strip())  # Assuming each line is a command
+                exec(line.strip())  # Assuming each line is a command
 
     except Exception as e:
         log(f"Error in run_mis: {e}")
