@@ -72,17 +72,21 @@ class Drone:
             wifi.connect('tcp://192.168.207.101:8888')
 
             # Perform the check twice
-            for _ in range(2):  # Try 2 times
-                poller = zmq.Poller()
-                poller.register(wifi, zmq.POLLIN)
-                wifi.send_string("check")
+            poller = zmq.Poller()
+            poller.register(wifi, zmq.POLLIN)
+            wifi.send_string("check")
 
-                if poller.poll(2000):
-                    response = wifi.recv_string()
-                    if response == "Connected":
-                        return True
+            if poller.poll(3000):
+                response1 = wifi.recv_string()
+            wifi.send_string("check")
 
-            return False
+            if poller.poll(3000):
+                response2 = wifi.recv_string()
+
+            if response1 == "Connected" or response2 == "Connected":
+                return True
+            else:
+                return False
 
         except Exception as e:
             print(f"Error checking Wi-Fi: {e}")
