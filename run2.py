@@ -46,7 +46,7 @@ def initialize_CD2():
         global d1, CD2, CD2_initialized
         if not CD2 and not CD2_initialized:
             d1_str = 'CD2'
-            CD2 = Drone(d1_str,'0.0.0.0:14553')
+            CD2 = Drone(d1_str,'/dev/serial0', 115200)
             d1 = CD2
             log("CD2 Connected")
             time.sleep(2)
