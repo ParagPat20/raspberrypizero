@@ -1,36 +1,87 @@
-import subprocess
-import threading
+from drone import Drone
 from drone import *
+
+
+
+cmd_port = 12345
+ctrl_port = 54321
+
+MCU = None
+d1_str = 'MCU'
+MCU = Drone(d1_str,'/dev/serial0', 115200)
+
+##################################################### Initialization #####################################################
+
+MCU_initialized = False
+d1 = None
 
 context = zmq.Context(10)  # Allow up to 10 concurrent sockets
 msg_socket = context.socket(zmq.PULL)
-msg_socket.bind("tcp://*:5588")
+msg_socket.bind("tcp://*:12345")
 msg_socket.setsockopt(zmq.RCVHWM, 1000)  # High water mark for incoming messages
 
 poller = zmq.Poller()
 poller.register(msg_socket, zmq.POLLIN)  # Monitor for incoming messages
 
+log('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
+
+def drone_list_update(cmd):
+    try:
+        global drone_list
+        drone_list = cmd
+        log(drone_list)
+    except Exception as e:
+        log("MCU_Host: Error in drone_list_update: {}".format(e))
+
 def execute_command(immediate_command_str):
     try:
         log("Executing command: {}".format(repr(immediate_command_str)))
-
-        # Use subprocess.run to capture output and error streams
-        result = subprocess.run(
-            immediate_command_str,
-            shell=True,  # Allow shell features like pipes and redirection
-            check=True,  # Raise an exception if the command fails
-            stdout=subprocess.PIPE,  # Capture standard output
-            stderr=subprocess.PIPE,  # Capture standard error
-            text=True,  # Capture output as text
-            encoding="utf-8"  # Specify encoding for text output
-        )
-
-        log("Command output:\n{}".format(result.stdout))
-        log("Command error output:\n{}".format(result.stderr))
+        exec(immediate_command_str)
         log('{} - Command executed successfully'.format(time.ctime()))
 
     except Exception as e:
         log('{} - Error in execute_command: {}'.format(time.ctime(), e))
+
+
+def run_mis(filename):
+    try:
+        # Open the mission file
+        with open(f"{filename}.txt", 'r') as file:
+            # Read each line from the file
+            for line in file:
+                # Skip empty lines
+                if not line.strip():
+                    continue
+                line=str(line)
+
+                # Execute the command
+                exec(line)  # Assuming each line is a command
+
+    except Exception as e:
+        log("Error in run_mis: {}".fromat(e))
+
+
+##########################################################################################################################
+
+def initialize_MCU():
+    try:
+        global d1, MCU, MCU_initialized
+        if not MCU and not MCU_initialized:
+            # MCU = Drone(d1_str,'COM6',115200)
+            d1 = MCU
+            log("MCU Connected")
+            time.sleep(2)
+            log("MCU getting ready for the params...")
+            MCU.get_vehicle_state()
+            threading.Thread(target=MCU.security).start()
+            MCU_initialized=True
+        MCU.get_vehicle_state()
+        log('MCU_status')
+    except Exception as e:
+        log("MCU_Host: Error in initialize_MCU: {}".format(e))
+
+##########################################################################################################################
+log("MCU Server started, have fun!")
 
 while True:
     socks = dict(poller.poll())
@@ -49,8 +100,15 @@ while True:
             log("ZMQ Error: {}".format(zmq_error))
             msg_socket.close()  # Recreate socket on ZMQ errors
             msg_socket = context.socket(zmq.PULL)
-            msg_socket.bind("tcp://*:5588")
+            msg_socket.bind("tcp://*:12345")
             poller.register(msg_socket, zmq.POLLIN)
 
         except Exception as e:
             log("Error: {}".fromat(e))
+
+if KeyboardInterrupt:
+    log("KeyboardInterrupt")
+    msg_socket.close()
+
+
+##########################################################################################################################
