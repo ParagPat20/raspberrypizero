@@ -208,10 +208,11 @@ class Drone:
                 coordlon = str(self.vehicle.location.global_relative_frame.lon)
                 log("lat {}".format(coordlat))
                 log("lon {}".format(coordlon))
-                if not self.wifi_status:
-                    print("{} Wi-Fi connection lost! Initiating landing.".format(self.name))
-                    self.land()
-                    self.disarm()
+                if self.in_air():
+                    if not self.wifi_status:
+                        print("{} Wi-Fi connection lost! Initiating landing.".format(self.name))
+                        self.land()
+                        self.disarm()
                 if self.altitude > 5:
                     log("sec {} Altitude greater than 5 meters! Initiating landing.".format(self.name))
                     self.land()
