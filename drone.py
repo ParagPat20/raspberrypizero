@@ -270,7 +270,7 @@ class Drone:
             msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,  # time_boot_ms (not used)
                 0, 0,  # target system, target component
-                mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED,  # frame
+                mavutil.mavlink.MAV_FRAME_LOCAL_NED,  # frame
                 0b0000111111000111,  # type_mask (only speeds enabled)
                 0, 0, 0,  # x, y, z positions (not used)
                 velocity_x, velocity_y, velocity_z,  # x, y, z velocity in m/s
@@ -356,6 +356,17 @@ class Drone:
                 log('{} - Executed yaw(heading={}) for {} seconds.'.format(time.ctime(), heading, t + 1))
         except Exception as e:
             log(f"Error during yaw command: {e}")
+
+    def circle(self,radius=3, start_theta=0, yaw=0, velocity = 0.5):
+        T = 2 * math.pi * radius / velocity
+        dt = 0.5
+        self.yaw(yaw)
+        for t in range(int(T/dt)):
+            theta = start_theta + (2*math.pi*t*dt/T)
+            north_velocity = velocity*math.cos(theta)
+            east_velocity = velocity*math.sin(theta)
+            self.send_ned_velocity_drone(north_velocity,east_velocity,0)
+            time.sleep(dt)
 
     # def servo(self,cmd):
     #     delay_period = 0.01
