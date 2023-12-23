@@ -343,7 +343,7 @@ class Drone:
                 mavutil.mavlink.MAV_CMD_CONDITION_YAW,  # command
                 0,  # confirmation
                 heading,  # param 1, yaw in degrees
-                0,  # param 2, yaw speed deg/s
+                30,  # param 2, yaw speed deg/s
                 rotation,  # param 3, direction -1 ccw, 1 cw
                 0,  # param 4, relative offset 1, absolute angle 0
                 0, 0, 0)  # param 5 ~ 7 not used
@@ -375,6 +375,9 @@ class Drone:
 
             self.send_ned_velocity_drone(north_velocity, east_velocity, 0)
             time.sleep(dt)
+            if not self.in_air:
+                break
+
 
 
     # def servo(self,cmd):
