@@ -5,8 +5,6 @@ from drone import *
 
 cmd_port = 12345
 ctrl_port = 54321
-status_port = 60001
-local_host = MCU_host
 
 MCU = None
 
@@ -68,18 +66,15 @@ def initialize_MCU():
         global d1, MCU, MCU_initialized
         if not MCU and not MCU_initialized:
             d1_str = 'MCU'
-            # MCU = Drone(d1_str,'/dev/serial0', 115200)
-            MCU = Drone(d1_str,'COM6',115200)
+            MCU = Drone(d1_str,'/dev/serial0', 115200)
+            # MCU = Drone(d1_str,'COM6',115200)
             d1 = MCU
             log("MCU Connected")
-            time.sleep(2)
+            time.sleep(5)
+            log("MCU getting ready for the params...")
             MCU.get_vehicle_state()
-            # threading.Thread(target=MCU.send_status, args=(MCU_host,60003,)).start()
             threading.Thread(target=MCU.security).start()
             MCU_initialized=True
-            
-        log("MCU getting ready for the params...")
-        time.sleep(2) #getting ready for params
         MCU.get_vehicle_state()
         log('MCU_status')
     except Exception as e:
