@@ -101,10 +101,18 @@ class Drone:
             except zmq.ZMQError as e:
                 print(f"ZMQ Error: {e}")
                 self.wifi_status = False
+                wifi.close()
+                wifi = context.socket(zmq.REQ)
+                wifi.connect('tcp://192.168.207.101:8888')
+                wifi.setsockopt(zmq.RCVTIMEO, 5000)  # Set 3-second timeout for response
 
             except Exception as e:
                 print(f"General Error: {e}")
                 self.wifi_status=False
+                wifi.close()
+                wifi = context.socket(zmq.REQ)
+                wifi.connect('tcp://192.168.207.101:8888')
+                wifi.setsockopt(zmq.RCVTIMEO, 5000)  # Set 3-second timeout for response
 
             finally:
                 if wifi:
