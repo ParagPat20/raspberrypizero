@@ -71,13 +71,14 @@ class Drone:
 
     def is_wifi_connected(self):
         global wifi_status
-        wifi = context.socket(zmq.REQ)
-        wifi.connect('tcp://192.168.207.101:8888')
-        wifi.setsockopt(zmq.RCVTIMEO, 5000)  # Set 3-second timeout for response
-
         while True:
             try:
+                wifi = context.socket(zmq.REQ)
+                wifi.connect('tcp://192.168.207.101:8888')
+
                 wifi.send_string("check")
+                wifi.setsockopt(zmq.RCVTIMEO, 5000)  # Set 3-second timeout for response
+
                 try:
                     response = wifi.recv_string()
                     if response == "Connected":
@@ -93,7 +94,9 @@ class Drone:
                     wifi.close()
                     wifi = context.socket(zmq.REQ)
                     wifi.connect('tcp://192.168.207.101:8888')
+
                     wifi.send_string("check")
+                    wifi.setsockopt(zmq.RCVTIMEO, 10000)
 
                 time.sleep(2)
 
