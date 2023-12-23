@@ -686,8 +686,6 @@ dealer_socket.connect(f"tcp://{pc}:5556")  # Connect to the server
 
 def log(immediate_command_str):
     try:
-        immediate_command_str = str(immediate_command_str)
-        dealer_socket.send_multipart([immediate_command_str.encode()])
         if not wifi_status:
             retry_queue = []  # Initialize a retry queue
             retry_queue.append(immediate_command_str)
@@ -705,6 +703,9 @@ def log(immediate_command_str):
 
             retry_thread = threading.Thread(target=retry_failed_messages)
             retry_thread.start()
+        else:
+            immediate_command_str = str(immediate_command_str)
+            dealer_socket.send_multipart([immediate_command_str.encode()])
 
     except zmq.ZMQError as e:
         print("Error sending message: %s", e)  # Log error
