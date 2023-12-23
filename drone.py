@@ -357,16 +357,25 @@ class Drone:
         except Exception as e:
             log(f"Error during yaw command: {e}")
 
-    def circle(self,radius=3, start_theta=0, yaw=0, velocity = 0.5):
+    def circle(self, radius=3, start_theta=0, velocity=0.5):
         T = 2 * math.pi * radius / velocity
         dt = 0.5
-        self.yaw(yaw)
-        for t in range(int(T/dt)):
-            theta = start_theta + (2*math.pi*t*dt/T)
-            north_velocity = velocity*math.cos(theta)
-            east_velocity = velocity*math.sin(theta)
-            self.send_ned_velocity_drone(north_velocity,east_velocity,0)
+
+        for t in range(int(T / dt)):
+            theta = start_theta + (2 * math.pi * t * dt / T)
+            north_velocity = velocity * math.cos(theta)
+            east_velocity = velocity * math.sin(theta)
+
+            # Calculate the heading adjustment based on the current angle theta
+            heading_adjustment = math.degrees(math.atan2(east_velocity, north_velocity))
+
+            # Set the desired heading with the adjustment
+            desired_heading = (theta + heading_adjustment) % (2 * math.pi)
+            self.yaw(math.degrees(desired_heading))
+
+            self.send_ned_velocity_drone(north_velocity, east_velocity, 0)
             time.sleep(dt)
+
 
     # def servo(self,cmd):
     #     delay_period = 0.01
