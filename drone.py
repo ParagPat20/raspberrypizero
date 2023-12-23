@@ -68,30 +68,32 @@ class Drone:
 
 
     def is_wifi_connected(self):
-        try:
-            wifi = context.socket(zmq.REQ)
-            wifi.connect('tcp://192.168.207.101:8888')
-
-            wifi.send_string("check")
-            wifi.setsockopt(zmq.RCVTIMEO, 5000)  # Set 3-second timeout for response
-
+        while True:
             try:
-                response = wifi.recv_string()
-                return response == "Connected"
-            except zmq.Again:  # Timeout occurred
+                wifi = context.socket(zmq.REQ)
+                wifi.connect('tcp://192.168.207.101:8888')
+
+                wifi.send_string("check")
+                wifi.setsockopt(zmq.RCVTIMEO, 5000)  # Set 3-second timeout for response
+
+                try:
+                    response = wifi.recv_string()
+                    if response == "Connected":
+                        self.wifi_status = True
+                except zmq.Again:  # Timeout occurred
+                    self.wifi_status = False
+
+            except zmq.ZMQError as e:
+                print(f"ZMQ Error: {e}")
                 return False
 
-        except zmq.ZMQError as e:
-            print(f"ZMQ Error: {e}")
-            return False
+            except Exception as e:
+                print(f"General Error: {e}")
+                return False
 
-        except Exception as e:
-            print(f"General Error: {e}")
-            return False
-
-        finally:
-            if wifi:
-                wifi.close()
+            finally:
+                if wifi:
+                    wifi.close()
 
 
 
@@ -178,13 +180,12 @@ class Drone:
         self.altitude = self.vehicle.location.global_relative_frame.alt
         self.battery = self.vehicle.battery.voltage
         log(f"{self.name}'s Security checkup started!")
-        # threading.Thread(target=self.poshold_guided).start()
+        threading.Thread(target=self.is_wifi_connected).start()
 
         while True:
             try:
                 self.altitude = self.vehicle.location.global_relative_frame.alt
                 self.battery = self.vehicle.battery.voltage
-                self.wifi_status = self.is_wifi_connected()
                 self.mode = self.vehicle.mode
                 velx = self.vehicle.velocity[0]
                 vely = self.vehicle.velocity[1]
