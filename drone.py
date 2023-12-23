@@ -84,7 +84,11 @@ class Drone:
                     else:
                         self.wifi_status = False
                 except zmq.Again:  # Timeout occurred
+                    print("WiFi not responding")
                     self.wifi_status = False
+                    print("Waiting for new connection to be established!")
+                    wifi.setsockopt(zmq.RCVTIMEO, 10000)
+
 
                 time.sleep(2)
 
