@@ -83,6 +83,8 @@ class Drone:
                 except zmq.Again:  # Timeout occurred
                     self.wifi_status = False
 
+                time.sleep(2)
+
             except zmq.ZMQError as e:
                 print(f"ZMQ Error: {e}")
                 return False
