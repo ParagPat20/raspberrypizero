@@ -43,6 +43,7 @@ wait_for_command = True
 immediate_command_str = None
 missions = {}
 poller = zmq.Poller
+wifi_status = True
 
 class Drone:
     
@@ -69,6 +70,7 @@ class Drone:
 
 
     def is_wifi_connected(self):
+        global wifi_status
         while True:
             try:
                 wifi = context.socket(zmq.REQ)
@@ -81,10 +83,13 @@ class Drone:
                     response = wifi.recv_string()
                     if response == "Connected":
                         self.wifi_status = True
+                        wifi_status = self.wifi_status
                     else:
                         self.wifi_status = False
+                        wifi_status = self.wifi_status
                 except zmq.Again:  # Timeout occurred
                     self.wifi_status = False
+                    wifi_status = self.wifi_status
                     print("Waiting for new connection to be established")
                     wifi.close()
                     wifi = context.socket(zmq.REQ)
@@ -679,48 +684,32 @@ context = zmq.Context()
 dealer_socket = context.socket(zmq.DEALER)  # Create a single DEALER socket
 dealer_socket.connect(f"tcp://{pc}:5556")  # Connect to the server
 
-def reconnect_if_needed(dealer_socket):
-    while not dealer_socket.closed:
-        try:
-            dealer_socket.send_string("ping")  # Send a ping message
-            dealer_socket.recv_string()  # Wait for a response
-            break  # Connection successful
-        except zmq.ZMQError as e:
-            if e.errno != zmq.ETERM:  # Retry if not terminated
-                print("Connection lost, reconnecting...")
-                dealer_socket.close()
-                dealer_socket = context.socket(zmq.DEALER)
-                dealer_socket.connect("tcp://" + pc + ":5556")
-
-reconnect_thread = threading.Thread(target=reconnect_if_needed, args=(dealer_socket,))
-reconnect_thread.daemon = True  # Ensure thread exits when main program terminates
-reconnect_thread.start()
-
 def log(immediate_command_str):
     try:
         immediate_command_str = str(immediate_command_str)
         dealer_socket.send_multipart([immediate_command_str.encode()])
+        if not wifi_status:
+            retry_queue = []  # Initialize a retry queue
+            retry_queue.append(immediate_command_str)
+
+            def retry_failed_messages():
+                while retry_queue and wifi_status:
+                    message = retry_queue.pop(0)
+                    try:
+                        dealer_socket.send_multipart([message.encode()])
+                        print("Retrying message sent: %s", message)
+                    except zmq.ZMQError as e:
+                        print("Retry failed: %s", e)
+                        retry_queue.append(message)  # Add back to queue if retry fails
+                        time.sleep(1)  # Brief pause before next retry
+
+            retry_thread = threading.Thread(target=retry_failed_messages)
+            retry_thread.start()
+
     except zmq.ZMQError as e:
         print("Error sending message: %s", e)  # Log error
-        reconnect_if_needed()
-
         # Retry queue
-        retry_queue = []  # Initialize a retry queue
-        retry_queue.append(immediate_command_str)
-
-        def retry_failed_messages():
-            while retry_queue:
-                message = retry_queue.pop(0)
-                try:
-                    dealer_socket.send_multipart([message.encode()])
-                    print("Retrying message sent: %s", message)
-                except zmq.ZMQError as e:
-                    print("Retry failed: %s", e)
-                    retry_queue.append(message)  # Add back to queue if retry fails
-                    time.sleep(1)  # Brief pause before next retry
-
-        retry_thread = threading.Thread(target=retry_failed_messages)
-        retry_thread.start()
+        
 
 def file_server():
     try:
