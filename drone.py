@@ -10,24 +10,24 @@ import threading
 import zmq
 # import io
 # import picamera
-# import struct
+import struct
 context = zmq.Context()  # Create a ZeroMQ context
 import time
 import json
-import wiringpi
+# import wiringpi
 
-# use 'GPIO naming'
-wiringpi.wiringPiSetupGpio()
+# # use 'GPIO naming'
+# wiringpi.wiringPiSetupGpio()
 
-# set #18 to be a PWM output
-wiringpi.pinMode(18, wiringpi.GPIO.PWM_OUTPUT)
+# # set #18 to be a PWM output
+# wiringpi.pinMode(18, wiringpi.GPIO.PWM_OUTPUT)
 
-# set the PWM mode to milliseconds stype
-wiringpi.pwmSetMode(wiringpi.GPIO.PWM_MODE_MS)
+# # set the PWM mode to milliseconds stype
+# wiringpi.pwmSetMode(wiringpi.GPIO.PWM_MODE_MS)
 
-# divide down clock
-wiringpi.pwmSetClock(192)
-wiringpi.pwmSetRange(2000)
+# # divide down clock
+# wiringpi.pwmSetClock(192)
+# wiringpi.pwmSetRange(2000)
 
 d1 = None
 d2 = None
@@ -42,6 +42,7 @@ drone_list = []
 wait_for_command = True
 immediate_command_str = None
 missions = {}
+poller = zmq.Poller
 
 class Drone:
     
@@ -71,34 +72,27 @@ class Drone:
             wifi = context.socket(zmq.REQ)
             wifi.connect('tcp://192.168.207.101:8888')
 
-            # Perform the check twice
-            poller = zmq.Poller()
-            poller.register(wifi, zmq.POLLIN)
             wifi.send_string("check")
-            wifi.recv_string()
-            wifi.send_string("check")
+            wifi.setsockopt(zmq.RCVTIMEO, 3000)  # Set 3-second timeout for response
 
-            if poller.poll(3000):
-                response1 = wifi.recv_string()
-                wifi.send_string("check")
-            if poller.poll(3000):
-                response2 = wifi.recv_string()
-                wifi.send_string("check")
-            if poller.poll(3000):
-                response3 = wifi.recv_string()
-
-            if response1 == "Connected" or response2 == "Connected" or response3 == "Connected":
-                return True
-            else:
+            try:
+                response = wifi.recv_string()
+                return response == "Connected"
+            except zmq.Again:  # Timeout occurred
                 return False
 
+        except zmq.ZMQError as e:
+            print(f"ZMQ Error: {e}")
+            return False
+
         except Exception as e:
-            print(f"Error checking Wi-Fi: {e}")
+            print(f"General Error: {e}")
             return False
 
         finally:
             if wifi:
                 wifi.close()
+
 
 
     def poshold_guided(self):
@@ -271,6 +265,7 @@ class Drone:
             velocity_x = float(velocity_x)
             velocity_y = float(velocity_y)
             velocity_z = float(velocity_z)
+            
 
             msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,  # time_boot_ms (not used)
@@ -288,6 +283,28 @@ class Drone:
         except Exception as e:
             log(f"Error sending velocity commands: {e}")
 
+    def send_ned_position_drone(self, disx, disy, disz):
+        try:
+            disx = float(disx)
+            disy = float(disy)
+            disz = float(disz)
+
+            msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
+                0,  # time_boot_ms (not used)
+                0, 0,  # target system, target component
+                mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,  # frame
+                0b0000111111111000,  # type_mask (only positions enabled)
+                disx, disy, disz,  # x, y, z positions (not used)
+                0, 0, 0,  # x, y, z velocity in m/s
+                0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
+                0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+
+            self.vehicle.send_mavlink(msg)
+            log("Drone heading to : {}m Forward, {}m Left, {}m Upward".format(disx,disy,disz))
+
+        except Exception as e:
+            log(f"Error sending position commands: {e}")
+
     def send_ned_velocity(self, x, y, z, duration = None):
         self.no_vel_cmds = False
         if duration:
@@ -304,6 +321,12 @@ class Drone:
             self.send_ned_velocity_drone(x,y,z)
             time.sleep(1)
             self.no_vel_cmds = True
+
+    def send_pos(self,x,y,z,duration=5):
+        self.no_vel_cmds = False
+        self.send_ned_position_drone(x,y,z)
+        time.sleep(duration)
+        self.send_ned_position_drone(0,0,0)
 
     def yaw(self, heading):
         try:
@@ -334,22 +357,22 @@ class Drone:
         except Exception as e:
             log(f"Error during yaw command: {e}")
 
-    def servo(self,cmd):
-        delay_period = 0.01
-        close = 'close'
-        open = 'open'
-        try:
-            if cmd == 'close' or cmd == close:
-                for pulse in range(50, 250, 1):
-                    wiringpi.pwmWrite(18, pulse)
-                    time.sleep(delay_period)
-            if cmd == 'open' or cmd == open:
-                for pulse in range(250, 50, -1):
-                    wiringpi.pwmWrite(18, pulse)
-                    time.sleep(delay_period)
-            log('setting servo to {}'.format(cmd))
-        except Exception as e:
-            log(f"Error during servo command: {e}")
+    # def servo(self,cmd):
+    #     delay_period = 0.01
+    #     close = 'close'
+    #     open = 'open'
+    #     try:
+    #         if cmd == 'close' or cmd == close:
+    #             for pulse in range(50, 250, 1):
+    #                 wiringpi.pwmWrite(18, pulse)
+    #                 time.sleep(delay_period)
+    #         if cmd == 'open' or cmd == open:
+    #             for pulse in range(250, 50, -1):
+    #                 wiringpi.pwmWrite(18, pulse)
+    #                 time.sleep(delay_period)
+    #         log('setting servo to {}'.format(cmd))
+    #     except Exception as e:
+    #         log(f"Error during servo command: {e}")
 
     def disarm(self):
         try:
@@ -511,62 +534,92 @@ def send(host, immediate_command_str):
     global connected_hosts
     global clients
 
-    if host not in connected_hosts:
-        context = zmq.Context()
-        socket1 = context.socket(zmq.PUSH)
-        socket1.connect(f"tcp://{host}:12345")
-        socket2 = context.socket(zmq.PUSH)
-        socket2.connect(f"tcp://{host}:12345")
-        socket3 = context.socket(zmq.PUSH)
-        socket3.connect(f"tcp://{host}:12345")
-        clients[host] = [socket1,socket2,socket3]
-        connected_hosts.add(host)
-    immediate_command_str = str(immediate_command_str)
-    random_socket = random.choice(clients[host])
-    random_socket.send_string(immediate_command_str)
+    try:
+        if host not in connected_hosts:
+            connect_and_register_socket(host)
 
-# def camera_stream_server(host):
-#     def handle_client(client_socket):
-#         connection = client_socket.makefile('wb')
+        immediate_command_str = str(immediate_command_str)
+        clients[host].send_string(immediate_command_str, zmq.NOBLOCK)  # Non-blocking send
+        log("Command sent successfully to {}".format(host))
 
-#         try:
-#             with picamera.PiCamera() as camera:
-#                 camera.resolution = (640, 480)  # Adjust resolution as needed
-#                 camera.framerate = 30  # Adjust frame rate as needed
+    except zmq.error.Again:  # Handle non-blocking send errors
+        poller.register(clients[host], zmq.POLLOUT)  # Wait for socket readiness
+        socks = dict(poller.poll(1000))
+        if clients[host] in socks and socks[clients[host]] == zmq.POLLOUT:
+            clients[host].send_string(immediate_command_str)  # Retry sending
+        else:
+            log(f"Socket not ready for {host}, reconnecting...")
+            reconnect_socket(host)
 
-#                 # Start capturing and sending the video feed
-#                 time.sleep(2)  # Give the camera some time to warm up
-#                 stream = io.BytesIO()
-#                 for _ in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
-#                     stream.seek(0)
-#                     image_data = stream.read()
+    except zmq.error.ZMQError as e:
+        log(f"PC Host {host}: {e}")
+        reconnect_socket(host)  # Attempt reconnection
 
-#                     # Send the image size to the client
-#                     connection.write(struct.pack('<L', len(image_data)))
-#                     connection.flush()
+def connect_and_register_socket(host):
+    socket = context.socket(zmq.PUSH)
+    socket.setsockopt(zmq.SNDHWM, 1000)  # Allow up to 1000 queued messages
+    socket.connect(f"tcp://{host}:12345")
+    poller.register(socket, zmq.POLLOUT)  # Register for write events
+    clients[host] = socket
+    connected_hosts.add(host)
+    log("Clients: {}".format(clients))
 
-#                     # Send the image data to the client
-#                     connection.write(image_data)
-#                     stream.seek(0)
-#                     stream.truncate()
-#         except Exception as e:
-#             log("Error: ", e)
+def reconnect_socket(host):
+    socket = clients[host]
+    socket.close()
+    socket = context.socket(zmq.PUSH)
+    socket.connect(f"tcp://{host}:12345")
+    poller.register(socket, zmq.POLLOUT)
+    clients[host] = socket
+    socks = dict(poller.poll(1000))  # Wait for write events with timeout
+    return socket in socks and socks[socket] == zmq.POLLOUT
 
-#         finally:
-#             connection.close()
-#             client_socket.close()
+def camera_start():
 
-#     # Create a socket server
-#     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-#     server_socket.bind((host, 8000))
-#     server_socket.listen(2)
+    socket = context.socket(zmq.STREAM)  # Use STREAM socket
+    socket.bind("tcp://*:8000")  # Bind to port 8000
 
-#     log("Server is listening on {}:{}".format(host, 8000))
+    camera = None
 
-#     while True:
-#         client_socket, _ = server_socket.accept()
-#         client_thread = threading.Thread(target=handle_client, args=(client_socket,))
-#         client_thread.start()
+    def handle_client():
+        global camera
+
+    #     while True:
+    #         try:
+    #             # Start the camera if not already running
+    #             if not camera:
+    #                 camera = picamera.PiCamera()
+    #                 camera.resolution = (640, 480)  # Adjust as needed
+    #                 camera.framerate = 30  # Adjust as needed
+    #                 time.sleep(2)  # Camera warmup
+
+    #             stream = io.BytesIO()
+    #             for _ in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
+    #                 stream.seek(0)
+    #                 image_data = stream.read()
+
+    #                 # Send image size and data
+    #                 socket.send(struct.pack('<L', len(image_data)), flags=zmq.SNDMORE)
+    #                 socket.send(image_data)
+
+    #                 stream.seek(0)
+    #                 stream.truncate()
+
+    #         except Exception as e:
+    #             print("Error:", e)
+
+    #         finally:
+    #             # Close client connection and camera if needed
+    #             if socket:
+    #                 socket.close()
+    #             if camera:
+    #                 camera.close()
+    #                 camera = None
+
+    # client_thread = threading.Thread(target=handle_client)
+    # client_thread.start()
+    # client_thread.isDaemon(True)
+
 
 #==============================================================================================================
 
@@ -583,26 +636,7 @@ def remove_drone(string):
         drone_list.remove(string)
     except Exception as e:
         log(f"Error removing drone: {e}")
-
-
-# def recv_status(remote_host,status_port):
-        
-#         client_socket = socket.socket()
-#         client_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-#         try:
-#             client_socket.connect((remote_host, status_port))
-#             status_msg_str = client_socket.recv(1024).decode('utf-8')
-#             battery ,gs, lat, lon, alt, heading = status_msg_str.split(',')
-#             lat = float(lat)
-#             lon = float(lon)
-#             alt = float(alt)
-#             heading = float(heading)
-
-#             return (lat,lon),alt,heading
-#         except socket.error as error_msg:
-#             log('{} - Caught exception : {}'.format(time.ctime(), error_msg))
-#             log('{} - CLIENT_request_status({}) is not executed!'.format(time.ctime(), remote_host))
-            
+         
 def chat(string):
     try:
         print(string)
@@ -611,34 +645,52 @@ def chat(string):
         log(f"Error in chat function: {e}")
 
 
-import random
+context = zmq.Context()
+dealer_socket = context.socket(zmq.DEALER)  # Create a single DEALER socket
+dealer_socket.connect(f"tcp://{pc}:5556")  # Connect to the server
+
+def reconnect_if_needed(dealer_socket):
+    while not dealer_socket.closed:
+        try:
+            dealer_socket.send_string("ping")  # Send a ping message
+            dealer_socket.recv_string()  # Wait for a response
+            break  # Connection successful
+        except zmq.ZMQError as e:
+            if e.errno != zmq.ETERM:  # Retry if not terminated
+                print("Connection lost, reconnecting...")
+                dealer_socket.close()
+                dealer_socket = context.socket(zmq.DEALER)
+                dealer_socket.connect("tcp://" + pc + ":5556")
+
+reconnect_thread = threading.Thread(target=reconnect_if_needed, args=(dealer_socket,))
+reconnect_thread.daemon = True  # Ensure thread exits when main program terminates
+reconnect_thread.start()
 
 def log(immediate_command_str):
-    global connected_hosts
-    global clients
-    host = pc
+    try:
+        immediate_command_str = str(immediate_command_str)
+        dealer_socket.send_multipart([immediate_command_str.encode()])
+    except zmq.ZMQError as e:
+        print("Error sending message: %s", e)  # Log error
+        reconnect_if_needed()
 
-    if host not in connected_hosts:
-        context = zmq.Context()
-        socket1 = context.socket(zmq.PUSH)
-        socket1.connect(f"tcp://{host}:5556")
-        socket2 = context.socket(zmq.PUSH)
-        socket2.connect(f"tcp://{host}:5556")
-        socket3 = context.socket(zmq.PUSH)
-        socket3.connect(f"tcp://{host}:5556")
-        socket4 = context.socket(zmq.PUSH)
-        socket4.connect(f"tcp://{host}:5556")
-        socket5 = context.socket(zmq.PUSH)
-        socket5.connect(f"tcp://{host}:5556")
-        socket6 = context.socket(zmq.PUSH)
-        socket6.connect(f"tcp://{host}:5556")
-        clients[host] = [socket1,socket2,socket3,socket4,socket5,socket6]
-        connected_hosts.add(host)
+        # Retry queue
+        retry_queue = []  # Initialize a retry queue
+        retry_queue.append(immediate_command_str)
 
-    random_socket = random.choice(clients[host])
-    immediate_command_str = str(immediate_command_str)
-    random_socket.send_string(immediate_command_str)
+        def retry_failed_messages():
+            while retry_queue:
+                message = retry_queue.pop(0)
+                try:
+                    dealer_socket.send_multipart([message.encode()])
+                    print("Retrying message sent: %s", message)
+                except zmq.ZMQError as e:
+                    print("Retry failed: %s", e)
+                    retry_queue.append(message)  # Add back to queue if retry fails
+                    time.sleep(1)  # Brief pause before next retry
 
+        retry_thread = threading.Thread(target=retry_failed_messages)
+        retry_thread.start()
 
 def file_server():
     try:

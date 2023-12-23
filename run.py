@@ -15,9 +15,13 @@ MCU = None
 MCU_initialized = False
 d1 = None
 
-context = zmq.Context()
+context = zmq.Context(10)  # Allow up to 10 concurrent sockets
 msg_socket = context.socket(zmq.PULL)
 msg_socket.bind("tcp://*:12345")
+msg_socket.setsockopt(zmq.RCVHWM, 1000)  # High water mark for incoming messages
+
+poller = zmq.Poller()
+poller.register(msg_socket, zmq.POLLIN)  # Monitor for incoming messages
 
 log('{} - SERVER_receive_and_execute_immediate_command() is started!'.format(time.ctime()))
 
@@ -27,11 +31,11 @@ def drone_list_update(cmd):
         drone_list = cmd
         log(drone_list)
     except Exception as e:
-        log(f"MCU_Host: Error in drone_list_update: {e}")
+        log("MCU_Host: Error in drone_list_update: {}".format(e))
 
 def execute_command(immediate_command_str):
     try:
-        print("Executing command:", repr(immediate_command_str))  # Add this line
+        log("Executing command: {}".format(repr(immediate_command_str)))
         exec(immediate_command_str)
         log('{} - Command executed successfully'.format(time.ctime()))
 
@@ -54,7 +58,7 @@ def run_mis(filename):
                 exec(line)  # Assuming each line is a command
 
     except Exception as e:
-        log(f"Error in run_mis: {e}")
+        log("Error in run_mis: {}".fromat(e))
 
 
 ##########################################################################################################################
@@ -64,7 +68,8 @@ def initialize_MCU():
         global d1, MCU, MCU_initialized
         if not MCU and not MCU_initialized:
             d1_str = 'MCU'
-            MCU = Drone(d1_str,'/dev/serial0', 115200)
+            # MCU = Drone(d1_str,'/dev/serial0', 115200)
+            MCU = Drone(d1_str,'COM6',115200)
             d1 = MCU
             log("MCU Connected")
             time.sleep(2)
@@ -78,27 +83,37 @@ def initialize_MCU():
         MCU.get_vehicle_state()
         log('MCU_status')
     except Exception as e:
-        log(f"MCU_Host: Error in initialize_MCU: {e}")
+        log("MCU_Host: Error in initialize_MCU: {}".format(e))
 
 ##########################################################################################################################
 log("MCU Server started, have fun!")
-##########################################################################################################################
 
 while True:
-    try:
-        immediate_command_str = msg_socket.recv_string()
-        print('\n{} - Received immediate command: {}'.format(time.ctime(), immediate_command_str))
-        command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
-        command_thread.start()
+    socks = dict(poller.poll())
 
-    except zmq.ZMQError as zmq_error:
-        log(f"ZMQ Error: {zmq_error}")
-    except Exception as e:
-        log(f"Error: {e}")
-    except KeyboardInterrupt:
-        log("KeyboardInterrupt")
-        msg_socket.close()
+    if msg_socket in socks and socks[msg_socket] == zmq.POLLIN:
+        try:
+            immediate_command_str = msg_socket.recv(zmq.NOBLOCK)
+            immediate_command_str = immediate_command_str.decode()
+            command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
+            command_thread.start()
 
+        except zmq.error.Again:  # Handle non-blocking recv errors
+            pass  # Wait for next poll event
+
+        except zmq.ZMQError as zmq_error:
+            log("ZMQ Error: {}".format(zmq_error))
+            msg_socket.close()  # Recreate socket on ZMQ errors
+            msg_socket = context.socket(zmq.PULL)
+            msg_socket.bind("tcp://*:12345")
+            poller.register(msg_socket, zmq.POLLIN)
+
+        except Exception as e:
+            log("Error: {}".fromat(e))
+
+if KeyboardInterrupt:
+    log("KeyboardInterrupt")
+    msg_socket.close()
 
 
 ##########################################################################################################################
