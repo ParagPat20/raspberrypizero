@@ -87,6 +87,7 @@ class Drone:
                     else:
                         self.wifi_status = False
                         wifi_status = self.wifi_status
+                    wifi.close()
                 except zmq.Again:  # Timeout occurred
                     self.wifi_status = False
                     wifi_status = self.wifi_status
