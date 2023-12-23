@@ -65,7 +65,7 @@ class Drone:
         self.integral_velz = 0.0
         self.alt_ach = False
         self.prev_timestamp = time.time()
-        self.wifi_status = False
+        self.wifi_status = True
 
 
     def is_wifi_connected(self):
@@ -81,6 +81,8 @@ class Drone:
                     response = wifi.recv_string()
                     if response == "Connected":
                         self.wifi_status = True
+                    else:
+                        self.wifi_status = False
                 except zmq.Again:  # Timeout occurred
                     self.wifi_status = False
 
@@ -88,11 +90,11 @@ class Drone:
 
             except zmq.ZMQError as e:
                 print(f"ZMQ Error: {e}")
-                return False
+                self.wifi_status = False
 
             except Exception as e:
                 print(f"General Error: {e}")
-                return False
+                self.wifi_status=False
 
             finally:
                 if wifi:
