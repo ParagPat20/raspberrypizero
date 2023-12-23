@@ -330,7 +330,6 @@ class Drone:
         self.no_vel_cmds = False
         self.send_ned_position_drone(x,y,z)
         time.sleep(duration)
-        self.send_ned_position_drone(0,0,0)
 
     def yaw(self, heading):
         try:
