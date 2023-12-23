@@ -94,7 +94,6 @@ class Drone:
                     wifi.close()
                     wifi = context.socket(zmq.REQ)
                     wifi.connect('tcp://192.168.207.101:8888')
-                    wifi.send_string("check")
 
                 time.sleep(2)
 
