@@ -65,6 +65,7 @@ class Drone:
         self.integral_velz = 0.0
         self.alt_ach = False
         self.prev_timestamp = time.time()
+        self.wifi_status = False
 
 
     def is_wifi_connected(self):
