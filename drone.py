@@ -73,7 +73,7 @@ class Drone:
             wifi.connect('tcp://192.168.207.101:8888')
 
             wifi.send_string("check")
-            wifi.setsockopt(zmq.RCVTIMEO, 3000)  # Set 3-second timeout for response
+            wifi.setsockopt(zmq.RCVTIMEO, 5000)  # Set 3-second timeout for response
 
             try:
                 response = wifi.recv_string()
@@ -203,7 +203,7 @@ class Drone:
                 if self.battery < 10.5:
                     log("sec {} Battery LOW, Landing".format(self.name))
                     self.land()
-                time.sleep(2)
+                time.sleep(4)
             except Exception as e:
                 log("sec {} Security Error : {}".format(self.name,e))
                 pass
