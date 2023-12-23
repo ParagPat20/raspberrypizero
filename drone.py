@@ -366,13 +366,6 @@ class Drone:
             north_velocity = velocity * math.cos(theta)
             east_velocity = velocity * math.sin(theta)
 
-            # Calculate the heading adjustment based on the current angle theta
-            heading_adjustment = math.degrees(math.atan2(east_velocity, north_velocity))
-
-            # Set the desired heading with the adjustment
-            desired_heading = (theta + heading_adjustment) % (2 * math.pi)
-            self.yaw(math.degrees(desired_heading))
-
             self.send_ned_velocity_drone(north_velocity, east_velocity, 0)
             time.sleep(dt)
             if not self.in_air:
