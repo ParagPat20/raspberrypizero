@@ -96,7 +96,6 @@ class Drone:
                     wifi.connect('tcp://192.168.207.101:8888')
 
                     wifi.send_string("check")
-                    wifi.setsockopt(zmq.RCVTIMEO, 10000)
 
 
 
