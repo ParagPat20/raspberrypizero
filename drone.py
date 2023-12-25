@@ -113,8 +113,6 @@ class Drone:
                 if wifi:
                     wifi.close()
 
-
-
     def poshold_guided(self):
         while True:
             try:
@@ -444,6 +442,10 @@ class Drone:
             self.in_air = False
         except Exception as e:
             log(f"Error during RTL mode setting: {e}")
+
+    def mode(self, cmd):
+        self.vehicle.mode = VehicleMode(f"{cmd}")
+        log("{} Mode changed to {}".format(self.name,cmd))
 
     def exit(self):
         try:
