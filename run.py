@@ -56,7 +56,7 @@ def run_mis(filename):
                 exec(line)  # Assuming each line is a command
 
     except Exception as e:
-        log("Error in run_mis: {}".fromat(e))
+        log("Error in run_mis: {}".format(e))
 
 
 ##########################################################################################################################
