@@ -443,7 +443,7 @@ class Drone:
         except Exception as e:
             log(f"Error during RTL mode setting: {e}")
 
-    def mode(self, cmd):
+    def moder(self, cmd):
         mode_name = str(cmd)
         self.vehicle.mode = VehicleMode(mode_name)
         log("{} Mode changed to {}".format(self.name,cmd))
