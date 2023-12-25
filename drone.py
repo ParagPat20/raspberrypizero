@@ -691,7 +691,8 @@ def log(immediate_command_str):
         if not wifi_status:
             retry_queue = []  # Initialize a retry queue
             retry_queue.append(immediate_command_str)
-
+            print(immediate_command_str)
+            
             def retry_failed_messages():
                 while retry_queue and wifi_status:
                     message = retry_queue.pop(0)
