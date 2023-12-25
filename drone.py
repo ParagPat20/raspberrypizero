@@ -198,7 +198,7 @@ class Drone:
         log(f"{self.name}'s Security checkup started!")
         threading.Thread(target=self.is_wifi_connected).start()
 
-        while self:
+        while self.name is not "STOP":
             try:
                 self.altitude = self.vehicle.location.global_relative_frame.alt
                 self.battery = self.vehicle.battery.voltage
