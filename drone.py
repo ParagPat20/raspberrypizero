@@ -444,7 +444,8 @@ class Drone:
             log(f"Error during RTL mode setting: {e}")
 
     def mode(self, cmd):
-        self.vehicle.mode = VehicleMode(f"{cmd}")
+        mode_name = str(cmd)
+        self.vehicle.mode = VehicleMode(mode_name)
         log("{} Mode changed to {}".format(self.name,cmd))
 
     def exit(self):
