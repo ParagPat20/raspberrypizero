@@ -76,7 +76,7 @@ class Drone:
                 wifi = context.socket(zmq.REQ)
                 wifi.connect('tcp://192.168.207.101:8888')
 
-                wifi.send_string("check")
+                wifi.send_string(self.name)
                 wifi.setsockopt(zmq.RCVTIMEO, 5000)  # Set 3-second timeout for response
 
                 try:
@@ -692,7 +692,7 @@ def log(immediate_command_str):
             retry_queue = []  # Initialize a retry queue
             retry_queue.append(immediate_command_str)
             print(immediate_command_str)
-            
+
             def retry_failed_messages():
                 while retry_queue and wifi_status:
                     message = retry_queue.pop(0)
