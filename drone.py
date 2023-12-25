@@ -708,6 +708,8 @@ def log(immediate_command_str):
         else:
             immediate_command_str = str(immediate_command_str)
             dealer_socket.send_multipart([immediate_command_str.encode()])
+        if not wifi_status:
+            print(immediate_command_str)
 
     except zmq.ZMQError as e:
         print("Error sending message: %s", e)  # Log error
