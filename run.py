@@ -80,6 +80,18 @@ def initialize_MCU():
     except Exception as e:
         log("MCU_Host: Error in initialize_MCU: {}".format(e))
 
+def deinitialize_MCU():
+    try:
+        global d1, MCU, MCU_initialized
+        MCU.exit()
+        MCU = None
+        d1 = None
+        MCU_initialized = False
+
+
+    except Exception as e:
+        log("MCU_Host: Error in deinitialize_MCU: {}".format(e))
+
 ##########################################################################################################################
 log("MCU Server started, have fun!")
 
