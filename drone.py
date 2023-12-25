@@ -595,7 +595,7 @@ def connect_and_register_socket(host):
     socket = context.socket(zmq.PUSH)
     socket.setsockopt(zmq.SNDHWM, 1000)  # Allow up to 1000 queued messages
     socket.connect(f"tcp://{host}:12345")
-    poller.register(socket, zmq.POLLOUT)  # Register for write events
+    # poller.register(socket, zmq.POLLOUT)  # Register for write events
     clients[host] = socket
     connected_hosts.add(host)
     log("Clients: {}".format(clients))
@@ -605,10 +605,10 @@ def reconnect_socket(host):
     socket.close()
     socket = context.socket(zmq.PUSH)
     socket.connect(f"tcp://{host}:12345")
-    poller.register(socket, zmq.POLLOUT)
+    # poller.register(socket, zmq.POLLOUT)
     clients[host] = socket
     socks = dict(poller.poll(1000))  # Wait for write events with timeout
-    return socket in socks and socks[socket] == zmq.POLLOUT
+    # return socket in socks and socks[socket] == zmq.POLLOUT
 
 def camera_start():
 
