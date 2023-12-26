@@ -390,6 +390,78 @@ class Drone:
                 break
 
 
+    def move_square_to_circle(self, start_index, radius=2, velocity=0.5):
+        try:
+            side_length = 2 * radius  # Assuming the square side length is equal to the diameter of the circle
+            half_side = side_length / 2
+
+            # Square positions
+            square_positions = [
+                (0, 0),          # A
+                (0, side_length),  # B
+                (side_length, side_length),  # C
+                (side_length, 0)   # D
+            ]
+
+            current_index = start_index % 4
+            next_index = (start_index + 1) % 4
+
+            current_pos = square_positions[current_index]
+            target_pos = square_positions[next_index]
+
+            target_x, target_y = self.calculate_circle_position(current_pos[0], current_pos[1], target_pos[0], target_pos[1], half_side, radius, velocity)
+            self.send_ned_velocity(target_x, target_y, 0, duration=2)  # Adjust duration based on the drone's speed
+
+        except Exception as e:
+            log(f"Error moving drones from square to circle: {e}")
+
+    def move_pentagon_to_circle(self, start_index, radius=2, velocity=0.5):
+        try:
+            # Calculate pentagon side length based on radius and golden ratio
+            side_length = 2 * radius * math.sin(math.pi / 5)
+            half_side = side_length / 2
+
+            # Pentagon positions, centered at (half_side, half_side)
+            pentagon_positions = [
+                (0, side_length),   # A
+                (side_length * math.cos(math.pi / 5), half_side),  # B
+                (side_length * math.cos(math.pi / 5), -half_side),  # C
+                (0, -side_length),  # D
+                (-side_length * math.cos(math.pi / 5), -half_side)  # E
+            ]
+
+            current_index = start_index % 5
+            next_index = (start_index + 1) % 5
+
+            current_pos = pentagon_positions[current_index]
+            target_pos = pentagon_positions[next_index]
+
+            target_x, target_y = self.calculate_circle_position(
+                current_pos[0] + half_side,  # Offset for centering
+                current_pos[1] + half_side,  # Offset for centering
+                target_pos[0] + half_side,  # Offset for centering
+                target_pos[1] + half_side,  # Offset for centering
+                half_side, radius, velocity
+            )
+            self.send_ned_velocity(target_x, target_y, 0, duration=2)  # Adjust duration as needed
+
+        except Exception as e:
+            log(f"Error moving drones from pentagon to circle: {e}")
+
+    def calculate_circle_position(self, x_start, y_start, x_end, y_end, half_side, radius, velocity):
+        theta_start = math.atan2(y_start - half_side, x_start - half_side)
+        theta_end = math.atan2(y_end - half_side, x_end - half_side)
+        
+        # Use the average of start and end thetas for a smoother transition
+        theta_avg = (theta_start + theta_end) / 2
+
+        # Calculate circular path components based on polar coordinates
+        velocity_x = velocity * math.cos(theta_avg)
+        velocity_y = velocity * math.sin(theta_avg)
+
+        return velocity_x, velocity_y
+
+
 
     # def servo(self,cmd):
     #     delay_period = 0.01
