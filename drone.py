@@ -8,26 +8,26 @@ from geopy.distance import great_circle
 import math
 import threading
 import zmq
-# import io
-# import picamera
+import io
+import picamera
 import struct
 context = zmq.Context()  # Create a ZeroMQ context
 import time
 import json
-# import wiringpi
+import wiringpi
 
-# # use 'GPIO naming'
-# wiringpi.wiringPiSetupGpio()
+# use 'GPIO naming'
+wiringpi.wiringPiSetupGpio()
 
-# # set #18 to be a PWM output
-# wiringpi.pinMode(18, wiringpi.GPIO.PWM_OUTPUT)
+# set #18 to be a PWM output
+wiringpi.pinMode(18, wiringpi.GPIO.PWM_OUTPUT)
 
-# # set the PWM mode to milliseconds stype
-# wiringpi.pwmSetMode(wiringpi.GPIO.PWM_MODE_MS)
+# set the PWM mode to milliseconds stype
+wiringpi.pwmSetMode(wiringpi.GPIO.PWM_MODE_MS)
 
-# # divide down clock
-# wiringpi.pwmSetClock(192)
-# wiringpi.pwmSetRange(2000)
+# divide down clock
+wiringpi.pwmSetClock(192)
+wiringpi.pwmSetRange(2000)
 
 d1 = None
 d2 = None
@@ -273,6 +273,7 @@ class Drone:
                     break
                 time.sleep(1)
             self.in_air = True
+
             self.alt_ach = False
         except Exception as e:
             log(f"Error during takeoff: {e}")
@@ -341,6 +342,7 @@ class Drone:
 
     def send_pos(self,x,y,z,duration=5):
         self.no_vel_cmds = False
+        self.vehicle.groundspeed = 0.5
         self.send_ned_position_drone(x,y,z)
         time.sleep(duration)
 
