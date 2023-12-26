@@ -72,7 +72,7 @@ def initialize_CD3():
         global d2, CD3, CD3_initialized
         if not CD3 and not CD3_initialized:
             d2_str = 'CD3'
-            CD3 = Drone(d2_str,'0.0.0.0:14554')
+            CD3 = Drone(d2_str,'0.0.0.0:14553')
             d2 = CD3
             log("CD3 Connected")
             time.sleep(5)  # Adjust sleep time if needed
@@ -84,6 +84,32 @@ def initialize_CD3():
         log('CD3_status')
     except Exception as e:
         log("CD3_Host: Error in initialize_CD3: {}".format(e))
+
+def deinitialize_CD2():
+    try:
+        global d1, CD2, CD2_initialized
+        CD2.name = "STOP"
+        CD2.exit()
+        CD2 = None
+        d1 = None
+        CD2_initialized = False
+        
+
+    except Exception as e:
+        log("CD2_Host: Error in deinitialize_CD2: {}".format(e))
+
+def deinitialize_CD3():
+    try:
+        global d2, CD3, CD3_initialized
+        CD3.name = "STOP"
+        CD3.exit()
+        CD3 = None
+        d2 = None
+        CD3_initialized = False
+        
+
+    except Exception as e:
+        log("CD3_Host: Error in deinitialize_CD3: {}".format(e))
 
 
 ##########################################################################################################################

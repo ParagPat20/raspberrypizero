@@ -7,11 +7,14 @@ cmd_port = 12345
 ctrl_port = 54321
 
 CD1 = None
-
+d2 = None
+d2_str = ""
 ##################################################### Initialization #####################################################
 
 CD1_initialized = False
+CD4_initialized = False
 d1 = None
+d1_str=""
 
 context = zmq.Context(10)  # Allow up to 10 concurrent sockets
 msg_socket = context.socket(zmq.PULL)
@@ -61,6 +64,50 @@ def initialize_CD1():
         log('CD1_status')
     except Exception as e:
         log("CD1_Host: Error in initialize_CD1: {}".format(e))
+
+def deinitialize_CD1():
+    try:
+        global d1, CD1, CD1_initialized
+        CD1.name = "STOP"
+        CD1.exit()
+        CD1 = None
+        d1 = None
+        CD1_initialized = False
+        
+
+    except Exception as e:
+        log("CD1_Host: Error in deinitialize_CD1: {}".format(e))
+
+def initialize_CD4():
+    try:
+        global d2, CD4, CD4_initialized
+        if not CD4 and not CD4_initialized:
+            d2_str = 'CD4'
+            CD4 = Drone(d2_str,'0.0.0.0:14554')
+            d2 = CD4
+            log("CD4 Connected")
+            time.sleep(5)  # Adjust sleep time if needed
+            log("CD4 getting ready for the params...")
+            CD4.get_vehicle_state()
+            threading.Thread(target=CD4.security).start()
+            CD4_initialized = True
+        CD4.get_vehicle_state()
+        log('CD4_status')
+    except Exception as e:
+        log("CD4_Host: Error in initialize_CD4: {}".format(e))
+
+def deinitialize_CD4():
+    try:
+        global d2, CD4, CD4_initialized
+        CD4.name = "STOP"
+        CD4.exit()
+        CD4 = None
+        d2 = None
+        CD4_initialized = False
+        
+
+    except Exception as e:
+        log("CD4_Host: Error in deinitialize_CD4: {}".format(e))
 
 ##########################################################################################################################
 log("CD1 Server started, have fun!")
