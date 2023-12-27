@@ -612,14 +612,22 @@ class Drone:
                 time.sleep(2)  # Camera warm-up
 
                 stream = io.BytesIO()
-                while camera_running:
+                for _ in camera.capture_continuous(stream, format="jpeg", use_video_port=True):
+                    # Move to the beginning of the stream for reading
                     stream.seek(0)
+
+                    # Read the image data from the stream
                     image_data = stream.read()
 
+                    # Send the image data
                     socket.send(image_data)
 
+                    # Truncate the stream to prepare for the next capture
                     stream.seek(0)
                     stream.truncate()
+
+                    if not camera_running:
+                        break
 
         except Exception as e:
             print(f"Error: {e}")
