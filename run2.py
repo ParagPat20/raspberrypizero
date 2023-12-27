@@ -1,5 +1,5 @@
-from drone2 import Drone
-from drone2 import *
+from drone import Drone
+from drone import *
 
 
 
