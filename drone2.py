@@ -60,7 +60,7 @@ class Drone:
         while True:
             try:
                 wifi = context.socket(zmq.REQ)
-                wifi.connect('tcp://172.217.28.100:8888')
+                wifi.connect('tcp://172.217.28.97:8888')
 
                 wifi.send_string(self.name)
                 wifi.setsockopt(zmq.RCVTIMEO, 5000)  # Set 3-second timeout for response
@@ -80,7 +80,7 @@ class Drone:
                     print("Waiting for new connection to be established")
                     wifi.close()
                     wifi = context.socket(zmq.REQ)
-                    wifi.connect('tcp://172.217.28.100:8888')
+                    wifi.connect('tcp://172.217.28.97:8888')
 
                     wifi.send_string("check")
                     wifi.setsockopt(zmq.RCVTIMEO, 10000)
@@ -605,7 +605,7 @@ def check_distance(d1,d2):
 
 connected_hosts = set()
 clients = {}
-pc = '172.217.28.100'
+pc = '172.217.28.97'
 
 import random
 
