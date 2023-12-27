@@ -72,7 +72,7 @@ def initialize_CD3():
         global d2, CD3, CD3_initialized
         if not CD3 and not CD3_initialized:
             d2_str = 'CD3'
-            CD3 = Drone(d2_str,'0.0.0.0:14553')
+            CD3 = Drone(d2_str,'172.217.28.254:14553')
             d2 = CD3
             log("CD3 Connected")
             time.sleep(5)  # Adjust sleep time if needed
