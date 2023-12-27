@@ -44,6 +44,7 @@ immediate_command_str = None
 missions = {}
 poller = zmq.Poller
 wifi_status = True
+camera_running = True
 
 class Drone:
     
@@ -463,22 +464,22 @@ class Drone:
 
 
 
-    # def servo(self,cmd):
-    #     delay_period = 0.01
-    #     close = 'close'
-    #     open = 'open'
-    #     try:
-    #         if cmd == 'close' or cmd == close:
-    #             for pulse in range(50, 250, 1):
-    #                 wiringpi.pwmWrite(18, pulse)
-    #                 time.sleep(delay_period)
-    #         if cmd == 'open' or cmd == open:
-    #             for pulse in range(250, 50, -1):
-    #                 wiringpi.pwmWrite(18, pulse)
-    #                 time.sleep(delay_period)
-    #         log('setting servo to {}'.format(cmd))
-    #     except Exception as e:
-    #         log(f"Error during servo command: {e}")
+    def servo(self,cmd):
+        delay_period = 0.01
+        close = 'close'
+        open = 'open'
+        try:
+            if cmd == 'close' or cmd == close:
+                for pulse in range(50, 250, 1):
+                    wiringpi.pwmWrite(18, pulse)
+                    time.sleep(delay_period)
+            if cmd == 'open' or cmd == open:
+                for pulse in range(250, 50, -1):
+                    wiringpi.pwmWrite(18, pulse)
+                    time.sleep(delay_period)
+            log('setting servo to {}'.format(cmd))
+        except Exception as e:
+            log(f"Error during servo command: {e}")
 
     def disarm(self):
         try:
@@ -595,6 +596,41 @@ class Drone:
             return distance
         except Exception as e:
             log(f"Error calculating distance between two GPS coordinates: {e}")
+
+
+    def camera_server(self):
+        global camera_running
+
+        context = zmq.Context()
+        socket = context.socket(zmq.PUB)
+        socket.bind("tcp://*:5522")
+
+        try:
+            with picamera.PiCamera() as camera:
+                camera.resolution = (640, 480)  # Adjust as needed
+                camera.framerate = 30  # Adjust as needed
+                time.sleep(2)  # Camera warm-up
+
+                stream = io.BytesIO()
+                while camera_running:
+                    stream.seek(0)
+                    image_data = stream.read()
+
+                    socket.send(image_data)
+
+                    stream.seek(0)
+                    stream.truncate()
+
+        except Exception as e:
+            print(f"Error: {e}")
+
+        finally:
+            socket.close()
+            context.term()
+
+    def camera_stop():
+        global camera_running
+        camera_running = False
 
 
 #=============================================================================================================
