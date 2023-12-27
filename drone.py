@@ -98,7 +98,7 @@ class Drone:
                     wifi.connect('tcp://172.217.28.97:8888')
 
                     wifi.send_string("check")
-                    wifi.setsockopt(zmq.RCVTIMEO, 10000)
+                    wifi.setsockopt(zmq.RCVTIMEO, 100000000)
 
                 time.sleep(2)
 
@@ -802,6 +802,9 @@ def chat(string):
 
 context = zmq.Context()
 dealer_socket = context.socket(zmq.DEALER)  # Create a single DEALER socket
+dealer_socket.setsockopt(zmq.IMMEDIATE, 1)
+dealer_socket.setsockopt(zmq.LINGER, 0)  # 0 means no waiting, discard messages immediately
+
 dealer_socket.connect(f"tcp://{pc}:5556")  # Connect to the server
 
 def log(immediate_command_str):
@@ -811,10 +814,13 @@ def log(immediate_command_str):
         if not wifi_status:
             print(immediate_command_str)
 
+
     except zmq.ZMQError as e:
         print("Error sending message: %s", e)  # Log error
-        # Retry queue
-        
+        dealer_socket = context.socket(zmq.DEALER)  # Create a single DEALER socket
+        dealer_socket.setsockopt(zmq.IMMEDIATE, 1)
+        dealer_socket.setsockopt(zmq.LINGER, 0)  # 0 means no waiting, discard messages immediately
+        dealer_socket.connect(f"tcp://{pc}:5556")  # Connect to the server
 
 def file_server():
     try:
