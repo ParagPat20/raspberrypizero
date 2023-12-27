@@ -84,7 +84,7 @@ def initialize_CD4():
         global d2, CD4, CD4_initialized
         if not CD4 and not CD4_initialized:
             d2_str = 'CD4'
-            CD4 = Drone(d2_str,'172.217.28.254:14554')
+            CD4 = Drone(d2_str,'0.0.0.0:14554')
             d2 = CD4
             log("CD4 Connected")
             time.sleep(5)  # Adjust sleep time if needed
