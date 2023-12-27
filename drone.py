@@ -628,7 +628,7 @@ class Drone:
             socket.close()
             context.term()
 
-    def camera_stop():
+    def camera_stop(self):
         global camera_running
         camera_running = False
 
