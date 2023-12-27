@@ -821,6 +821,7 @@ def log(immediate_command_str):
         dealer_socket.setsockopt(zmq.LINGER, 0)  # 0 means no waiting, discard messages immediately
         dealer_socket.connect(f"tcp://{pc}:5556") #Connect to the server
 
+
 def file_server():
     try:
         context = zmq.Context()
