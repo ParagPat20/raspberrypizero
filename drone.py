@@ -34,7 +34,8 @@ d2 = None
 selected_drone = None
 MCU_host = '192.168.207.122'
 CD1_host = '192.168.207.43'
-CD2_host = '192.168.28.225'
+CD2_host = '192.168.207.225'
+pc = '192.168.207.101'
 CD3_host = CD2_host
 CD4_host = CD1_host
 cmd_port = 12345
@@ -682,7 +683,7 @@ def check_distance(d1,d2):
 
 connected_hosts = set()
 clients = {}
-pc = '192.168.207.101'
+
 
 import random
 
