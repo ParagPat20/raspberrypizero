@@ -398,7 +398,7 @@ class Drone:
             log(f"Error during yaw command: {e}")
     
     def ctrl_yaw(self,rotation):
-        move = 15
+        move = 10
         msg = self.vehicle.message_factory.command_long_encode(
                 0, 0,  # target system, target component
                 mavutil.mavlink.MAV_CMD_CONDITION_YAW,  # command
@@ -788,7 +788,7 @@ def chat(string):
 
     except Exception as e:
         log(f"Error in chat function: {e}")
-        
+
 context = zmq.Context()
 dealer_socket = context.socket(zmq.DEALER)  # Create a single DEALER socket
 dealer_socket.connect(f"tcp://{pc}:5556")  # Connect to the server
