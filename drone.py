@@ -803,6 +803,14 @@ def log(immediate_command_str):
     except zmq.ZMQError as e:
         print("Error sending message: %s", e)  # Log error
         # Retry queue
+
+def log_reset_server():
+    global dealer_socket
+    dealer_socket.close()
+    dealer_socket = context.socket(zmq.DEALER)  # Create a single DEALER socket
+    dealer_socket.connect(f"tcp://{pc}:5556")  # Connect to the server
+    log("Server has been reset to {}".format(pc))
+
         
 
 def file_server():
