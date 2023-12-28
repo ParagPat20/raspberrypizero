@@ -304,6 +304,26 @@ class Drone:
         except Exception as e:
             log(f"Error sending velocity commands: {e}")
 
+    def ctrl_front(self, velocity_x):
+        try:
+            velocity_x = float(velocity_x)
+            
+            msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
+                0,  # time_boot_ms (not used)
+                0, 0,  # target system, target component
+                mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED,  # frame
+                0b0000111111000111,  # type_mask (only speeds enabled)
+                0, 0, 0,  # x, y, z positions (not used)
+                velocity_x,0,0,  # x, y, z velocity in m/s
+                0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
+                0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+
+            self.vehicle.send_mavlink(msg)
+            log("Drone Front: {}, {}, {}".format(velocity_x))
+
+        except Exception as e:
+            log(f"Error sending velocity commands: {e}")
+
     def send_ned_position_drone(self, disx, disy, disz):
         try:
             disx = float(disx)
@@ -374,9 +394,23 @@ class Drone:
             # Wait sort of time for the command to be fully executed.
             for t in range(0, int(math.ceil(estimatedTime))):
                 time.sleep(1)
-                log('{} - Executed yaw(heading={}) for {} seconds.'.format(time.ctime(), heading, t + 1))
         except Exception as e:
             log(f"Error during yaw command: {e}")
+    
+    def ctrl_yaw(self,rotation):
+        move = 15
+        msg = self.vehicle.message_factory.command_long_encode(
+                0, 0,  # target system, target component
+                mavutil.mavlink.MAV_CMD_CONDITION_YAW,  # command
+                0,  # confirmation
+                move,  # param 1, yaw in degrees
+                0,  # param 2, yaw speed deg/s
+                rotation,  # param 3, direction -1 ccw, 1 cw
+                1,  # param 4, relative offset 1, absolute angle 0
+                0, 0, 0)  # param 5 ~ 7 not used
+            # send command to vehicle
+        self.vehicle.send_mavlink(msg)
+    
 
     def circle(self, radius=3, start_theta=0, velocity=0.5):
         T = 2 * math.pi * radius / velocity
