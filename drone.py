@@ -788,27 +788,22 @@ def chat(string):
 
     except Exception as e:
         log(f"Error in chat function: {e}")
-
+        
 context = zmq.Context()
 dealer_socket = context.socket(zmq.DEALER)  # Create a single DEALER socket
-
 dealer_socket.connect(f"tcp://{pc}:5556")  # Connect to the server
 
 def log(immediate_command_str):
-    global dealer_socket  # Declare dealer_socket as a global variable
-
     try:
-        dealer_socket = context.socket(zmq.DEALER)  # Create a single DEALER socket 0 means no waiting, discard messages immediately
-
         immediate_command_str = str(immediate_command_str)
         dealer_socket.send_multipart([immediate_command_str.encode()])
         if not wifi_status:
             print(immediate_command_str)
+
     except zmq.ZMQError as e:
         print("Error sending message: %s", e)  # Log error
-        dealer_socket = context.socket(zmq.DEALER)  # Create a single DEALER socket
-        dealer_socket.connect(f"tcp://{pc}:5556") #Connect to the server
-
+        # Retry queue
+        
 
 def file_server():
     try:
