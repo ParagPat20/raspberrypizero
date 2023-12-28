@@ -32,10 +32,11 @@ wiringpi.pwmSetRange(2000)
 d1 = None
 d2 = None
 selected_drone = None
-MCU_host = '172.217.28.101'
-CD1_host = '172.217.28.102'
-CD2_host = '172.217.28.103'
+MCU_host = '192.168.207.122'
+CD1_host = '192.168.207.43'
+CD2_host = '192.168.28.225'
 CD3_host = CD2_host
+CD4_host = CD1_host
 cmd_port = 12345
 ctrl_port = 54321
 drone_list = []
@@ -75,7 +76,7 @@ class Drone:
         while True:
             try:
                 wifi = context.socket(zmq.REQ)
-                wifi.connect('tcp://172.217.28.97:8888')
+                wifi.connect(f'tcp://{pc}:8888')
 
                 wifi.send_string(self.name)
                 wifi.setsockopt(zmq.RCVTIMEO, 5000)  # Set 3-second timeout for response
@@ -95,7 +96,7 @@ class Drone:
                     print("Waiting for new connection to be established")
                     wifi.close()
                     wifi = context.socket(zmq.REQ)
-                    wifi.connect('tcp://172.217.28.97:8888')
+                    wifi.connect(f'tcp://{pc}:8888')
 
                     wifi.send_string("check")
                     wifi.setsockopt(zmq.RCVTIMEO, 100000000)
@@ -681,7 +682,7 @@ def check_distance(d1,d2):
 
 connected_hosts = set()
 clients = {}
-pc = '172.217.28.97'
+pc = '192.168.207.101'
 
 import random
 
