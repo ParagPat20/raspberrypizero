@@ -291,7 +291,7 @@ class Drone:
             msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,  # time_boot_ms (not used)
                 0, 0,  # target system, target component
-                mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED,  # frame
+                mavutil.mavlink.MAV_FRAME_LOCAL_NED,  # frame
                 0b0000111111000111,  # type_mask (only speeds enabled)
                 0, 0, 0,  # x, y, z positions (not used)
                 velocity_x, velocity_y, velocity_z,  # x, y, z velocity in m/s
@@ -364,7 +364,7 @@ class Drone:
                 mavutil.mavlink.MAV_CMD_CONDITION_YAW,  # command
                 0,  # confirmation
                 heading,  # param 1, yaw in degrees
-                30,  # param 2, yaw speed deg/s
+                0,  # param 2, yaw speed deg/s
                 rotation,  # param 3, direction -1 ccw, 1 cw
                 0,  # param 4, relative offset 1, absolute angle 0
                 0, 0, 0)  # param 5 ~ 7 not used
@@ -731,52 +731,6 @@ def reconnect_socket(host):
     socks = dict(poller.poll(1000))  # Wait for write events with timeout
     # return socket in socks and socks[socket] == zmq.POLLOUT
 
-def camera_start():
-
-    socket = context.socket(zmq.STREAM)  # Use STREAM socket
-    socket.bind("tcp://*:8000")  # Bind to port 8000
-
-    camera = None
-
-    def handle_client():
-        global camera
-
-    #     while True:
-    #         try:
-    #             # Start the camera if not already running
-    #             if not camera:
-    #                 camera = picamera.PiCamera()
-    #                 camera.resolution = (640, 480)  # Adjust as needed
-    #                 camera.framerate = 30  # Adjust as needed
-    #                 time.sleep(2)  # Camera warmup
-
-    #             stream = io.BytesIO()
-    #             for _ in camera.capture_continuous(stream, 'jpeg', use_video_port=True):
-    #                 stream.seek(0)
-    #                 image_data = stream.read()
-
-    #                 # Send image size and data
-    #                 socket.send(struct.pack('<L', len(image_data)), flags=zmq.SNDMORE)
-    #                 socket.send(image_data)
-
-    #                 stream.seek(0)
-    #                 stream.truncate()
-
-    #         except Exception as e:
-    #             print("Error:", e)
-
-    #         finally:
-    #             # Close client connection and camera if needed
-    #             if socket:
-    #                 socket.close()
-    #             if camera:
-    #                 camera.close()
-    #                 camera = None
-
-    # client_thread = threading.Thread(target=handle_client)
-    # client_thread.start()
-    # client_thread.isDaemon(True)
-
 
 #==============================================================================================================
 
@@ -803,8 +757,6 @@ def chat(string):
 
 context = zmq.Context()
 dealer_socket = context.socket(zmq.DEALER)  # Create a single DEALER socket
-dealer_socket.setsockopt(zmq.IMMEDIATE, 1)
-dealer_socket.setsockopt(zmq.LINGER, 0)  # 0 means no waiting, discard messages immediately
 
 dealer_socket.connect(f"tcp://{pc}:5556")  # Connect to the server
 
@@ -812,6 +764,8 @@ def log(immediate_command_str):
     global dealer_socket  # Declare dealer_socket as a global variable
 
     try:
+        dealer_socket = context.socket(zmq.DEALER)  # Create a single DEALER socket 0 means no waiting, discard messages immediately
+
         immediate_command_str = str(immediate_command_str)
         dealer_socket.send_multipart([immediate_command_str.encode()])
         if not wifi_status:
@@ -819,8 +773,6 @@ def log(immediate_command_str):
     except zmq.ZMQError as e:
         print("Error sending message: %s", e)  # Log error
         dealer_socket = context.socket(zmq.DEALER)  # Create a single DEALER socket
-        dealer_socket.setsockopt(zmq.IMMEDIATE, 1)
-        dealer_socket.setsockopt(zmq.LINGER, 0)  # 0 means no waiting, discard messages immediately
         dealer_socket.connect(f"tcp://{pc}:5556") #Connect to the server
 
 
