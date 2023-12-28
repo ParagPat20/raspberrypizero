@@ -305,22 +305,31 @@ class Drone:
         except Exception as e:
             log(f"Error sending velocity commands: {e}")
 
-    def ctrl_front(self, velocity_x):
-        try:
-            velocity_x = float(velocity_x)
-            
-            msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
-                0,  # time_boot_ms (not used)
-                0, 0,  # target system, target component
-                mavutil.mavlink.MAV_FRAME_BODY_NED,  # frame
-                0b0000111111000111,  # type_mask (only speeds enabled)
-                0, 0, 0,  # x, y, z positions (not used)
-                velocity_x,0,0,  # x, y, z velocity in m/s
-                0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
-                0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+    def ctrl_front(self,velocity_x):
+        if not self.no_vel_cmds:
+            self.ctrl_front_t(velocity_x)
+            self.no_vel_cmds=True
+            time.sleep(0.6)
+        if self.no_vel_cmds:
+            self.ctrl_front_t(0)
 
-            self.vehicle.send_mavlink(msg)
-            log("Drone Front: {}".format(velocity_x))
+    def ctrl_front_t(self, velocity_x):
+        try:
+                velocity_x = float(velocity_x)
+                
+                msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
+                    0,  # time_boot_ms (not used)
+                    0, 0,  # target system, target component
+                    mavutil.mavlink.MAV_FRAME_BODY_NED,  # frame
+                    0b0000111111000111,  # type_mask (only speeds enabled)
+                    0, 0, 0,  # x, y, z positions (not used)
+                    velocity_x,0,0,  # x, y, z velocity in m/s
+                    0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
+                    0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+
+                self.vehicle.send_mavlink(msg)
+                log("Drone Front: {}".format(velocity_x))
+            
 
         except Exception as e:
             log(f"Error sending velocity commands: {e}")
@@ -360,9 +369,13 @@ class Drone:
             self.no_vel_cmds = True
             
         else:
-            self.send_ned_velocity_drone(x,y,z)
-            time.sleep(1)
-            self.no_vel_cmds = True
+            if self.no_vel_cmds == False:
+                self.send_ned_velocity_drone(x,y,z)
+                self.no_vel_cmds = True
+                time.sleep(0.5)
+            if self.no_vel_cmds:
+                self.send_ned_velocity_drone(0,0,0)
+
 
     def send_pos(self,x,y,z,duration=5):
         self.no_vel_cmds = False
