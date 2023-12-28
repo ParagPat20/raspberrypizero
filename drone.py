@@ -70,6 +70,7 @@ class Drone:
         self.alt_ach = False
         self.prev_timestamp = time.time()
         self.wifi_status = True
+        self.claw_state='closed'
 
 
     def is_wifi_connected(self):
@@ -505,14 +506,16 @@ class Drone:
         close = 'close'
         open = 'open'
         try:
-            if cmd == 'close' or cmd == close:
+            if cmd == 'close' or cmd == close and self.claw_state=='released':
                 for pulse in range(50, 250, 1):
                     wiringpi.pwmWrite(18, pulse)
                     time.sleep(delay_period)
-            if cmd == 'open' or cmd == open:
+                    self.claw_state='closed'
+            if cmd == 'open' or cmd == open and self.claw_state=='closed':
                 for pulse in range(250, 50, -1):
                     wiringpi.pwmWrite(18, pulse)
                     time.sleep(delay_period)
+                    self.claw_state='released'
             log('setting servo to {}'.format(cmd))
         except Exception as e:
             log(f"Error during servo command: {e}")
@@ -536,6 +539,8 @@ class Drone:
             self.vehicle.mode = VehicleMode("LAND")
             log("Landing")
             self.in_air = False
+            if self.claw_state == 'closed':
+                self.servo('open')
         except Exception as e:
             log(f"Error during landing: {e}")
 
@@ -812,7 +817,6 @@ def log_reset_server():
     log("Server has been reset to {}".format(pc))
 
         
-
 def file_server():
     try:
         context = zmq.Context()
