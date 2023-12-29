@@ -310,12 +310,10 @@ class Drone:
             log(f"Error sending velocity commands: {e}")
 
     def ctrl_front(self,velocity_x):
-        if not self.no_vel_cmds:
-            self.ctrl_front_t(velocity_x)
-            self.no_vel_cmds=True
-            time.sleep(0.6)
-        if self.no_vel_cmds:
-            self.ctrl_front_t(0)
+        self.ctrl_front_t(velocity_x)
+        self.no_vel_cmds=True
+        time.sleep(0.6)
+   
 
     def ctrl_front_t(self, velocity_x):
         try:
@@ -373,12 +371,7 @@ class Drone:
             self.no_vel_cmds = True
             
         else:
-            if self.no_vel_cmds == False:
-                self.send_ned_velocity_drone(x,y,z)
-                self.no_vel_cmds = True
-                time.sleep(0.5)
-            if self.no_vel_cmds:
-                self.send_ned_velocity_drone(0,0,0)
+            self.send_ned_velocity_drone(x,y,z)
 
 
     def send_pos(self,x,y,z,duration=5):
