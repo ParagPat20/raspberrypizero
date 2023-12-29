@@ -224,10 +224,10 @@ class Drone:
                 if self.battery < 10.5:
                     log("sec {} Battery LOW, Landing".format(self.name))
                     self.land()
-                if abs(self.altitude - self.posalt) > 0.1:
-                    z = (self.altitude-self.posalt)*0.7
-                    log('sec {} Alt diff change given: {}m/s'.format(self.name,z))
-                    self.send_ned_velocity_drone(0,0,z)
+                # if abs(self.altitude - self.posalt) > 0.1:
+                #     z = (self.altitude-self.posalt)*0.7
+                #     log('sec {} Alt diff change given: {}m/s'.format(self.name,z))
+                #     self.send_ned_velocity_drone(0,0,z)
                 time.sleep(4)
             except Exception as e:
                 log("sec {} Security Error : {}".format(self.name,e))
