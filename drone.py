@@ -226,7 +226,7 @@ class Drone:
                     self.land()
                 if abs(self.altitude - self.posalt) > 0.1:
                     z = (self.altitude-self.posalt)*0.7
-                    log('sec {} Alt diff change given: {}m/s'.format(z))
+                    log('sec {} Alt diff change given: {}m/s'.format(self.name,z))
                     self.send_ned_velocity_drone(0,0,z)
                 time.sleep(4)
             except Exception as e:
