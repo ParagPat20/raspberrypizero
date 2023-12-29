@@ -341,6 +341,7 @@ class Drone:
             disx = float(disx)
             disy = float(disy)
             disz = float(disz)
+            self.vehicle.groundspeed=0.5
 
             msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
                 0,  # time_boot_ms (not used)
