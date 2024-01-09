@@ -32,12 +32,19 @@ wiringpi.pwmSetRange(2000)
 d1 = None
 d2 = None
 selected_drone = None
-MCU_host = '192.168.207.122'
-CD1_host = '192.168.207.43'
-CD2_host = '192.168.207.225'
-pc = '192.168.207.101'
+MCU_host = '192.168.143.122'
+CD1_host = '192.168.143.43'
+CD2_host = '192.168.143.225'
 CD3_host = CD2_host
 CD4_host = CD1_host
+pc = '192.168.143.101'
+hosts = {
+    'MCU' : MCU_host,
+    'CD1' : CD1_host,
+    'CD2' : CD2_host,
+    'CD3' : CD3_host,
+    'CD4' : CD4_host
+}
 cmd_port = 12345
 ctrl_port = 54321
 drone_list = []
@@ -101,7 +108,7 @@ class Drone:
                     wifi.connect(f'tcp://{pc}:8888')
 
                     wifi.send_string("check")
-                    wifi.setsockopt(zmq.RCVTIMEO, 100000000)
+                    wifi.setsockopt(zmq.RCVTIMEO, 10000)
 
                 time.sleep(2)
 
@@ -317,47 +324,23 @@ class Drone:
 
     def ctrl_front_t(self, velocity_x):
         try:
-                velocity_x = float(velocity_x)
-                
-                msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
-                    0,  # time_boot_ms (not used)
-                    0, 0,  # target system, target component
-                    mavutil.mavlink.MAV_FRAME_BODY_NED,  # frame
-                    0b0000111111000111,  # type_mask (only speeds enabled)
-                    0, 0, 0,  # x, y, z positions (not used)
-                    velocity_x,0,0,  # x, y, z velocity in m/s
-                    0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
-                    0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+            velocity_x = float(velocity_x)
 
-                self.vehicle.send_mavlink(msg)
-                log("Drone Front: {}".format(velocity_x))
-            
+            msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
+                0,       # time_boot_ms (not used)
+                0, 0,    # target system, target component
+                mavutil.mavlink.MAV_FRAME_BODY_OFFSET_NED, # frame
+                0b0000111111000111, # type_mask (only speeds enabled)
+                0, 0, 0, # x, y, z positions (not used)
+                velocity_x, 0, 0, # x, y, z velocity in m/s
+                0, 0, 0, # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
+                0, 0)    # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
+
+            self.vehicle.send_mavlink(msg)
+            log("Drone Front Velocity : {}, {}, {}".format(velocity_x,0,0))
 
         except Exception as e:
             log(f"Error sending velocity commands: {e}")
-
-    def send_ned_position_drone(self, disx, disy, disz):
-        try:
-            disx = float(disx)
-            disy = float(disy)
-            disz = float(disz)
-            self.vehicle.groundspeed=0.5
-
-            msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
-                0,  # time_boot_ms (not used)
-                0, 0,  # target system, target component
-                mavutil.mavlink.MAV_FRAME_LOCAL_OFFSET_NED,  # frame
-                0b0000111111111000,  # type_mask (only positions enabled)
-                disx, disy, disz,  # x, y, z positions (not used)
-                0, 0, 0,  # x, y, z velocity in m/s
-                0, 0, 0,  # x, y, z acceleration (not supported yet, ignored in GCS_Mavlink)
-                0, 0)  # yaw, yaw_rate (not supported yet, ignored in GCS_Mavlink)
-
-            self.vehicle.send_mavlink(msg)
-            log("Drone heading to : {}m Forward, {}m Left, {}m Upward".format(disx,disy,disz))
-
-        except Exception as e:
-            log(f"Error sending position commands: {e}")
 
     def send_ned_velocity(self, x, y, z, duration = None):
         self.no_vel_cmds = False
@@ -374,12 +357,6 @@ class Drone:
         else:
             self.send_ned_velocity_drone(x,y,z)
 
-
-    def send_pos(self,x,y,z,duration=5):
-        self.no_vel_cmds = False
-        self.vehicle.groundspeed = 0.5
-        self.send_ned_position_drone(x,y,z)
-        time.sleep(duration)
 
     def yaw(self, heading):
         try:
@@ -437,79 +414,6 @@ class Drone:
             time.sleep(dt)
             if not self.in_air:
                 break
-
-
-    def move_square_to_circle(self, start_index, radius=2, velocity=0.5):
-        try:
-            side_length = 2 * radius  # Assuming the square side length is equal to the diameter of the circle
-            half_side = side_length / 2
-
-            # Square positions
-            square_positions = [
-                (0, 0),          # A
-                (0, side_length),  # B
-                (side_length, side_length),  # C
-                (side_length, 0)   # D
-            ]
-
-            current_index = start_index % 4
-            next_index = (start_index + 1) % 4
-
-            current_pos = square_positions[current_index]
-            target_pos = square_positions[next_index]
-
-            target_x, target_y = self.calculate_circle_position(current_pos[0], current_pos[1], target_pos[0], target_pos[1], half_side, radius, velocity)
-            self.send_ned_velocity(target_x, target_y, 0, duration=2)  # Adjust duration based on the drone's speed
-
-        except Exception as e:
-            log(f"Error moving drones from square to circle: {e}")
-
-    def move_pentagon_to_circle(self, start_index, radius=2, velocity=0.5):
-        try:
-            # Calculate pentagon side length based on radius and golden ratio
-            side_length = 2 * radius * math.sin(math.pi / 5)
-            half_side = side_length / 2
-
-            # Pentagon positions, centered at (half_side, half_side)
-            pentagon_positions = [
-                (0, side_length),   # A
-                (side_length * math.cos(math.pi / 5), half_side),  # B
-                (side_length * math.cos(math.pi / 5), -half_side),  # C
-                (0, -side_length),  # D
-                (-side_length * math.cos(math.pi / 5), -half_side)  # E
-            ]
-
-            current_index = start_index % 5
-            next_index = (start_index + 1) % 5
-
-            current_pos = pentagon_positions[current_index]
-            target_pos = pentagon_positions[next_index]
-
-            target_x, target_y = self.calculate_circle_position(
-                current_pos[0] + half_side,  # Offset for centering
-                current_pos[1] + half_side,  # Offset for centering
-                target_pos[0] + half_side,  # Offset for centering
-                target_pos[1] + half_side,  # Offset for centering
-                half_side, radius, velocity
-            )
-            self.send_ned_velocity(target_x, target_y, 0, duration=2)  # Adjust duration as needed
-
-        except Exception as e:
-            log(f"Error moving drones from pentagon to circle: {e}")
-
-    def calculate_circle_position(self, x_start, y_start, x_end, y_end, half_side, radius, velocity):
-        theta_start = math.atan2(y_start - half_side, x_start - half_side)
-        theta_end = math.atan2(y_end - half_side, x_end - half_side)
-        
-        # Use the average of start and end thetas for a smoother transition
-        theta_avg = (theta_start + theta_end) / 2
-
-        # Calculate circular path components based on polar coordinates
-        velocity_x = velocity * math.cos(theta_avg)
-        velocity_y = velocity * math.sin(theta_avg)
-
-        return velocity_x, velocity_y
-
 
 
     def servo(self,cmd):
@@ -570,6 +474,16 @@ class Drone:
         except Exception as e:
             log(f"Error during RTL mode setting: {e}")
 
+    def cu_lo(self):
+        try:
+            lat = self.vehicle.location.global_relative_frame.lat
+            lon = self.vehicle.location.global_relative_frame.lon
+            heading = self.vehicle.heading
+            return (lat, lon), heading
+        except Exception as e:
+            log(f"Error in getting current location: {e}")
+            return (0.0, 0.0), 0.0  # Returning default values in case of an error
+
     def moder(self, cmd):
         mode_name = str(cmd)
         self.vehicle.mode = VehicleMode(mode_name)
@@ -613,6 +527,21 @@ class Drone:
 
         except Exception as e:
             log(f"Error getting vehicle state: {e}")
+
+    def send_gps(self):
+        try:
+            context = zmq.Context()
+            socket = context.socket(zmq.PUSH)
+
+            socket.bind("tcp://*:5656")
+            start_time = time.time()
+            while time.time-start_time < 120:
+                lat = self.vehicle.location.global_relative_frame.lat
+                lon = self.vehicle.location.global_relative_frame.lon
+                gps = f'{lat},{lon}'
+                socket.send_string(gps)
+        except Exception as e:
+            log('{} Error in send_gps : {}'.format(self.name,e))
 
     def goto(self, l, alt, groundspeed=0.7):
         try:
@@ -692,9 +621,36 @@ class Drone:
         global camera_running
         camera_running = False
 
+    def line(self, dis, alt, directionindegree):
+
+        try:
+
+            ref_location = request_gps('MCU')
+            if ref_location == (0,0):
+                ref_location = request_gps('MCU')
+            if ref_location == (None,None):
+                ref_location = request_gps('MCU')
+            if ref_location == None:
+                ref_location = request_gps('MCU')
+            new_location = new_coords(ref_location, dis, directionindegree)
+            meas_dis = distance_between_two_gps_coord(new_location, ref_location)
+            log("{} measuring distance to new coords {} with {} degree bearing".format(self.name,meas_dis,directionindegree))
+            self.goto(new_location, alt)
+
+        except Exception as e:
+            log("{} Line Error : {} ".format(self.name,e))
+
+
+
 
 #=============================================================================================================
-    
+def distance_between_two_gps_coord(point1, point2):
+    try:
+        distance = great_circle(point1, point2).meters
+        return distance
+    except Exception as e:
+        log(f"Error calculating distance between two GPS coordinates: {e}")
+
 def new_coords(original_gps_coord, displacement, rotation_degree_relative):
     try:
         vincentyDistance = geopy.distance.distance(meters=displacement)
@@ -703,31 +659,35 @@ def new_coords(original_gps_coord, displacement, rotation_degree_relative):
         new_gps_lat = new_gps_coord.latitude
         new_gps_lon = new_gps_coord.longitude
 
-        return round(new_gps_lat, 7), round(new_gps_lon, 7)
+        return (round(new_gps_lat, 7), round(new_gps_lon, 7))
     except Exception as e:
         log(f"Error in calculating new coordinates: {e}")
 
-def cu_lo(drone):
-    try:
-        lat = drone.vehicle.location.global_relative_frame.lat
-        lon = drone.vehicle.location.global_relative_frame.lon
-        heading = drone.vehicle.heading
-        return (lat, lon), heading
-    except Exception as e:
-        log(f"Error in getting current location: {e}")
-        return (0.0, 0.0), 0.0  # Returning default values in case of an error
     
 def check_distance(d1,d2):
     try:
-        log("First drone's current location{}".format(cu_lo(d1)))
-        log("Second drone's current location{}".format(cu_lo(d2)))
-        distance = d1.distance_between_two_gps_coord(cu_lo(d1)[0],cu_lo(d2)[0])
+        drone1loc = request_gps(hosts[d1])
+        drone2loc = request_gps(hosts[d2])
+        distance = distance_between_two_gps_coord(drone1loc,drone2loc)
         log("Distance between those drones is {} meters".format(distance))
         
     except Exception as e:
         log(f"Error in check_distance: {e}")
 
-
+def request_gps(drone):
+    '''
+    drone = 'MCU' or 'CD1' etc...
+    '''
+    send(hosts[drone],f'{drone}.send_gps()')
+    time.sleep(1)
+    context = zmq.Context()
+    socket = context.socket(zmq.PULL)
+    socket.connect(f'tcp://{hosts[drone]}:5656')
+    gps = socket.recv_string()
+    lat,lon = gps.split(',')
+    log('Requested GPS from {}, Got {}'.format(drone,gps))
+    return (float(lat),float(lon))
+    
 
 #==============================================================================================================
 
@@ -857,3 +817,5 @@ def file_server():
         log("MCU has {} Missons".format(str(missions)))
     except Exception as e:
         log("File_Server Error in MCU : {}".format(e))
+
+
