@@ -819,3 +819,10 @@ def file_server():
         log("File_Server Error in MCU : {}".format(e))
 
 
+
+def faltu():
+    while True:
+        send(MCU_host,"MCU.servo('open')")
+        time.sleep(3)
+        send(MCU_host,"MCU.servo('close')")
+        time.sleep(3)
