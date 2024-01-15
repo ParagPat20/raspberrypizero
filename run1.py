@@ -97,6 +97,26 @@ def initialize_CD4():
     except Exception as e:
         log("CD4_Host: Error in initialize_CD4: {}".format(e))
 
+
+def run_mis(filename):
+    try:
+        # Open the mission file
+        with open(f"{filename}.txt", 'r') as file:
+            # Read each line from the file
+            for line in file:
+                # Skip empty lines
+                if not line.strip():
+                    continue
+                line=str(line)
+
+                # Execute the command
+                exec(line)  # Assuming each line is a command
+
+    except Exception as e:
+        log("Error in run_mis: {}".format(e))
+
+
+
 def deinitialize_CD4():
     try:
         global d2, CD4, CD4_initialized
