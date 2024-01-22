@@ -687,46 +687,46 @@ def request_gps(drone):
     return (float(lat),float(lon))
     
 def camera_server(self):
-    global camera_running
+        global camera_running
 
-    context = zmq.Context()
-    socket = context.socket(zmq.PUB)
-    socket.bind("tcp://*:5522")
+        context = zmq.Context()
+        socket = context.socket(zmq.PUB)
+        socket.bind("tcp://*:5522")
 
-    try:
-        with picamera.PiCamera() as camera:
-            camera.resolution = (640, 480)  # Adjust as needed
-            camera.framerate = 30  # Adjust as needed
-            time.sleep(2)  # Camera warm-up
+        try:
+            with picamera.PiCamera() as camera:
+                camera.resolution = (640, 480)  # Adjust as needed
+                camera.framerate = 30  # Adjust as needed
+                time.sleep(2)  # Camera warm-up
 
-            stream = io.BytesIO()
-            for _ in camera.capture_continuous(stream, format="jpeg", use_video_port=True):
-                # Move to the beginning of the stream for reading
-                stream.seek(0)
+                stream = io.BytesIO()
+                for _ in camera.capture_continuous(stream, format="jpeg", use_video_port=True):
+                    # Move to the beginning of the stream for reading
+                    stream.seek(0)
 
-                # Read the image data from the stream
-                image_data = stream.read()
+                    # Read the image data from the stream
+                    image_data = stream.read()
 
-                # Send the image data
-                socket.send(image_data)
+                    # Send the image data
+                    socket.send(image_data)
 
-                # Truncate the stream to prepare for the next capture
-                stream.seek(0)
-                stream.truncate()
+                    # Truncate the stream to prepare for the next capture
+                    stream.seek(0)
+                    stream.truncate()
 
-                if not camera_running:
-                    break
+                    if not camera_running:
+                        break
 
-    except Exception as e:
-        print(f"Error: {e}")
+        except Exception as e:
+            print(f"Error: {e}")
 
-    finally:
-        socket.close()
-        context.term()
+        finally:
+            socket.close()
+            context.term()
 
-def camera_stop(self):
-    global camera_running
-    camera_running = False
+    def camera_stop(self):
+        global camera_running
+        camera_running = False
 #==============================================================================================================
 
 connected_hosts = set()
