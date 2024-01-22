@@ -32,7 +32,7 @@ wiringpi.pwmSetRange(2000)
 d1 = None
 d2 = None
 selected_drone = None
-MCU_host = '192.168.123.122'
+MCU_host = '192.168.123.229'
 CD1_host = '192.168.123.101'
 CD2_host = '192.168.123.225'
 CD3_host = CD2_host
