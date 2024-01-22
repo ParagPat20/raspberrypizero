@@ -12,7 +12,6 @@ import io
 import picamera
 import struct
 context = zmq.Context()  # Create a ZeroMQ context
-import time
 import json
 import wiringpi
 
