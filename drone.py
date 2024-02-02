@@ -421,12 +421,12 @@ class Drone:
         open = 'open'
         try:
             if cmd == 'close' or cmd == close and self.claw_state=='released':
-                for pulse in range(50, 100, 1):
+                for pulse in range(100, 200, 1):
                     wiringpi.pwmWrite(18, pulse)
                     time.sleep(delay_period)
                     self.claw_state='closed'
             if cmd == 'open' or cmd == open and self.claw_state=='closed':
-                for pulse in range(100, 50, -1):
+                for pulse in range(200, 100, -1):
                     wiringpi.pwmWrite(18, pulse)
                     time.sleep(delay_period)
                     self.claw_state='released'
