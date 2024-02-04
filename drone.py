@@ -582,7 +582,7 @@ class Drone:
         global camera_running
 
         context = zmq.Context()
-        socket = context.socket(zmq.PUB)
+        socket = context.socket(zmq.REQ)
         socket.bind("tcp://*:5522")
 
         try:
@@ -598,14 +598,12 @@ class Drone:
 
                     # Read the image data from the stream
                     image_data = stream.read()
-
-                    # Send the image data
-                    socket.send(image_data)
-
                     # Truncate the stream to prepare for the next capture
                     stream.seek(0)
                     stream.truncate()
-
+                    # Send the image data
+                    socket.send(image_data)
+                    conf=socket.recv()
                     if not camera_running:
                         break
 
