@@ -400,7 +400,7 @@ class Drone:
         self.vehicle.send_mavlink(msg)
     
 
-    def circle(self, radius=3, start_theta=0, velocity=0.5):
+    def circle(self, radius=1, start_theta=0, velocity=0.5):
         T = 2 * math.pi * radius / velocity
         dt = 0.5
 
@@ -603,7 +603,7 @@ class Drone:
                     stream.truncate()
                     # Send the image data
                     socket.send(image_data)
-                    conf=socket.recv()
+                    conf=socket.recv_string()
                     if not camera_running:
                         break
 
