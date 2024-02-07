@@ -266,7 +266,7 @@ class Drone:
         except Exception as e:
             log(f"Error during arming: {e}")
 
-    def takeoff(self, alt=2):
+    def takeoff(self, alt=1):
         try:
             self.arm()
             log("Taking off!")
