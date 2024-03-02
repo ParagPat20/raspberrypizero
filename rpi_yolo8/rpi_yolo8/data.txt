@@ -1,0 +1,6 @@
+train: ../dataset/images/training
+val: ../dataset/labels/validation
+#number of classes
+nc: 2
+#class names
+names: ['box','pen']

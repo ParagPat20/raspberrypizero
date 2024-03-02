@@ -1,0 +1,63 @@
+1. library for image processing install opencv
+cmd: sudo pip install opencv-python
+	if not work then use below command 
+	cmd: sudo rm /usr/lib/python3.11/EXTERNALLY-MANAGED
+	cmd: sudo pip install opencv-python
+
+2. library for yolo8 --- install torch, torchvision and torch audio
+cmd: sudo pip install torch==2.0.1 torchvision==0.15.2 torchaudio==2.0.2         
+
+3. install ultrlytics for yolo
+cmd: sudo pip install utralytics
+
+4. install cvzone
+cmd: sudo pip install cvzone
+
+5. run, internally yolo8n.pt model is downloaded
+cmd python camp.py
+
+
+steps for custom model or create yolo model and data set
+1. steps for dataset with labeling
+	1.1 open img.py and number of max images
+	    maxFrames=28
+	1.2 create the folder name with "image"
+		provide same folder name into the img.py, with path as well
+	    In the name, /img_%d.jpg change to /box_%d.jpg or /pen_%d.jpg
+	1.3 run for object you want classify, object should be infront of camera
+		cmd: python img.py
+	1.4 library for labeling
+		cmd: sudo pip install pyqt5-dev-tools
+		cmd: sudo pip install labelimg
+	1.5 open labelimg tool
+	    set oprn di, open change dir, yolo from pascalvoc, save
+	1.6 if labelimg doesnt work to square for labeling then follow below steps
+		1.6.1 copy the canvas.py from yolo folder to lib folder
+		    cmd: cd
+			cp  /Downloads/yolo/yolo8/canvas.py  ../../usr/local/lib/python3.9/dist-packages/libs/canvas.py
+		1.6.2 copy the lableimg.py from yolo folder to lib folder
+			cp  /Downloads/yolo/yolo8/lableimg.py  ../../usr/local/lib/python3.9/dist-packages/lableimg/lableimg.py
+	1.7 label all images using the tool, creat RectBox
+		create the box in the image, save image, provide the class name
+	1.8 create folder "dataset"
+		Inside, crete two folder, images and labeling
+		In each above two folder, creat training and validation folder
+	1.9 copy above images in the training and validation folders
+		also copy data.yml file in dataset folder
+	1.10 make zip folder of the dataset
+	    cmd: sudo zip -r dataset dataset/*
+	1.11 upload the zip file into google drive to a any folder 
+	1.12 open google colab
+	1.13 use ipynb file into google colab
+	1.14 change runtime t4gpu
+	1.15 click on connect to google drive
+	1.16 model change to yolon.pt, give proper path for the data.yml 
+	1.17 download the model from google colab to raspberrypi
+		run->detect->train->weights->best.pt
+		download best.pt from above path
+	1.18 change yolo8n.pt to best.py into the cam.py
+	1.19 create new coco.txt file with custome classes box, pen
+	1.20 run the cam.py	
+
+
+
