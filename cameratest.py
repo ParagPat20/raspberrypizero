@@ -2,6 +2,10 @@ import zmq
 import picamera
 import io
 import threading
+import serial
+
+# Setup serial connection
+ser = serial.Serial('/dev/ttyUSB0', 9600)  # Adjust the port and baud rate as needed
 
 context = zmq.Context()
 socket = context.socket(zmq.REQ)
@@ -16,6 +20,9 @@ def perform():
         fingers = action_socket.recv_string()
         print(fingers)
         action_socket.send_string('OK')
+
+        # Send the number of fingers to the Arduino Nano over serial
+        ser.write(fingers.encode())
 
 with picamera.PiCamera() as camera:
     camera.resolution = (640, 480)
