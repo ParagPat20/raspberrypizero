@@ -10,10 +10,10 @@ fingers = 0
 
 def perform():
     context1 = zmq.Context()
-    action_socket = context1.socket(zmq.REQ)
-    action_socket.bind("tcp://*:5556")
+    action_socket = context1.socket(zmq.REP)
+    action_socket.bind("tcp://*:5566")
     while True:
-        fingers=action_socket.recv_string()
+        fingers = action_socket.recv_string()
         print(fingers)
         action_socket.send_string('OK')
 
@@ -27,5 +27,3 @@ with picamera.PiCamera() as camera:
         stream.seek(0)
         stream.truncate()
         socket.recv_string()
-
-
