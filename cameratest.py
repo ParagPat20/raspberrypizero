@@ -22,7 +22,7 @@ def perform():
         action_socket.send_string('OK')
 
         # Send the number of fingers to the Arduino Nano over serial
-        ser.write('5'.encode())
+        ser.write('5')
 
 with picamera.PiCamera() as camera:
     camera.resolution = (640, 480)
