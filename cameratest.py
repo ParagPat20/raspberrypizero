@@ -11,6 +11,9 @@ action_socket = context.socket(zmq.REQ)
 action_socket.bind("tcp://*:5556")
 
 def perform():
+    context1 = zmq.Context()
+    action_socket = context1.socket(zmq.REQ)
+    action_socket.bind("tcp://*:5556")
     while True:
         fingers=action_socket.recv_string()
         print(fingers)
