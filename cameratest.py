@@ -3,7 +3,7 @@ import picamera
 import io
 
 context = zmq.Context()
-socket = context.socket(zmq.PUB)
+socket = context.socket(zmq.REQ)
 socket.bind("tcp://*:5555")
 
 with picamera.PiCamera() as camera:
@@ -14,3 +14,4 @@ with picamera.PiCamera() as camera:
         socket.send(stream.getvalue())
         stream.seek(0)
         stream.truncate()
+        socket.recv_string()
