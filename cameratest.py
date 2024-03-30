@@ -17,9 +17,9 @@ def perform():
     action_socket = context1.socket(zmq.REP)
     action_socket.bind("tcp://*:5566")
     while True:
-        fingers = action_socket.recv_string()
-        print(fingers)
-        action_socket.send_string('OK')
+        # fingers = action_socket.recv_string()
+        # print(fingers)
+        # action_socket.send_string('OK')
 
         # Send the number of fingers to the Arduino Nano over serial
         ser.write('5'.encode())
