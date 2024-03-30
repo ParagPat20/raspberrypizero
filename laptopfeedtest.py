@@ -1,10 +1,13 @@
 import zmq
 import cv2
 import numpy as np
+import threading
+
 
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket.connect("tcp://192.168.67.229:5555")
+
 
 while True:
     frame = socket.recv()
