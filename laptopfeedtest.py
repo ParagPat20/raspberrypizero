@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect(('0.0.0.0', 8000))
+client_socket.connect(('192.168.67.229', 8000))
 
 connection = client_socket.makefile('rb')
 

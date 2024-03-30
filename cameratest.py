@@ -3,7 +3,7 @@ import picamera
 import io
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind(('0.0.0.0', 8000))
+server_socket.bind(('192.168.67.229', 8000))
 server_socket.listen(0)
 
 connection = server_socket.accept()[0].makefile('wb')
