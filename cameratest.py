@@ -7,8 +7,6 @@ context = zmq.Context()
 socket = context.socket(zmq.REQ)
 socket.bind("tcp://*:5555")
 fingers = 0
-action_socket = context.socket(zmq.REQ)
-action_socket.bind("tcp://*:5556")
 
 def perform():
     context1 = zmq.Context()
