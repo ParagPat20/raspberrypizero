@@ -5,7 +5,7 @@ import threading
 import serial
 
 # Setup serial connection
-ser = serial.Serial('/dev/ttyUSB0', 9600)  # Adjust the port and baud rate as needed
+ser = serial.Serial('/dev/serial0', 9600)  # Adjust the port and baud rate as needed
 
 context = zmq.Context()
 socket = context.socket(zmq.REQ)
