@@ -23,15 +23,15 @@ def perform():
     action_socket = context1.socket(zmq.REP)
     action_socket.bind("tcp://*:5566")
     while True:
-        fingers = int(action_socket.recv_string())  # Receive the number of fingers as an integer
+        fingers = action_socket.recv_string()  # Receive the number of fingers as an integer
         print(f"Fingers: {fingers}")
 
         # Motor control logic based on the number of fingers
-        if fingers == 0:
+        if fingers == '1' or fingers == 1:
             # Stop motors
             GPIO.output(23, GPIO.LOW)
             GPIO.output(12, GPIO.LOW)
-        elif fingers > 0:
+        elif fingers == '3' or fingers == 3:
             # Run motors in one direction
             GPIO.output(23, GPIO.HIGH)  # Enable motors
             GPIO.output(24, GPIO.HIGH)  # Set direction
