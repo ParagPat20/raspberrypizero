@@ -84,16 +84,6 @@ def perform():
 
 
         action_socket.send_string('OK')
-
-with picamera.PiCamera() as camera:
-    camera.resolution = (640, 480)
-    camera.framerate = 30
-    stream = io.BytesIO()
-    threading.Thread(target=perform).start()
-    for _ in camera.capture_continuous(stream, format='jpeg', use_video_port=True):
-        socket.send(stream.getvalue())
-        stream.seek(0)
-        stream.truncate()
-        socket.recv_string()
+perform()    
 
 GPIO.cleanup()  # Clean up GPIO pins
