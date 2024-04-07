@@ -1,5 +1,4 @@
 import zmq
-import picamera
 import io
 import threading
 import serial
@@ -15,9 +14,6 @@ GPIO.setup(8, GPIO.OUT)   # IN3
 GPIO.setup(7, GPIO.OUT)   # IN4
 GPIO.setup(12, GPIO.OUT)  # EN2
 
-context = zmq.Context()
-socket = context.socket(zmq.REQ)
-socket.bind("tcp://*:5555")
 
 GPIO.output(23, GPIO.LOW)
 GPIO.output(12, GPIO.LOW)
@@ -76,15 +72,7 @@ def perform():
 
         action_socket.send_string('OK')
 
-with picamera.PiCamera() as camera:
-    camera.resolution = (640, 480)
-    camera.framerate = 30
-    stream = io.BytesIO()
-    threading.Thread(target=perform).start()
-    for _ in camera.capture_continuous(stream, format='jpeg', use_video_port=True):
-        socket.send(stream.getvalue())
-        stream.seek(0)
-        stream.truncate()
-        socket.recv_string()
+perform()
+
 
 GPIO.cleanup()  # Clean up GPIO pins
