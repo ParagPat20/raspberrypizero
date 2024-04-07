@@ -70,21 +70,6 @@ def perform():
             GPIO.output(8, GPIO.LOW)   # Set direction
             GPIO.output(7, GPIO.HIGH)    # Set direction
 
-        elif fingers == '4' or fingers == 4:
-            GPIO.output(23, GPIO.HIGH)  # Enable motors
-            GPIO.output(24, GPIO.HIGH)  # Set direction
-            GPIO.output(25, GPIO.LOW)   # Set direction
-            GPIO.output(12, GPIO.HIGH)  # Enable motors
-            GPIO.output(8, GPIO.LOW)    # Set direction
-            GPIO.output(7, GPIO.HIGH)   # Set direction
-            
-            # Delay for a 360-degree turn
-            time.sleep(2)  # Adjust the delay as needed for your motors
-
-            # Disable motors after the turn
-            GPIO.output(23, GPIO.LOW)  # Disable motors
-            GPIO.output(12, GPIO.LOW)  # Disable motors
-
         else:
 
             GPIO.output(23, GPIO.LOW)
