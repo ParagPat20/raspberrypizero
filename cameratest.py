@@ -31,6 +31,7 @@ def perform():
             # Stop motors
             GPIO.output(23, GPIO.LOW)
             GPIO.output(12, GPIO.LOW)
+            
         elif fingers == '3' or fingers == 3:
             # Run motors in one direction
             GPIO.output(23, GPIO.HIGH)  # Enable motors
@@ -39,6 +40,16 @@ def perform():
             GPIO.output(12, GPIO.HIGH)  # Enable motors
             GPIO.output(8, GPIO.HIGH)   # Set direction
             GPIO.output(7, GPIO.LOW)    # Set direction
+
+        elif fingers == '5' or fingers == 5:
+            # Run motors in one direction
+            GPIO.output(23, GPIO.HIGH)  # Enable motors
+            GPIO.output(24, GPIO.LOW)  # Set direction
+            GPIO.output(25, GPIO.HIGH)   # Set direction
+            GPIO.output(12, GPIO.HIGH)  # Enable motors
+            GPIO.output(8, GPIO.LOW)   # Set direction
+            GPIO.output(7, GPIO.HIGH)    # Set direction
+
 
         action_socket.send_string('OK')
 
