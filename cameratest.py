@@ -82,6 +82,10 @@ def perform():
             GPIO.output(23, GPIO.LOW)  # Disable motors
             GPIO.output(12, GPIO.LOW)  # Disable motors
 
+        else:
+
+            GPIO.output(23, GPIO.LOW)
+            GPIO.output(12, GPIO.LOW)
 
         action_socket.send_string('OK')
 perform()    
