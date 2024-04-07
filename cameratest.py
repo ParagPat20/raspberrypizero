@@ -4,6 +4,7 @@ import io
 import threading
 import serial
 import RPi.GPIO as GPIO
+import time
 
 
 GPIO.setmode(GPIO.BCM)
@@ -31,7 +32,7 @@ def perform():
             # Stop motors
             GPIO.output(23, GPIO.LOW)
             GPIO.output(12, GPIO.LOW)
-            
+
         elif fingers == '3' or fingers == 3:
             # Run motors in one direction
             GPIO.output(23, GPIO.HIGH)  # Enable motors
@@ -49,6 +50,37 @@ def perform():
             GPIO.output(12, GPIO.HIGH)  # Enable motors
             GPIO.output(8, GPIO.LOW)   # Set direction
             GPIO.output(7, GPIO.HIGH)    # Set direction
+
+        elif fingers == '2l':
+            GPIO.output(23, GPIO.HIGH)  # Enable motors
+            GPIO.output(24, GPIO.LOW)  # Set direction
+            GPIO.output(25, GPIO.HIGH)   # Set direction
+            GPIO.output(12, GPIO.HIGH)  # Enable motors
+            GPIO.output(8, GPIO.HIGH)   # Set direction
+            GPIO.output(7, GPIO.LOW)    # Set direction
+
+        elif fingers == '2r':
+            GPIO.output(23, GPIO.HIGH)  # Enable motors
+            GPIO.output(24, GPIO.HIGH)  # Set direction
+            GPIO.output(25, GPIO.LOW)   # Set direction
+            GPIO.output(12, GPIO.HIGH)  # Enable motors
+            GPIO.output(8, GPIO.LOW)   # Set direction
+            GPIO.output(7, GPIO.HIGH)    # Set direction
+
+        elif fingers == '4' or fingers == 4:
+            GPIO.output(23, GPIO.HIGH)  # Enable motors
+            GPIO.output(24, GPIO.HIGH)  # Set direction
+            GPIO.output(25, GPIO.LOW)   # Set direction
+            GPIO.output(12, GPIO.HIGH)  # Enable motors
+            GPIO.output(8, GPIO.LOW)    # Set direction
+            GPIO.output(7, GPIO.HIGH)   # Set direction
+            
+            # Delay for a 360-degree turn
+            time.sleep(2)  # Adjust the delay as needed for your motors
+
+            # Disable motors after the turn
+            GPIO.output(23, GPIO.LOW)  # Disable motors
+            GPIO.output(12, GPIO.LOW)  # Disable motors
 
 
         action_socket.send_string('OK')
