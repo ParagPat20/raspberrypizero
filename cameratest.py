@@ -19,8 +19,8 @@ context = zmq.Context()
 socket = context.socket(zmq.REQ)
 socket.bind("tcp://*:5555")
 
-GPIO.output(23, GPIO.LOW)  # Disable motors
-GPIO.output(12, GPIO.LOW)  # Disable motors
+GPIO.output(23, GPIO.LOW)
+GPIO.output(12, GPIO.LOW)
 
 def perform():
     context1 = zmq.Context()
@@ -71,11 +71,20 @@ def perform():
             GPIO.output(7, GPIO.HIGH)    # Set direction
 
         else:
-
             GPIO.output(23, GPIO.LOW)
             GPIO.output(12, GPIO.LOW)
 
         action_socket.send_string('OK')
-perform()    
+
+with picamera.PiCamera() as camera:
+    camera.resolution = (640, 480)
+    camera.framerate = 30
+    stream = io.BytesIO()
+    threading.Thread(target=perform).start()
+    for _ in camera.capture_continuous(stream, format='jpeg', use_video_port=True):
+        socket.send(stream.getvalue())
+        stream.seek(0)
+        stream.truncate()
+        socket.recv_string()
 
 GPIO.cleanup()  # Clean up GPIO pins
