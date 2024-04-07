@@ -39,14 +39,6 @@ def perform():
             GPIO.output(12, GPIO.HIGH)  # Enable motors
             GPIO.output(8, GPIO.HIGH)   # Set direction
             GPIO.output(7, GPIO.LOW)    # Set direction
-        else:
-            # Run motors in the other direction
-            GPIO.output(23, GPIO.HIGH)  # Enable motors
-            GPIO.output(24, GPIO.LOW)   # Set direction
-            GPIO.output(25, GPIO.HIGH)  # Set direction
-            GPIO.output(12, GPIO.HIGH)  # Enable motors
-            GPIO.output(8, GPIO.LOW)    # Set direction
-            GPIO.output(7, GPIO.HIGH)   # Set direction
 
         action_socket.send_string('OK')
 
