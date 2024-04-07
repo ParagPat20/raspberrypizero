@@ -19,6 +19,9 @@ context = zmq.Context()
 socket = context.socket(zmq.REQ)
 socket.bind("tcp://*:5555")
 
+GPIO.output(23, GPIO.LOW)  # Disable motors
+GPIO.output(12, GPIO.LOW)  # Disable motors
+
 def perform():
     context1 = zmq.Context()
     action_socket = context1.socket(zmq.REP)
