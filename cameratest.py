@@ -66,6 +66,32 @@ def perform():
             GPIO.output(8, GPIO.LOW)   # Set direction
             GPIO.output(7, GPIO.HIGH)    # Set direction
 
+        elif fingers == '4':
+            GPIO.output(23, GPIO.HIGH)  # Enable motors
+            GPIO.output(24, GPIO.LOW)  # Set direction
+            GPIO.output(25, GPIO.HIGH)   # Set direction
+            GPIO.output(12, GPIO.HIGH)  # Enable motors
+            GPIO.output(8, GPIO.LOW)   # Set direction
+            GPIO.output(7, GPIO.HIGH)    # Set direction
+            
+            time.sleep(0.5)
+            GPIO.output(24, GPIO.HIGH)  # Set direction
+            GPIO.output(25, GPIO.LOW)   # Set direction
+            GPIO.output(8, GPIO.LOW)   # Set direction
+            GPIO.output(7, GPIO.HIGH)    # Set direction
+            time.sleep(0.5)
+            GPIO.output(24, GPIO.LOW)  # Set direction
+            GPIO.output(25, GPIO.HIGH)   # Set direction
+            GPIO.output(8, GPIO.LOW)   # Set direction
+            GPIO.output(7, GPIO.HIGH)    # Set direction
+            time.sleep(0.5)
+            GPIO.output(24, GPIO.LOW)  # Set direction
+            GPIO.output(25, GPIO.HIGH)   # Set direction
+            GPIO.output(8, GPIO.HIGH)   # Set direction
+            GPIO.output(7, GPIO.LOW)    # Set direction
+            time.sleep(0.5)
+            GPIO.output(23, GPIO.LOW)
+            GPIO.output(12, GPIO.LOW)
         else:
             GPIO.output(23, GPIO.LOW)
             GPIO.output(12, GPIO.LOW)
