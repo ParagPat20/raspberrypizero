@@ -36,7 +36,7 @@ CD1_host = '192.168.71.101'
 CD2_host = '192.168.71.225'
 CD3_host = CD2_host
 CD4_host = CD1_host
-pc = '192.168.71.101'
+pc = '192.168.71.192'
 hosts = {
     'MCU' : MCU_host,
     'CD1' : CD1_host,
