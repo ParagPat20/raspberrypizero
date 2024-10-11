@@ -213,12 +213,17 @@ class Drone:
                 self.altitude = self.vehicle.location.global_relative_frame.alt
                 self.battery = self.vehicle.battery.voltage
                 self.mode = self.vehicle.mode
+                self.gps_type = self.vehicle.gps_0.fix_type 
+                self.gps_num = self.vehicle.gps_0.satellites_visible
+                
                 if self.wifi_status:
                     log('sec {} PosAlt: {}m \n      Current altitude : {}m\n      Current Battery {}V\n      Alt Difference {}\n      Wifi Status {}\n{}'.format(self.name,self.posalt, self.altitude, self.battery, self.altitude - self.posalt, str(self.wifi_status), str(self.mode)))
                     coordlat = str(self.vehicle.location.global_relative_frame.lat)
                     coordlon = str(self.vehicle.location.global_relative_frame.lon)
                     log("lat {} {}".format(self.name,coordlat))
                     log("lon {} {}".format(self.name,coordlon))
+                    log("gps_type {}".format(self.gps_type))
+                    log("gps_num {}".format(self.gps_num))
                 if self.in_air:
                     if not self.wifi_status:
                         print("{} Wi-Fi connection lost! Initiating landing.".format(self.name))
@@ -234,7 +239,7 @@ class Drone:
                 #     z = (self.altitude-self.posalt)*0.7
                 #     log('sec {} Alt diff change given: {}m/s'.format(self.name,z))
                 #     self.send_ned_velocity_drone(0,0,z)
-                time.sleep(4)
+                time.sleep(2)
             except Exception as e:
                 log("sec {} Security Error : {}".format(self.name,e))
                 pass
