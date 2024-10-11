@@ -220,10 +220,13 @@ class Drone:
                     log('sec {} PosAlt: {}m \n      Current altitude : {}m\n      Current Battery {}V\n      Alt Difference {}\n      Wifi Status {}\n{}'.format(self.name,self.posalt, self.altitude, self.battery, self.altitude - self.posalt, str(self.wifi_status), str(self.mode)))
                     coordlat = str(self.vehicle.location.global_relative_frame.lat)
                     coordlon = str(self.vehicle.location.global_relative_frame.lon)
-                    log("lat {} {}".format(self.name,coordlat))
+                    log("lat {} {}".format(self.name
+                                           ,coordlat))
                     log("lon {} {}".format(self.name,coordlon))
-                    log("gps_type {}".format(self.gps_type))
-                    log("gps_num {}".format(self.gps_num))
+                    log("sec {} gps_type {}".format(self.name,
+                                                    self.gps_type))
+                    log("sec {} gps_num {}".format(self.name,
+                                                   self.gps_num))
                 if self.in_air:
                     if not self.wifi_status:
                         print("{} Wi-Fi connection lost! Initiating landing.".format(self.name))
