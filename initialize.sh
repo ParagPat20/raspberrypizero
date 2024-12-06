@@ -38,7 +38,12 @@ cd ..
 echo "Creating mav.sh and adding the socat command..."
 sudo nano mav.sh <<EOF
 #!/bin/bash
-socat UDP4-DATAGRAM:192.168.22.161:14550 /dev/serial0,b115200,raw,echo=0
+#!/bin/bash
+# Kill all existing tmux sessions
+sudo tmux kill-sessions
+
+# Create a new tmux session named 'mav' and run the socat command
+sudo tmux new-session -d -s mav 'socat UDP4-DATAGRAM:192.168.22.161:14550 /dev/serial0,b115200,raw,echo=0'
 EOF
 
 # Make mav.sh executable
@@ -49,7 +54,7 @@ chmod +x mav.sh
 echo "Creating run.sh to run rpz/run.py in tmux..."
 sudo nano run.sh <<EOF
 #!/bin/bash
-tmux new-session -d -s run 'python3 /home/oxi/rpz/run.py'
+sudo tmux new-session -d -s run '/usr/bin/python3 /home/oxi/rpz/run.py'
 EOF
 
 # Make run.sh executable
