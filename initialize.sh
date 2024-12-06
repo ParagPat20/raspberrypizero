@@ -31,9 +31,6 @@ cd ..
 # Change directory to /home/oxi
 cd /home/oxi || { echo "Failed to change directory to /home/oxi"; exit 1; }
 
-# Make initialize.sh executable
-echo "Making initialize.sh executable..."
-chmod +x initialize.sh
 
 # Create mav.sh and add the socat command
 echo "Creating mav.sh and adding the socat command..."
@@ -47,7 +44,7 @@ EOF
 
 # Make mav.sh executable
 echo "Making mav.sh executable..."
-chmod +x mav.sh
+sudo chmod +x mav.sh
 
 # Create run.sh to run rpz/run.py in tmux
 echo "Creating run.sh to run rpz/run.py in tmux..."
@@ -59,7 +56,7 @@ EOF
 
 # Make run.sh executable
 echo "Making run.sh executable..."
-chmod +x run.sh
+sudo chmod +x run.sh
 
 # Add run.sh to crontab for automatic execution on reboot
 echo "Adding run.sh to crontab for automatic execution on reboot..."
