@@ -8,9 +8,6 @@ sudo apt update && sudo apt upgrade -y
 echo "Installing tmux..."
 sudo apt install -y tmux
 
-# Install git
-echo "Installing git..."
-sudo apt install -y git
 
 # Install pip3
 echo "Installing pip3..."
@@ -20,19 +17,13 @@ sudo apt install -y python3-pip
 echo "Installing lxml and numpy..."
 sudo apt install python3-lxml python3-numpy
 
-# Clone the repository
-echo "Cloning the repository from GitHub..."
-git clone https://github.com/ParagPat20/rpz
-
-# Change directory to rpz
-cd rpz
 
 # Install dependencies from requirements.txt
 echo "Installing dependencies from requirements.txt..."
 sudo pip3 install -r requirements.txt
 
 # Go back to the parent directory
-cd ..
+cd /home/oxi
 
 # Create mav.sh and add the socat command
 echo "Creating mav.sh and adding the socat command..."
