@@ -38,8 +38,8 @@ cat <<EOF | sudo tee mav.sh > /dev/null
 #!/bin/bash
 # Kill all existing tmux sessions
 sudo tmux kill-session
-# Create a new tmux session named 'mav' and run the socat command
 sudo tmux new-session -d -s mav 'socat UDP4-DATAGRAM:192.168.22.161:14550 /dev/serial0,b115200,raw,echo=0'
+echo "Running mav.sh and adding the socat command..."
 EOF
 
 # Make mav.sh executable
@@ -52,6 +52,7 @@ cat <<EOF | sudo tee run.sh > /dev/null
 #!/bin/bash
 sudo tmux kill-session
 sudo tmux new-session -d -s run '/usr/bin/python3 /home/oxi/rpz/run.py'
+echo "RPZ is running in tmux session 'run'"
 EOF
 
 # Make run.sh executable
