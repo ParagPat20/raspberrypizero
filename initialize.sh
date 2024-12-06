@@ -22,7 +22,7 @@ cd rpz || { echo "Failed to change directory to rpz"; exit 1; }
 
 # Install dependencies from requirements.txt
 echo "Installing dependencies from requirements.txt..."
-sudo pip3 install -r requirements.txt
+sudo pip3 install -r req.txt
 
 # Go back to the parent directory
 cd ..
