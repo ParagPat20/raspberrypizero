@@ -8,31 +8,39 @@ sudo apt update && sudo apt upgrade -y
 echo "Installing tmux..."
 sudo apt install -y tmux
 
-
 # Install pip3
 echo "Installing pip3..."
 sudo apt install -y python3-pip
 
 # Install lxml and numpy using pip3
 echo "Installing lxml and numpy..."
-sudo apt install python3-lxml python3-numpy
+sudo apt install -y python3-lxml python3-numpy
 
+
+# Change directory to rpz
+cd rpz || { echo "Failed to change directory to rpz"; exit 1; }
 
 # Install dependencies from requirements.txt
 echo "Installing dependencies from requirements.txt..."
 sudo pip3 install -r requirements.txt
 
 # Go back to the parent directory
-cd /home/oxi
+cd ..
+
+
+# Change directory to /home/oxi
+cd /home/oxi || { echo "Failed to change directory to /home/oxi"; exit 1; }
+
+# Make initialize.sh executable
+echo "Making initialize.sh executable..."
+chmod +x initialize.sh
 
 # Create mav.sh and add the socat command
 echo "Creating mav.sh and adding the socat command..."
-sudo nano mav.sh <<EOF
-#!/bin/bash
+cat <<EOF | sudo tee mav.sh > /dev/null
 #!/bin/bash
 # Kill all existing tmux sessions
 sudo tmux kill-sessions
-
 # Create a new tmux session named 'mav' and run the socat command
 sudo tmux new-session -d -s mav 'socat UDP4-DATAGRAM:192.168.22.161:14550 /dev/serial0,b115200,raw,echo=0'
 EOF
@@ -43,8 +51,9 @@ chmod +x mav.sh
 
 # Create run.sh to run rpz/run.py in tmux
 echo "Creating run.sh to run rpz/run.py in tmux..."
-sudo nano run.sh <<EOF
+cat <<EOF | sudo tee run.sh > /dev/null
 #!/bin/bash
+sudo tmux kill-sessions
 sudo tmux new-session -d -s run '/usr/bin/python3 /home/oxi/rpz/run.py'
 EOF
 
@@ -58,4 +67,3 @@ echo "Adding run.sh to crontab for automatic execution on reboot..."
 
 # Display success message
 echo "Setup completed successfully!"
-
