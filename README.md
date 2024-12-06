@@ -7,7 +7,7 @@ Welcome to the RPZ project! This guide will walk you through the steps to set up
 - [Installation Steps](#installation-steps)
 - [Running the Project](#running-the-project)
 - [Scripts Overview](#scripts-overview)
-- [License](#license)
+
 
 ## Prerequisites
 
