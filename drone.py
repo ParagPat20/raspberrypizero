@@ -275,7 +275,7 @@ class Drone:
         except Exception as e:
             log(f"Error during arming: {e}")
 
-    def takeoff(self, alt=1):
+    def takeoff(self, alt=2):
         try:
             self.arm()
             log("Taking off!")
@@ -287,7 +287,8 @@ class Drone:
                 current_altitude = self.vehicle.location.global_relative_frame.alt
                 if current_altitude is not None:
                     log(" Altitude: {}".format(current_altitude))
-                    if current_altitude >= 1 * 0.9:
+                    # Compare against target altitude instead of hardcoded value
+                    if current_altitude >= alt * 0.9:  # Using 90% of target altitude as threshold
                         log("Reached target altitude")
                         break
                 else:
@@ -296,7 +297,6 @@ class Drone:
                     break
                 time.sleep(1)
             self.in_air = True
-
             self.alt_ach = False
         except Exception as e:
             log(f"Error during takeoff: {e}")
