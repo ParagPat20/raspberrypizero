@@ -134,8 +134,6 @@ def run_mis(filename):
     except Exception as e:
         log(f"Error in run_mis: {e}")
 
-# Initialize appropriate drones based on hostname
-initialize_drones()
 
 log(f"{hostname} Server started, have fun!")
 
