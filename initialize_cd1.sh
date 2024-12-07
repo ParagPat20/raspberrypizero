@@ -71,12 +71,6 @@ sudo chmod +x run.sh
 echo "Adding run.sh to crontab for automatic execution on reboot..."
 (crontab -l 2>/dev/null; echo "@reboot /home/oxi/run.sh") | crontab -
 
-# Restart networking services
-echo "Restarting networking services..."
-sudo systemctl restart networking
-sudo systemctl restart ssh
-sudo systemctl restart avahi-daemon
-sudo systemctl restart dhcpcd
 
 # Display success message
 echo "CD1 Setup completed successfully!"
