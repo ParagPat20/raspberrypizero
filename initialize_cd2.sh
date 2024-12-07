@@ -75,5 +75,8 @@ echo "Adding run.sh to crontab for automatic execution on reboot..."
 # Display success message
 echo "CD2 Setup completed successfully!"
 echo "System will reboot in 5 seconds..."
+
+echo "Do ssh into the CD2 using: ssh oxi@cd2-raspberry"
+
 sleep 5
 sudo reboot 

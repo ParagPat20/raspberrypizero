@@ -75,5 +75,8 @@ echo "Adding run.sh to crontab for automatic execution on reboot..."
 # Display success message
 echo "CD1 Setup completed successfully!"
 echo "System will reboot in 5 seconds..."
+
+echo "Do ssh into the CD1 using: ssh oxi@cd1-raspberry"
+
 sleep 5
 sudo reboot 
