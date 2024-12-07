@@ -4,7 +4,7 @@ import socket
 
 # Get hostname to determine which drones to initialize
 hostname = socket.gethostname()
-
+print(f"Host Name : {hostname}")
 cmd_port = 12345
 ctrl_port = 54321
 
