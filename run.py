@@ -12,23 +12,18 @@ ctrl_port = 54321
 MCU = None
 CD1 = None 
 CD2 = None
-CD3 = None
-CD4 = None
 d1 = None
-d2 = None
 
 # Track initialization status
 MCU_initialized = False
 CD1_initialized = False
 CD2_initialized = False
-CD3_initialized = False
-CD4_initialized = False
 
 # Configure which drones to initialize based on hostname
 DRONE_CONFIG = {
     'mcu-raspberry': ['MCU'],
-    'cd1-raspberry': ['CD1', 'CD4'],
-    'cd2-raspberry': ['CD2', 'CD3']
+    'cd1-raspberry': ['CD1'],
+    'cd2-raspberry': ['CD2']
 }
 
 # Setup ZMQ socket
@@ -110,40 +105,6 @@ def initialize_CD2():
     except Exception as e:
         log(f"Error in initialize_CD2: {e}")
 
-def initialize_CD3():
-    try:
-        global d2, CD3, CD3_initialized
-        if not CD3 and not CD3_initialized:
-            d2_str = 'CD3'
-            CD3 = Drone(d2_str,'0.0.0.0:14553')
-            d2 = CD3
-            log("CD3 Connected")
-            time.sleep(5)
-            CD3.get_vehicle_state()
-            threading.Thread(target=CD3.security).start()
-            CD3_initialized = True
-        CD3.get_vehicle_state()
-        log('CD3_status')
-    except Exception as e:
-        log(f"Error in initialize_CD3: {e}")
-
-def initialize_CD4():
-    try:
-        global d2, CD4, CD4_initialized
-        if not CD4 and not CD4_initialized:
-            d2_str = 'CD4'
-            CD4 = Drone(d2_str,'0.0.0.0:14554')
-            d2 = CD4
-            log("CD4 Connected")
-            time.sleep(5)
-            CD4.get_vehicle_state()
-            threading.Thread(target=CD4.security).start()
-            CD4_initialized = True
-        CD4.get_vehicle_state()
-        log('CD4_status')
-    except Exception as e:
-        log(f"Error in initialize_CD4: {e}")
-
 def initialize_drones():
     """Initialize drones based on hostname configuration"""
     if hostname not in DRONE_CONFIG:
@@ -159,10 +120,6 @@ def initialize_drones():
             initialize_CD1()
         elif drone == 'CD2':
             initialize_CD2()
-        elif drone == 'CD3':
-            initialize_CD3()
-        elif drone == 'CD4':
-            initialize_CD4()
             
     log(f"Initialized drones for {hostname}: {drones_to_init}")
 
@@ -206,9 +163,9 @@ while True:
         except Exception as e:
             log(f"Error: {e}")
 
-if KeyboardInterrupt:
-    log("KeyboardInterrupt")
-    msg_socket.close()
+    if KeyboardInterrupt:
+        log("KeyboardInterrupt")
+        msg_socket.close()
 
 
 ##########################################################################################################################
