@@ -143,25 +143,35 @@ while True:
 
     if msg_socket in socks and socks[msg_socket] == zmq.POLLIN:
         try:
+            print(f"\n{hostname}: Receiving command...")
             immediate_command_str = msg_socket.recv(zmq.NOBLOCK)
             immediate_command_str = immediate_command_str.decode()
+            print(f"{hostname}: Received command: {immediate_command_str}")
+            
+            print(f"{hostname}: Starting command execution thread...")
             command_thread = threading.Thread(target=execute_command, args=(immediate_command_str,))
             command_thread.start()
+            print(f"{hostname}: Command thread started")
 
         except zmq.error.Again:
+            print(f"{hostname}: No message available")
             pass
 
         except zmq.ZMQError as zmq_error:
+            print(f"{hostname}: ZMQ Error occurred: {zmq_error}")
             log(f"ZMQ Error: {zmq_error}")
             msg_socket.close()
             msg_socket = context.socket(zmq.PULL)
             msg_socket.bind("tcp://*:12345")
             poller.register(msg_socket, zmq.POLLIN)
+            print(f"{hostname}: Socket reconnected after error")
 
         except Exception as e:
+            print(f"{hostname}: General error occurred: {e}")
             log(f"Error: {e}")
 
     if KeyboardInterrupt:
+        print(f"{hostname}: Keyboard interrupt detected")
         log("KeyboardInterrupt")
         msg_socket.close()
 
