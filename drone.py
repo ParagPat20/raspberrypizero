@@ -32,8 +32,8 @@ d1 = None
 d2 = None
 selected_drone = None
 MCU_host = '192.168.22.173'
-CD1_host = '192.168.22.101'
-CD2_host = '192.168.22.225'
+CD1_host = '192.168.2.101'
+CD2_host = '192.168.2.225'
 CD3_host = CD2_host
 CD4_host = CD1_host
 pc = '192.168.22.161'
@@ -275,7 +275,7 @@ class Drone:
         except Exception as e:
             log(f"Error during arming: {e}")
 
-    def takeoff(self, alt=2):
+    def takeoff(self, alt=1):
         try:
             self.arm()
             log("Taking off!")
@@ -287,8 +287,7 @@ class Drone:
                 current_altitude = self.vehicle.location.global_relative_frame.alt
                 if current_altitude is not None:
                     log(" Altitude: {}".format(current_altitude))
-                    # Compare against target altitude instead of hardcoded value
-                    if current_altitude >= alt * 0.9:  # Using 90% of target altitude as threshold
+                    if current_altitude >= 1 * 0.9:
                         log("Reached target altitude")
                         break
                 else:
@@ -297,6 +296,7 @@ class Drone:
                     break
                 time.sleep(1)
             self.in_air = True
+
             self.alt_ach = False
         except Exception as e:
             log(f"Error during takeoff: {e}")
