@@ -1,98 +1,121 @@
-# Example of low-level Python wrapper for rpi_ws281x library.
-# Author: Tony DiCola (tony@tonydicola.com), Jeremy Garff (jer@jers.net)
+#!/usr/bin/env python3
+# NeoPixel library strandtest example
+# Author: Tony DiCola (tony@tonydicola.com)
 #
-# This is an example of how to use the SWIG-generated _rpi_ws281x module.
-# You probably don't want to use this unless you are building your own library,
-# because the SWIG generated module is clunky and verbose.  Instead look at the
-# high level Python port of Adafruit's NeoPixel Arduino library in strandtest.py.
-#
-# This code will animate a number of WS281x LEDs displaying rainbow colors.
+# Direct port of the Arduino NeoPixel library strandtest example.  Showcases
+# various animations on a strip of NeoPixels.
+
 import time
+from rpi_ws281x import PixelStrip, Color
+import argparse
 
-import _rpi_ws281x as ws
-
-# LED configuration.
-LED_CHANNEL = 0
-LED_COUNT = 16              # How many LEDs to light.
-LED_FREQ_HZ = 800000        # Frequency of the LED signal.  Should be 800khz or 400khz.
-LED_DMA_NUM = 10            # DMA channel to use, can be 0-14.
-LED_GPIO = 12               # GPIO connected to the LED signal line.  Must support PWM!
-LED_BRIGHTNESS = 255        # Set to 0 for darkest and 255 for brightest
-LED_INVERT = 0              # Set to 1 to invert the LED signal, good if using NPN
-#                             transistor as a 3.3V->5V level converter.  Keep at 0
-#                             for a normal/non-inverted signal.
-
-# Define colors which will be used by the example.  Each color is an unsigned
-# 32-bit value where the lower 24 bits define the red, green, blue data (each
-# being 8 bits long).
-DOT_COLORS = [0x200000,   # red
-              0x201000,   # orange
-              0x202000,   # yellow
-              0x002000,   # green
-              0x002020,   # lightblue
-              0x000020,   # blue
-              0x100010,   # purple
-              0x200010]  # pink
+# LED strip configuration:
+LED_COUNT = 16        # Number of LED pixels.
+LED_PIN = 12          # GPIO pin connected to the pixels (18 uses PWM!).
+# LED_PIN = 10        # GPIO pin connected to the pixels (10 uses SPI /dev/spidev0.0).
+LED_FREQ_HZ = 800000  # LED signal frequency in hertz (usually 800khz)
+LED_DMA = 10          # DMA channel to use for generating signal (try 10)
+LED_BRIGHTNESS = 255  # Set to 0 for darkest and 255 for brightest
+LED_INVERT = False    # True to invert the signal (when using NPN transistor level shift)
+LED_CHANNEL = 0       # set to '1' for GPIOs 13, 19, 41, 45 or 53
 
 
-# Create a ws2811_t structure from the LED configuration.
-# Note that this structure will be created on the heap so you need to be careful
-# that you delete its memory by calling delete_ws2811_t when it's not needed.
-leds = ws.new_ws2811_t()
+# Define functions which animate LEDs in various ways.
+def colorWipe(strip, color, wait_ms=50):
+    """Wipe color across display a pixel at a time."""
+    for i in range(strip.numPixels()):
+        strip.setPixelColor(i, color)
+        strip.show()
+        time.sleep(wait_ms / 1000.0)
 
-# Initialize all channels to off
-for channum in range(2):
-    channel = ws.ws2811_channel_get(leds, channum)
-    ws.ws2811_channel_t_count_set(channel, 0)
-    ws.ws2811_channel_t_gpionum_set(channel, 0)
-    ws.ws2811_channel_t_invert_set(channel, 0)
-    ws.ws2811_channel_t_brightness_set(channel, 0)
 
-channel = ws.ws2811_channel_get(leds, LED_CHANNEL)
+def theaterChase(strip, color, wait_ms=50, iterations=10):
+    """Movie theater light style chaser animation."""
+    for j in range(iterations):
+        for q in range(3):
+            for i in range(0, strip.numPixels(), 3):
+                strip.setPixelColor(i + q, color)
+            strip.show()
+            time.sleep(wait_ms / 1000.0)
+            for i in range(0, strip.numPixels(), 3):
+                strip.setPixelColor(i + q, 0)
 
-ws.ws2811_channel_t_count_set(channel, LED_COUNT)
-ws.ws2811_channel_t_gpionum_set(channel, LED_GPIO)
-ws.ws2811_channel_t_invert_set(channel, LED_INVERT)
-ws.ws2811_channel_t_brightness_set(channel, LED_BRIGHTNESS)
 
-ws.ws2811_t_freq_set(leds, LED_FREQ_HZ)
-ws.ws2811_t_dmanum_set(leds, LED_DMA_NUM)
+def wheel(pos):
+    """Generate rainbow colors across 0-255 positions."""
+    if pos < 85:
+        return Color(pos * 3, 255 - pos * 3, 0)
+    elif pos < 170:
+        pos -= 85
+        return Color(255 - pos * 3, 0, pos * 3)
+    else:
+        pos -= 170
+        return Color(0, pos * 3, 255 - pos * 3)
 
-# Initialize library with LED configuration.
-resp = ws.ws2811_init(leds)
-if resp != ws.WS2811_SUCCESS:
-    message = ws.ws2811_get_return_t_str(resp)
-    raise RuntimeError('ws2811_init failed with code {0} ({1})'.format(resp, message))
 
-# Wrap following code in a try/finally to ensure cleanup functions are called
-# after library is initialized.
-try:
-    offset = 0
-    while True:
-        # Update each LED color in the buffer.
-        for i in range(LED_COUNT):
-            # Pick a color based on LED position and an offset for animation.
-            color = DOT_COLORS[(i + offset) % len(DOT_COLORS)]
+def rainbow(strip, wait_ms=20, iterations=1):
+    """Draw rainbow that fades across all pixels at once."""
+    for j in range(256 * iterations):
+        for i in range(strip.numPixels()):
+            strip.setPixelColor(i, wheel((i + j) & 255))
+        strip.show()
+        time.sleep(wait_ms / 1000.0)
 
-            # Set the LED color buffer value.
-            ws.ws2811_led_set(channel, i, color)
 
-        # Send the LED color data to the hardware.
-        resp = ws.ws2811_render(leds)
-        if resp != ws.WS2811_SUCCESS:
-            message = ws.ws2811_get_return_t_str(resp)
-            raise RuntimeError('ws2811_render failed with code {0} ({1})'.format(resp, message))
+def rainbowCycle(strip, wait_ms=20, iterations=5):
+    """Draw rainbow that uniformly distributes itself across all pixels."""
+    for j in range(256 * iterations):
+        for i in range(strip.numPixels()):
+            strip.setPixelColor(i, wheel(
+                (int(i * 256 / strip.numPixels()) + j) & 255))
+        strip.show()
+        time.sleep(wait_ms / 1000.0)
 
-        # Delay for a small period of time.
-        time.sleep(0.25)
 
-        # Increase offset to animate colors moving.  Will eventually overflow, which
-        # is fine.
-        offset += 1
+def theaterChaseRainbow(strip, wait_ms=50):
+    """Rainbow movie theater light style chaser animation."""
+    for j in range(256):
+        for q in range(3):
+            for i in range(0, strip.numPixels(), 3):
+                strip.setPixelColor(i + q, wheel((i + j) % 255))
+            strip.show()
+            time.sleep(wait_ms / 1000.0)
+            for i in range(0, strip.numPixels(), 3):
+                strip.setPixelColor(i + q, 0)
 
-finally:
-    # Ensure ws2811_fini is called before the program quits.
-    ws.ws2811_fini(leds)
-    # Example of calling delete function to clean up structure memory.  Isn't
-    # strictly necessary at the end of the program execution here, but is good practice.
-    ws.delete_ws2811_t(leds)
+
+# Main program logic follows:
+if __name__ == '__main__':
+    # Process arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-c', '--clear', action='store_true', help='clear the display on exit')
+    args = parser.parse_args()
+
+    # Create NeoPixel object with appropriate configuration.
+    strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA, LED_INVERT, LED_BRIGHTNESS, LED_CHANNEL)
+    # Intialize the library (must be called once before other functions).
+    strip.begin()
+
+    print('Press Ctrl-C to quit.')
+    if not args.clear:
+        print('Use "-c" argument to clear LEDs on exit')
+
+    try:
+
+        while True:
+            print('Color wipe animations.')
+            colorWipe(strip, Color(255, 0, 0))  # Red wipe
+            colorWipe(strip, Color(0, 255, 0))  # Green wipe
+            colorWipe(strip, Color(0, 0, 255))  # Blue wipe
+            print('Theater chase animations.')
+            theaterChase(strip, Color(127, 127, 127))  # White theater chase
+            theaterChase(strip, Color(127, 0, 0))  # Red theater chase
+            theaterChase(strip, Color(0, 0, 127))  # Blue theater chase
+            print('Rainbow animations.')
+            rainbow(strip)
+            rainbowCycle(strip)
+            theaterChaseRainbow(strip)
+
+    except KeyboardInterrupt:
+        if args.clear:
+            colorWipe(strip, Color(0, 0, 0), 10)
