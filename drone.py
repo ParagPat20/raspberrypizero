@@ -15,9 +15,10 @@ context = zmq.Context()  # Create a ZeroMQ context
 import json
 import wiringpi
 from neopixel import animate_leds
+import threading
 
 threading.Thread(target=animate_leds).start()
-
+print("Running neopixel thread")
 # use 'GPIO naming'
 wiringpi.wiringPiSetupGpio()
 
