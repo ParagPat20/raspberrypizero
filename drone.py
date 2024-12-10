@@ -14,6 +14,9 @@ import struct
 context = zmq.Context()  # Create a ZeroMQ context
 import json
 import wiringpi
+from neopixel import animate_leds
+
+threading.Thread(target=animate_leds).start()
 
 # use 'GPIO naming'
 wiringpi.wiringPiSetupGpio()
