@@ -287,7 +287,7 @@ class Drone:
                 current_altitude = self.vehicle.location.global_relative_frame.alt
                 if current_altitude is not None:
                     log(" Altitude: {}".format(current_altitude))
-                    if current_altitude >= 1 * 0.9:
+                    if current_altitude >= alt * 0.9:
                         log("Reached target altitude")
                         break
                 else:
