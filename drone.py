@@ -627,24 +627,52 @@ class Drone:
         global camera_running
         camera_running = False
 
-    def line(self, dis, alt, directionindegree):
-
+    def move_to_location(self, distance, altitude, direction_degree):
+        """
+        Move the drone to a new location based on distance, altitude, and direction.
+        
+        :param distance: Distance to move in meters.
+        :param altitude: Altitude to maintain in meters.
+        :param direction_degree: Direction in degrees (0 is North, 90 is east).
+        """
         try:
+            # Get the current GPS location of the drone
+            current_location = (self.vehicle.location.global_relative_frame.lat, 
+                                self.vehicle.location.global_relative_frame.lon)
 
-            ref_location = request_gps('MCU')
-            if ref_location == (0,0):
-                ref_location = request_gps('MCU')
-            if ref_location == (None,None):
-                ref_location = request_gps('MCU')
-            if ref_location == None:
-                ref_location = request_gps('MCU')
-            new_location = new_coords(ref_location, dis, directionindegree)
-            meas_dis = distance_between_two_gps_coord(new_location, ref_location)
-            log("{} measuring distance to new coords {} with {} degree bearing".format(self.name,meas_dis,directionindegree))
-            self.goto(new_location, alt)
+            # Calculate the new coordinates based on distance and direction
+            new_location = new_coords(current_location, distance, direction_degree)
+
+            # Calculate the distance to the new location
+            distance_to_new_location = calculate_distance(current_location, new_location)
+            distance_to_new_location1 = distance_between_two_gps_coord(current_location, new_location)
+
+            # Log the intended movement
+            log("{} moving to new location {} at altitude {}m with direction {} degrees".format(self.name, new_location, altitude, direction_degree))
+
+            # Check if the new location is within 10 meters
+            if distance_to_new_location <= 10 and distance_to_new_location1 <= 10:
+                # Command the drone to go to the new location at the specified altitude
+                self.goto(new_location, altitude)
+            else:
+                log("{} Move to Location Error: New location is too far ({} meters)".format(self.name, distance_to_new_location))
 
         except Exception as e:
-            log("{} Line Error : {} ".format(self.name,e))
+            log("{} Move to Location Error: {}".format(self.name, e))
+
+def calculate_distance(location1, location2):
+    """
+    Calculate the distance between two GPS coordinates.
+    
+    :param location1: Tuple of (latitude, longitude) for the first location.
+    :param location2: Tuple of (latitude, longitude) for the second location.
+    :return: Distance in meters.
+    """
+    from geopy.distance import geodesic
+    return geodesic(location1, location2).meters
+            
+            
+
 
 
 
