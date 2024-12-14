@@ -574,6 +574,8 @@ class Drone:
                                                                                  (current_lat, current_lon), l)))
                 log('{} - Perpendicular distance to destination: {} m.'.format(time.ctime(),
                                                                                  current_alt - alt))
+                if self.mode == 'LAND': 
+                    break
             log('{} - After calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
             self.get_vehicle_state()
         except Exception as e:
