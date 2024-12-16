@@ -11,13 +11,11 @@ import RPi.GPIO as GPIO
 SS_PIN = 8  # GPIO pin for slave select
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(SS_PIN, GPIO.OUT)
-GPIO.output(SS_PIN, GPIO.HIGH)
+GPIO.output(SS_PIN, GPIO.LOW)
 
 # Function to send data
 def send_data(data):
-    GPIO.output(SS_PIN, GPIO.LOW)  # Select the slave
     response = spi.xfer2([data])  # Send data
-    GPIO.output(SS_PIN, GPIO.HIGH)  # Deselect the slave
     return response
 
 try:
