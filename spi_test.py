@@ -2,32 +2,26 @@ import spidev
 import time
 
 # Initialize SPI
-spi = spidev.SpiDev()
-spi.open(0, 0)  # Use CE0 (GPIO 8)
-spi.max_speed_hz = 1000000  # 1 MHz SPI speed
-spi.mode = 0b00  # SPI Mode 0 (CPOL=0, CPHA=0)
+spi = spidev.SpiDev()  # Create an SPI instance
+spi.open(0, 0)         # Open bus 0, device (CS) 0
+spi.max_speed_hz = 1000000  # 1 MHz
+spi.mode = 0  # SPI Mode 0 (CPOL=0, CPHA=0)
 
-# Function to send and receive data
-def spi_communication():
-    sent_data = 0x01  # Example data to send to ESP32
-    print(f"Sent: {hex(sent_data)}")
-    
-    # Perform SPI transaction (send and receive simultaneously)
-    received_data = spi.xfer2([sent_data])
-    print(f"Received: {hex(received_data[0])}")
-    
-    # Check if the response matches the expected value (0x42)
-    if received_data[0] == 0x42:
-        print("Communication successful!")
-    else:
-        print("Unexpected response!")
+def read_spi_data():
+    # Read data from the SPI bus
+    received_data = spi.xfer2([0x00])  # Send dummy byte to receive data
+    return received_data[0]  # Return received byte
 
-# Main loop
-try:
-    while True:
-        spi_communication()
-        time.sleep(1)  # Wait 1 second between transactions
+def main():
+    try:
+        while True:
+            data = read_spi_data()
+            print(f"Received: {data:08b}")  # Print received data as binary
+            time.sleep(0.1)  # Small delay
+    except KeyboardInterrupt:
+        print("Exiting...")
+    finally:
+        spi.close()  # Clean up and close SPI
 
-except KeyboardInterrupt:
-    print("Exiting SPI communication.")
-    spi.close()
+if __name__ == "__main__":
+    main()
