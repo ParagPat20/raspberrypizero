@@ -3,21 +3,20 @@ import time
 
 # Initialize SPI
 spi = spidev.SpiDev()
-spi.open(0, 0)  # Bus 0, device 0 (CE0 on Pi Zero 2 W)
-spi.max_speed_hz = 1000000  # Set speed to 1 MHz
+spi.open(0, 0)  # Use CE0 (GPIO 8)
+spi.max_speed_hz = 1000000  # 1 MHz SPI speed
 spi.mode = 0b00  # SPI Mode 0 (CPOL=0, CPHA=0)
 
 # Function to send and receive data
 def spi_communication():
-    # Send data to ESP32 (e.g., 0x01)
-    sent_data = 0x01
+    sent_data = 0x01  # Example data to send to ESP32
     print(f"Sent: {hex(sent_data)}")
     
-    # Receive response from ESP32
-    received_data = spi.xfer2([sent_data])  # Send and receive data in a single transfer
+    # Perform SPI transaction (send and receive simultaneously)
+    received_data = spi.xfer2([sent_data])
     print(f"Received: {hex(received_data[0])}")
     
-    # Optional: check if response is correct (e.g., 0x42)
+    # Check if the response matches the expected value (0x42)
     if received_data[0] == 0x42:
         print("Communication successful!")
     else:
@@ -27,7 +26,7 @@ def spi_communication():
 try:
     while True:
         spi_communication()
-        time.sleep(1)  # Wait 1 second between transfers
+        time.sleep(1)  # Wait 1 second between transactions
 
 except KeyboardInterrupt:
     print("Exiting SPI communication.")
