@@ -19,7 +19,7 @@ def send_data(data):
 def main():
     while True:
         # Example: Send a command or data
-        command = 0xAA  # Example command
+        command = 0x34  # Example command
         response = send_data(command)
         
         if response is not None:
