@@ -6,12 +6,6 @@ spi = spidev.SpiDev()
 spi.open(0, 0)  # Open SPI0 (bus 0, chip select 0)
 spi.max_speed_hz = 500000  # Set SPI clock speed (500kHz)
 
-# GPIO for chip select (SS)
-import RPi.GPIO as GPIO
-SS_PIN = 8  # GPIO pin for slave select
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(SS_PIN, GPIO.OUT)
-GPIO.output(SS_PIN, GPIO.LOW)
 
 # Function to send data
 def send_data(data):
