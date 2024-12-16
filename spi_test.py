@@ -5,6 +5,7 @@ import time
 spi = spidev.SpiDev()
 spi.open(0, 0)  # Open SPI bus 0, device (CS) 0
 spi.max_speed_hz = 50000  # Set the speed (50 kHz)
+spi.mode = 0b00  # Set SPI mode to 0
 
 try:
     while True:
