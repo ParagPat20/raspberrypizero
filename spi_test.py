@@ -4,7 +4,7 @@ import time
 # Initialize SPI
 spi = spidev.SpiDev()
 spi.open(0, 0)  # Use CE0 (GPIO 8)
-spi.max_speed_hz = 1000000  # 1 MHz SPI speed
+spi.max_speed_hz = 50000  # 1 MHz SPI speed
 spi.mode = 0b00  # SPI Mode 0 (CPOL=0, CPHA=0)
 
 # Function to send and receive data
