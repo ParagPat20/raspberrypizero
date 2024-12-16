@@ -25,4 +25,3 @@ except KeyboardInterrupt:
     print("Exiting...")
 finally:
     spi.close()
-    GPIO.cleanup()
