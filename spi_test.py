@@ -1,35 +1,20 @@
 import spidev
 import time
 
-# Open SPI bus
+# Create an SPI object
 spi = spidev.SpiDev()
-spi.open(0, 0)  # Bus 0, CE0 (Chip Enable 0)
-spi.max_speed_hz = 1000000  # 1 MHz SPI speed
+spi.open(0, 0)  # Open SPI bus 0, device (CS) 0
+spi.max_speed_hz = 50000  # Set the speed (50 kHz)
 
-def send_data(data):
-    """Send data to ESP32 via SPI"""
-    try:
-        # Send data and receive response
-        response = spi.xfer2([data])
-        return response[0]
-    except Exception as e:
-        print(f"SPI transmission error: {e}")
-        return None
-
-def main():
+try:
     while True:
-        # Example: Send a command or data
-        command = 0x34  # Example command
-        response = send_data(command)
-        
-        if response is not None:
-            print(f"Sent: {command}, Received: {response}")
-        
-        time.sleep(1)  # Wait for 1 second between transmissions
+        # Data to send
+        data = [0x01, 0x02, 0x03, 0x04]  # Example data
+        response = spi.xfer2(data)  # Send data and receive response
+        print("Sent:", data, "Received:", response)
+        time.sleep(1)  # Wait for 1 second
 
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print("SPI communication stopped")
-        spi.close()
+except KeyboardInterrupt:
+    print("Exiting...")
+finally:
+    spi.close()  # Close the SPI connection
