@@ -11,7 +11,9 @@ try:
     while True:
         # Data to send
         data = [0x31, 0x42, 0x43, 0x54]  # Example data
+        print(data)
         response = spi.xfer2(data)  # Send data and receive response
+        print(data)
         print("Sent:", data, "Received:", response)
         time.sleep(1)  # Wait for 1 second
 
