@@ -9,7 +9,7 @@ spi.max_speed_hz = 50000  # Set the speed (50 kHz)
 try:
     while True:
         # Data to send
-        data = [0x01, 0x02, 0x03, 0x04]  # Example data
+        data = [0x31, 0x42, 0x43, 0x54]  # Example data
         response = spi.xfer2(data)  # Send data and receive response
         print("Sent:", data, "Received:", response)
         time.sleep(1)  # Wait for 1 second
