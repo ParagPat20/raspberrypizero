@@ -21,6 +21,7 @@ def send_data(data):
 try:
     while True:
         data_to_send = 0x55  # Example data to send (hex 0x55)
+        spi.xfer2([0x01])
         print(f"Sending: {data_to_send}")
         response = send_data(data_to_send)
         print(f"Response: {response}")
