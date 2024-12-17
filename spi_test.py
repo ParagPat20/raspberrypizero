@@ -29,9 +29,7 @@ def send_data():
 def main():
     while True:
         send_data()  # Send request to ESP32
-        time.sleep(1)  # Wait for 1 second
         read_data()   # Read response from ESP32
-        time.sleep(1)  # Wait for 1 second before sending next request
 
 if __name__ == "__main__":
     main()
