@@ -1,28 +1,50 @@
-import smbus
+import RPi.GPIO as GPIO
 import time
 
-I2C_ADDRESS = 0x08  # I2C address for the ESP32 slave
+SCL_PIN = 11  # SCK (SCL)
+SDA_PIN = 9   # MISO (SDA)
 
-# Open I2C bus 1 (GPIO 2, 3 for I2C1 on Raspberry Pi)
-bus = smbus.SMBus(1)
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(SCL_PIN, GPIO.OUT)  # Set SCL as output (master)
+GPIO.setup(SDA_PIN, GPIO.OUT)  # Set SDA as output (master)
 
-def write_data(data):
-    bus.write_byte(I2C_ADDRESS, data)  # Write a byte to the ESP32 slave
+def start_condition():
+    GPIO.output(SDA_PIN, GPIO.HIGH)
+    GPIO.output(SCL_PIN, GPIO.HIGH)
+    time.sleep(0.000001)
+    GPIO.output(SDA_PIN, GPIO.LOW)  # Start condition
+    time.sleep(0.000001)
+    GPIO.output(SCL_PIN, GPIO.LOW)  # Clock low
 
-def read_data():
-    data = bus.read_byte(I2C_ADDRESS)  # Read a byte from the ESP32 slave
-    print(f"Data received: {data}")
+def stop_condition():
+    GPIO.output(SDA_PIN, GPIO.LOW)
+    GPIO.output(SCL_PIN, GPIO.HIGH)
+    time.sleep(0.000001)
+    GPIO.output(SDA_PIN, GPIO.HIGH)  # Stop condition
 
-try:
-    while True:
-        # Send data (e.g., 0x42) to ESP32
-        print("Sending data to ESP32")
-        write_data(0x42)
+def write_byte(data):
+    for i in range(8):
+        GPIO.output(SDA_PIN, (data & (0x80 >> i)) != 0)  # Write MSB first
+        time.sleep(0.000001)
+        GPIO.output(SCL_PIN, GPIO.HIGH)  # Clock high
+        time.sleep(0.000001)
+        GPIO.output(SCL_PIN, GPIO.LOW)   # Clock low
 
-        # Read response from ESP32
-        read_data()
+def main():
+    start_condition()  # Send start condition
 
-        time.sleep(1)
+    data_to_send = 0x42  # Example data to send
+    write_byte(data_to_send)
 
-except KeyboardInterrupt:
-    print("Program terminated.")
+    stop_condition()  # Send stop condition
+
+    print(f"Sent data: {hex(data_to_send)}")
+
+if __name__ == "__main__":
+    try:
+        while True:
+            main()
+            time.sleep(1)  # Delay for next transaction
+    except KeyboardInterrupt:
+        GPIO.cleanup()
+        print("Program terminated.")
