@@ -16,7 +16,7 @@ def transfer_data(send_buffer):
 
 try:
     while True:
-        # Send a sample message to the slave
+        # Prepare a message to send to the slave
         send_buffer = [10, 20, 30, 40, 50, 60, 70, 80]
         print("Sending: ", send_buffer)
 
