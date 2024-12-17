@@ -3,14 +3,14 @@ import time
 
 # Create SPI instance
 spi = spidev.SpiDev()
-spi.open(0, 0)  # Open SPI bus 0, chip select 0 (CE0)
+spi.open(0, 0)  # Open SPI bus 0, device (CS) 0
 spi.max_speed_hz = 50000  # Set SPI clock speed
 spi.mode = 0b00  # SPI mode 0
 
 def send_message(message):
     # Convert string to bytes and send over SPI
     byte_message = [ord(char) for char in message]
-    spi.xfer(byte_message)
+    spi.xfer2(byte_message)
     print("Sent: ", message)
 
 def read_message(length):
@@ -24,8 +24,8 @@ try:
         send_message("Hello ESP32")
         time.sleep(1)
 
-        # Read response from the ESP32 (assuming 16-byte response)
-        read_message(16)
+        # Read response from the ESP32 (assuming 32-byte response)
+        read_message(32)
         time.sleep(1)
 
 except KeyboardInterrupt:
