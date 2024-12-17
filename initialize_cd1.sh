@@ -37,8 +37,8 @@ sudo pip3 install -r req.txt
 # Go back to the parent directory
 cd ..
 
-# Change directory to /home/oxi
-cd /home/oxi || { echo "Failed to change directory to /home/oxi"; exit 1; }
+# Change directory to /home/oxi2
+cd /home/oxi2 || { echo "Failed to change directory to /home/oxi2"; exit 1; }
 
 # Create mav.sh and add the socat command
 echo "Creating mav.sh and adding the socat command..."
@@ -59,7 +59,7 @@ echo "Creating run.sh to run rpz/run.py in tmux..."
 cat <<EOF | sudo tee run.sh > /dev/null
 #!/bin/bash
 sudo tmux kill-session
-sudo tmux new-session -d -s run '/usr/bin/python3 /home/oxi/rpz/run.py'
+sudo tmux new-session -d -s run '/usr/bin/python3 /home/oxi2/rpz/run.py'
 echo "RPZ is running in tmux session 'run'"
 EOF
 
@@ -69,14 +69,14 @@ sudo chmod +x run.sh
 
 # Add run.sh to crontab for automatic execution on reboot
 echo "Adding run.sh to crontab for automatic execution on reboot..."
-(crontab -l 2>/dev/null; echo "@reboot /home/oxi/run.sh") | crontab -
+(crontab -l 2>/dev/null; echo "@reboot /home/oxi2/run.sh") | crontab -
 
 
 # Display success message
 echo "CD1 Setup completed successfully!"
 echo "System will reboot in 5 seconds..."
 
-echo "Do ssh into the CD1 using: ssh oxi@cd1-raspberry"
+echo "Do ssh into the CD1 using: ssh oxi2@cd1-raspberry"
 
 sleep 5
 sudo reboot 
