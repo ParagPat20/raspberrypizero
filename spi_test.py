@@ -1,35 +1,26 @@
-import smbus
+import serial
 import time
 
-# I2C bus and address
-I2C_BUS = 1  # Default I2C bus on Raspberry Pi
-I2C_ADDRESS = 0x55  # ESP32 Slave I2C address
+# Configure the serial port
+port = '/dev/ttyACM0'  # Change this to your serial port (e.g., '/dev/ttyUSB0' on Linux)
+baudrate = 115200  # Set the baud rate (must match the device's baud rate)
 
-# Initialize the I2C bus
-bus = smbus.SMBus(I2C_BUS)
+# Create a serial connection
+ser = serial.Serial(port, baudrate, timeout=1)
 
-def read_data():
-    # Read data from ESP32 slave (Request data from slave)
-    try:
-        data = bus.read_i2c_block_data(I2C_ADDRESS, 0, 32)  # Read up to 32 bytes
-        data_str = ''.join(chr(byte) for byte in data if byte != 0)  # Convert bytes to string and avoid nulls (0)
-        print(f"Received data: {data_str}")
-    except IOError:
-        print("Failed to read from I2C device.")
+# Allow some time for the connection to establish
+time.sleep(2)
 
-def send_data():
-    # Send data to ESP32 slave (Write data to slave)
-    try:
-        # Sending simple byte data, equivalent to a 'request' for ESP32 to send something back
-        bus.write_byte(I2C_ADDRESS, 0x01)  # Writing a byte to trigger onRequest
-        print("Sent request to ESP32")
-    except IOError:
-        print("Failed to write to I2C device.")
+print("Starting to receive data...")
 
-def main():
+try:
     while True:
-        send_data()  # Send request to ESP32
-        read_data()   # Read response from ESP32
+        if ser.in_waiting > 0:  # Check if there is data waiting in the buffer
+            data = ser.readline().decode('utf-8').rstrip()  # Read a line of data
+            print(f"Received: {data}")  # Print the received data
 
-if __name__ == "__main__":
-    main()
+except KeyboardInterrupt:
+    print("Exiting...")
+
+finally:
+    ser.close()  # Close the serial connection
