@@ -1,31 +1,50 @@
-import spidev
+import RPi.GPIO as GPIO
 import time
 
-# SPI Configuration
-spi = spidev.SpiDev()
-spi.open(0, 0)  # Bus 0, device 0
-spi.max_speed_hz = 10000  # Lower speed for debugging
-spi.mode = 0b00  # SPI mode 0
+SCL_PIN = 11  # SCK (SCL)
+SDA_PIN = 9   # MISO (SDA)
 
-BUFFER_SIZE = 8
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(SCL_PIN, GPIO.OUT)  # Set SCL as output (master)
+GPIO.setup(SDA_PIN, GPIO.OUT)  # Set SDA as output (master)
 
-def transfer_data(send_buffer):
-    response = spi.xfer2(send_buffer)
-    return response
+def start_condition():
+    GPIO.output(SDA_PIN, GPIO.HIGH)
+    GPIO.output(SCL_PIN, GPIO.HIGH)
+    time.sleep(0.000001)
+    GPIO.output(SDA_PIN, GPIO.LOW)  # Start condition
+    time.sleep(0.000001)
+    GPIO.output(SCL_PIN, GPIO.LOW)  # Clock low
 
-try:
-    while True:
-        # Send test data
-        send_buffer = [0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70, 0x80]
-        print("Sending: ", send_buffer)
+def stop_condition():
+    GPIO.output(SDA_PIN, GPIO.LOW)
+    GPIO.output(SCL_PIN, GPIO.HIGH)
+    time.sleep(0.000001)
+    GPIO.output(SDA_PIN, GPIO.HIGH)  # Stop condition
 
-        # Receive response from slave
-        response = transfer_data(send_buffer)
-        print("Received: ", response)
+def write_byte(data):
+    for i in range(8):
+        GPIO.output(SDA_PIN, (data & (0x80 >> i)) != 0)  # Write MSB first
+        time.sleep(0.000001)
+        GPIO.output(SCL_PIN, GPIO.HIGH)  # Clock high
+        time.sleep(0.000001)
+        GPIO.output(SCL_PIN, GPIO.LOW)   # Clock low
 
-        # Pause before the next transaction
-        time.sleep(1)
+def main():
+    start_condition()  # Send start condition
 
-except KeyboardInterrupt:
-    spi.close()
-    print("SPI communication terminated.")
+    data_to_send = 0x42  # Example data to send
+    write_byte(data_to_send)
+
+    stop_condition()  # Send stop condition
+
+    print(f"Sent data: {hex(data_to_send)}")
+
+if __name__ == "__main__":
+    try:
+        while True:
+            main()
+            time.sleep(1)  # Delay for next transaction
+    except KeyboardInterrupt:
+        GPIO.cleanup()
+        print("Program terminated.")
