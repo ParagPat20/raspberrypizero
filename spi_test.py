@@ -12,7 +12,7 @@ def read_data():
     # Read data from ESP32 slave (Request data from slave)
     try:
         data = bus.read_i2c_block_data(I2C_ADDRESS, 0, 32)  # Read up to 32 bytes
-        data_str = ''.join(chr(byte) for byte in data)  # Convert bytes to string
+        data_str = ''.join(chr(byte) for byte in data if byte != 0)  # Convert bytes to string and avoid nulls (0)
         print(f"Received data: {data_str}")
     except IOError:
         print("Failed to read from I2C device.")
