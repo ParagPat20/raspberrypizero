@@ -2,7 +2,7 @@ import serial
 import time
 
 # Configure the serial port
-port = '/dev/ttyACM0'  # Change this to your serial port (e.g., '/dev/ttyUSB0' on Linux)
+port = '/dev/ttyUSB0'  # Change this to your serial port (e.g., '/dev/ttyUSB0' on Linux)
 baudrate = 115200  # Set the baud rate (must match the device's baud rate)
 
 # Create a serial connection
