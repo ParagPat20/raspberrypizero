@@ -1,35 +1,33 @@
 import spidev
 import time
 
-# Configure SPI
+# Create SPI instance
 spi = spidev.SpiDev()
-spi.open(0, 0)  # Open SPI0 (bus 0, chip select 0)
-spi.max_speed_hz = 500000  # Set SPI clock speed (500kHz)
+spi.open(0, 0)  # Open SPI bus 0, chip select 0 (CE0)
+spi.max_speed_hz = 50000  # Set SPI clock speed
+spi.mode = 0b00  # SPI mode 0
 
-# GPIO for chip select (SS)
-import RPi.GPIO as GPIO
-SS_PIN = 8  # GPIO pin for slave select
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(SS_PIN, GPIO.OUT)
-GPIO.output(SS_PIN, GPIO.HIGH)
+def send_message(message):
+    # Convert string to bytes and send over SPI
+    byte_message = [ord(char) for char in message]
+    spi.xfer(byte_message)
+    print("Sent: ", message)
 
-# Function to send data
-def send_data(data):
-    GPIO.output(SS_PIN, GPIO.LOW)  # Select the slave
-    response = spi.xfer2([data])  # Send data
-    GPIO.output(SS_PIN, GPIO.HIGH)  # Deselect the slave
-    return response
+def read_message(length):
+    # Read the response from the SPI slave
+    response = spi.readbytes(length)
+    print("Received: ", "".join([chr(byte) for byte in response]))
 
 try:
     while True:
-        data_to_send = 0x55  # Example data to send (hex 0x55)
-        print(f"Sending: {data_to_send}")
-        response = send_data(data_to_send)
-        print(f"Response: {response}")
+        # Send a message to the ESP32
+        send_message("Hello ESP32")
+        time.sleep(1)
+
+        # Read response from the ESP32 (assuming 16-byte response)
+        read_message(16)
         time.sleep(1)
 
 except KeyboardInterrupt:
-    print("Exiting...")
-finally:
     spi.close()
-    GPIO.cleanup()
+    print("SPI communication terminated.")
