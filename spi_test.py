@@ -11,7 +11,8 @@ def write_data(data):
 
 def read_data():
     data = bus.read_byte(I2C_ADDRESS)  # Read a byte from the ESP32 slave
-    print(f"Data received: {data}")
+    print(f"Data received: {chr(data)}")  # Convert ASCII value to character and print it
+
 
 try:
     while True:
