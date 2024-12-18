@@ -59,4 +59,37 @@ RECOMMENDED IMPLEMENTATION:
 4. Design error handling
 5. Create logging system
 
-Would you like me to provide a Python implementation template for this protocol?
+------------------------------------------------------------------------------------------------
+MODES
+
+   GUIDED
+   POSHOLD
+   LOITER
+   STABILIZE
+   RTL
+   LAND
+   SMART_RTL
+
+COMMANDS : PAYLOAD
+
+   INIT : 1
+   CLOSE : 1
+   ARM : (MODES)
+   DISARM : 1
+   LAUNCH : (ALT)
+   NED : (X,Y,Z,T)
+   YAW : (H,R)
+   MODE : (MODES)
+   MTL : (DIS, ALT, NEWS_DEG)
+   RCOV : (STATE, CH1, CH2, CH3, CH4, CH5, CH6)
+
+DATA
+
+   LOCATION : LAT, LON, ALT
+   GPS : TYPE, SATELITES
+   BATT : VOLT, AMP, LEVEL
+   ATTITUDE : PITCH, ROLL, YAW, HEADING
+   MODE : (MODES)
+   SPEED : AIRSPD, GNDSPD, VELOCITY
+   IS_ARMED : 1 OR 0
+   IS_CONNECTED : 1 OR 0
