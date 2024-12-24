@@ -1,7 +1,6 @@
 from drone import Drone
 from drone import *
 
-
 cmd_port = 12345
 ctrl_port = 54321
 
@@ -31,14 +30,29 @@ def drone_list_update(cmd):
         log("MCU_Host: Error in drone_list_update: {}".format(e))
 
 def execute_command(immediate_command_str):
+    if immediate_command_str.startswith("socat("):
+        ipaddress = immediate_command_str.split("(")[1].strip(")")
+        deinitialize_MCU()
+        execute_socat_command(ipaddress)
+        return
     try:
         log("Executing command: {}".format(repr(immediate_command_str)))
         exec(immediate_command_str)
         log('{} - Command executed successfully'.format(time.ctime()))
-
     except Exception as e:
         log('{} - Error in execute_command: {}'.format(time.ctime(), e))
 
+def execute_socat_command(ipaddress = pc):
+    try:
+        import subprocess
+        ipaddress = str(ipaddress)
+        # Create new tmux session with socat command
+        command = f"sudo tmux new-session -d -s mav 'socat UDP4-DATAGRAM:{ipaddress}:14550 /dev/serial0,b115200,raw,echo=0'"
+        subprocess.run(command, shell=True, check=True)
+        
+        log("socat command executed successfully with IP: {}".format(ipaddress))
+    except Exception as e:
+        log("Error executing socat command: {}".format(e))
 
 def run_mis(filename):
     try:
@@ -56,7 +70,6 @@ def run_mis(filename):
 
     except Exception as e:
         log("Error in run_mis: {}".format(e))
-
 
 ##########################################################################################################################
 
@@ -88,7 +101,6 @@ def deinitialize_MCU():
         d1 = None
         MCU_initialized = False
         
-
     except Exception as e:
         log("MCU_Host: Error in deinitialize_MCU: {}".format(e))
 
@@ -116,11 +128,10 @@ while True:
             poller.register(msg_socket, zmq.POLLIN)
 
         except Exception as e:
-            log("Error: {}".fromat(e))
+            log("Error: {}".format(e))
 
-if KeyboardInterrupt:
-    log("KeyboardInterrupt")
-    msg_socket.close()
-
+    if KeyboardInterrupt:
+        log("KeyboardInterrupt")
+        msg_socket.close()
 
 ##########################################################################################################################
