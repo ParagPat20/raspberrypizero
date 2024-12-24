@@ -14,12 +14,12 @@ context = zmq.Context()  # Create a ZeroMQ context
 d1 = None
 d2 = None
 selected_drone = None
-MCU_host = '192.168.225.173'
-CD1_host = '192.168.225.149'
-CD2_host = '192.168.225.225'
+MCU_host = '192.168.174.173'
+CD1_host = '192.168.174.149'
+CD2_host = '192.168.174.177'
 CD3_host = CD2_host
 CD4_host = CD1_host
-pc = '192.168.225.161'
+pc = '192.168.174.161'
 
 hosts = {
     'MCU' : MCU_host,
