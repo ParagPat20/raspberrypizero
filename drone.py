@@ -8,25 +8,8 @@ from geopy.distance import great_circle
 import math
 import threading
 import zmq
-import io
-import picamera
-import struct
+
 context = zmq.Context()  # Create a ZeroMQ context
-import json
-import wiringpi
-
-# use 'GPIO naming'
-wiringpi.wiringPiSetupGpio()
-
-# set #18 to be a PWM output
-wiringpi.pinMode(18, wiringpi.GPIO.PWM_OUTPUT)
-
-# set the PWM mode to milliseconds stype
-wiringpi.pwmSetMode(wiringpi.GPIO.PWM_MODE_MS)
-
-# divide down clock
-wiringpi.pwmSetClock(192)
-wiringpi.pwmSetRange(2000)
 
 d1 = None
 d2 = None
@@ -242,7 +225,6 @@ class Drone:
                 # if abs(self.altitude - self.posalt) > 0.1:
                 #     z = (self.altitude-self.posalt)*0.7
                 #     log('sec {} Alt diff change given: {}m/s'.format(self.name,z))
-                #     self.send_ned_velocity_drone(0,0,z)
                 time.sleep(2)
             except Exception as e:
                 log("sec {} Security Error : {}".format(self.name,e))
@@ -423,26 +405,6 @@ class Drone:
             if not self.in_air:
                 break
 
-
-    def servo(self,cmd):
-        delay_period = 0.01
-        close = 'close'
-        open = 'open'
-        try:
-            if cmd == 'close' or cmd == close and self.claw_state=='released':
-                for pulse in range(100, 200, 1):
-                    wiringpi.pwmWrite(18, pulse)
-                    time.sleep(delay_period)
-                    self.claw_state='closed'
-            if cmd == 'open' or cmd == open and self.claw_state=='closed':
-                for pulse in range(200, 100, -1):
-                    wiringpi.pwmWrite(18, pulse)
-                    time.sleep(delay_period)
-                    self.claw_state='released'
-            log('setting servo to {}'.format(cmd))
-        except Exception as e:
-            log(f"Error during servo command: {e}")
-
     def disarm(self):
         try:
             log("Disarming motors")
@@ -491,17 +453,6 @@ class Drone:
         except Exception as e:
             log(f"Error in getting current location: {e}")
             return (0.0, 0.0), 0.0  # Returning default values in case of an error
-
-    def moder(self, cmd):
-        mode_name = str(cmd)
-        self.vehicle.mode = VehicleMode(mode_name)
-        log("{} Mode changed to {}".format(self.name,cmd))
-
-    def exit(self):
-        try:
-            self.vehicle.close()
-        except Exception as e:
-            log(f"Error during vehicle exit: {e}")
 
     def get_vehicle_state(self):
         try:
@@ -554,7 +505,7 @@ class Drone:
     def goto(self, l, alt, groundspeed=0.7):
         try:
             log('\n')
-            log('{} - Calling goto_gps_location_relative(lat={}, lon={}, alt={}, groundspeed={}).'.format(
+            log('{} - Calling goto_gps_location_relative(lat={}, lon={}, alt={}, groundspeed={})'.format(
                 time.ctime(), l[0], l[1], alt, groundspeed))
             destination = LocationGlobalRelative(l[0], l[1], alt)
             log('{} - Before calling goto_gps_location_relative(), vehicle state is:'.format(time.ctime()))
@@ -588,126 +539,15 @@ class Drone:
         except Exception as e:
             log(f"Error calculating distance between two GPS coordinates: {e}")
 
-
-    def camera_server(self):
-        global camera_running
-
-        context = zmq.Context()
-        socket = context.socket(zmq.REQ)
-        socket.bind("tcp://*:5522")
-
+    def check_distance(self,d1,d2):
         try:
-            with picamera.PiCamera() as camera:
-                camera.resolution = (640, 480)  # Adjust as needed
-                camera.framerate = 30  # Adjust as needed
-                time.sleep(2)  # Camera warm-up
-
-                stream = io.BytesIO()
-                for _ in camera.capture_continuous(stream, format="jpeg", use_video_port=True):
-                    # Move to the beginning of the stream for reading
-                    stream.seek(0)
-
-                    # Read the image data from the stream
-                    image_data = stream.read()
-                    # Truncate the stream to prepare for the next capture
-                    stream.seek(0)
-                    stream.truncate()
-                    # Send the image data
-                    socket.send(image_data)
-                    conf=socket.recv_string()
-                    if not camera_running:
-                        break
-
-        except Exception as e:
-            print(f"Error: {e}")
-
-        finally:
-            socket.close()
-            context.term()
-
-    def camera_stop(self):
-        global camera_running
-        camera_running = False
-
-    def move_to_location(self, distance, altitude, direction_degree):
-        """
-        Move the drone to a new location based on distance, altitude, and direction.
-        
-        :param distance: Distance to move in meters.
-        :param altitude: Altitude to maintain in meters.
-        :param direction_degree: Direction in degrees (0 is North, 90 is east).
-        """
-        try:
-            # Get the current GPS location of the drone
-            current_location = (self.vehicle.location.global_relative_frame.lat, 
-                                self.vehicle.location.global_relative_frame.lon)
-
-            # Calculate the new coordinates based on distance and direction
-            new_location = new_coords(current_location, distance, direction_degree)
-
-            # Calculate the distance to the new location
-            distance_to_new_location = calculate_distance(current_location, new_location)
-            distance_to_new_location1 = distance_between_two_gps_coord(current_location, new_location)
-
-            # Log the intended movement
-            log("{} moving to new location {} at altitude {}m with direction {} degrees".format(self.name, new_location, altitude, direction_degree))
-
-            # Check if the new location is within 10 meters
-            if distance_to_new_location <= 10 and distance_to_new_location1 <= 10:
-                # Command the drone to go to the new location at the specified altitude
-                self.goto(new_location, altitude)
-            else:
-                log("{} Move to Location Error: New location is too far ({} meters)".format(self.name, distance_to_new_location))
-
-        except Exception as e:
-            log("{} Move to Location Error: {}".format(self.name, e))
-
-def calculate_distance(location1, location2):
-    """
-    Calculate the distance between two GPS coordinates.
-    
-    :param location1: Tuple of (latitude, longitude) for the first location.
-    :param location2: Tuple of (latitude, longitude) for the second location.
-    :return: Distance in meters.
-    """
-    from geopy.distance import geodesic
-    return geodesic(location1, location2).meters
+            drone1loc = request_gps(hosts[d1])
+            drone2loc = request_gps(hosts[d2])
+            distance = self.distance_between_two_gps_coord(drone1loc,drone2loc)
+            log("Distance between those drones is {} meters".format(distance))
             
-            
-
-
-
-
-#=============================================================================================================
-def distance_between_two_gps_coord(point1, point2):
-    try:
-        distance = great_circle(point1, point2).meters
-        return distance
-    except Exception as e:
-        log(f"Error calculating distance between two GPS coordinates: {e}")
-
-def new_coords(original_gps_coord, displacement, rotation_degree_relative):
-    try:
-        vincentyDistance = geopy.distance.distance(meters=displacement)
-        original_point = geopy.Point(original_gps_coord[0], original_gps_coord[1])
-        new_gps_coord = vincentyDistance.destination(point=original_point, bearing=rotation_degree_relative)
-        new_gps_lat = new_gps_coord.latitude
-        new_gps_lon = new_gps_coord.longitude
-
-        return (round(new_gps_lat, 7), round(new_gps_lon, 7))
-    except Exception as e:
-        log(f"Error in calculating new coordinates: {e}")
-
-    
-def check_distance(d1,d2):
-    try:
-        drone1loc = request_gps(hosts[d1])
-        drone2loc = request_gps(hosts[d2])
-        distance = distance_between_two_gps_coord(drone1loc,drone2loc)
-        log("Distance between those drones is {} meters".format(distance))
-        
-    except Exception as e:
-        log(f"Error in check_distance: {e}")
+        except Exception as e:
+            log(f"Error in check_distance: {e}")
 
 def request_gps(drone):
     '''
@@ -723,12 +563,8 @@ def request_gps(drone):
     log('Requested GPS from {}, Got {}'.format(drone,gps))
     return (float(lat),float(lon))
     
-
-#==============================================================================================================
-
 connected_hosts = set()
 clients = {}
-
 
 import random
 
@@ -761,7 +597,6 @@ def connect_and_register_socket(host):
     socket = context.socket(zmq.PUSH)
     socket.setsockopt(zmq.SNDHWM, 1000)  # Allow up to 1000 queued messages
     socket.connect(f"tcp://{host}:12345")
-    # poller.register(socket, zmq.POLLOUT)  # Register for write events
     clients[host] = socket
     connected_hosts.add(host)
     log("Clients: {}".format(clients))
@@ -771,13 +606,7 @@ def reconnect_socket(host):
     socket.close()
     socket = context.socket(zmq.PUSH)
     socket.connect(f"tcp://{host}:12345")
-    # poller.register(socket, zmq.POLLOUT)
     clients[host] = socket
-    socks = dict(poller.poll(1000))  # Wait for write events with timeout
-    # return socket in socks and socks[socket] == zmq.POLLOUT
-
-
-#==============================================================================================================
 
 def add_drone(string):
     try:
@@ -813,7 +642,6 @@ def log(immediate_command_str):
 
     except zmq.ZMQError as e:
         print("Error sending message: %s", e)  # Log error
-        # Retry queue
 
 def log_reset_server():
     global dealer_socket
@@ -821,14 +649,12 @@ def log_reset_server():
     dealer_socket = context.socket(zmq.DEALER)  # Create a single DEALER socket
     dealer_socket.connect(f"tcp://{pc}:5556")  # Connect to the server
     log("Server has been reset to {}".format(pc))
-
         
 def file_server():
     try:
         context = zmq.Context()
         socket = context.socket(zmq.REP)
 
-        # Change 'your_port' to the actual port you want to use
         socket.bind(f"tcp://{MCU_host}:5577")
         print("File_recieve server Started in MCU!")
 
@@ -852,12 +678,3 @@ def file_server():
         log("MCU has {} Missons".format(str(missions)))
     except Exception as e:
         log("File_Server Error in MCU : {}".format(e))
-
-
-
-def faltu():
-    while True:
-        send(MCU_host,"MCU.servo('open')")
-        time.sleep(3)
-        send(MCU_host,"MCU.servo('close')")
-        time.sleep(3)
