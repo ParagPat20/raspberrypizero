@@ -131,8 +131,8 @@ while True:
         except Exception as e:
             log("Error: {}".format(e))
 
-    if KeyboardInterrupt:
-        log("KeyboardInterrupt")
-        msg_socket.close()
+if KeyboardInterrupt:
+    log("KeyboardInterrupt")
+    msg_socket.close()
 
 ##########################################################################################################################
