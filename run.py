@@ -95,8 +95,7 @@ def initialize_MCU():
 def deinitialize_MCU():
     try:
         global d1, MCU, MCU_initialized
-        MCU.name = "STOP"
-        MCU.exit()
+        MCU.vehicle.close()
         MCU = None
         d1 = None
         MCU_initialized = False

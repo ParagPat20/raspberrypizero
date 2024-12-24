@@ -96,8 +96,7 @@ def initialize_CD1():
 def deinitialize_CD1():
     try:
         global d1, CD1, CD1_initialized
-        CD1.name = "STOP"
-        CD1.exit()
+        CD1.vehicle.close()
         CD1 = None
         d1 = None
         CD1_initialized = False
