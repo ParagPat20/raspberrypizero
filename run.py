@@ -32,7 +32,6 @@ def drone_list_update(cmd):
 def execute_command(immediate_command_str):
     if immediate_command_str.startswith("socat("):
         ipaddress = immediate_command_str.split("(")[1].strip(")")
-        deinitialize_MCU()
         execute_socat_command(ipaddress)
         return
     try:
