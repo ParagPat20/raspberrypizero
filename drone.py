@@ -43,7 +43,7 @@ def tmuxkill():
         import subprocess
         
         # Create new tmux session with socat command
-        command = f"sudo tmux kill-session"
+        command = f"sudo tmux kill-session -t mav"
         subprocess.run(command, shell=True, check=True)
         
         log("TMUX session killed successfully")
