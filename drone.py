@@ -38,6 +38,18 @@ poller = zmq.Poller
 wifi_status = True
 camera_running = True
 
+def tmuxkill():
+    try:
+        import subprocess
+        
+        # Create new tmux session with socat command
+        command = f"sudo tmux kill-session"
+        subprocess.run(command, shell=True, check=True)
+        
+        log("TMUX session killed successfully")
+    except Exception as e:
+        log("Error executing socat command: {}".format(e))
+
 class Drone:
     
     def __init__(self,name,connection_string, baud=None):

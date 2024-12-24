@@ -46,9 +46,6 @@ def execute_socat_command(ipaddress):
     try:
         import subprocess
         
-        # Kill existing tmux session
-        subprocess.run(["sudo", "tmux", "kill-session"], check=True)
-        
         # Create new tmux session with socat command
         command = f"sudo tmux new-session -d -s mav 'socat UDP4-DATAGRAM:{ipaddress}:14550 /dev/serial0,b115200,raw,echo=0'"
         subprocess.run(command, shell=True, check=True)
@@ -56,6 +53,7 @@ def execute_socat_command(ipaddress):
         log("socat command executed successfully with IP: {}".format(ipaddress))
     except Exception as e:
         log("Error executing socat command: {}".format(e))
+        
 
 def run_mis(filename):
     try:
